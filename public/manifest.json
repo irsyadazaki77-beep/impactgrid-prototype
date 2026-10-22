@@ -1,0 +1,21 @@
+{
+  "name": "Telkomsel ImpactGrid Control Tower",
+  "short_name": "ImpactGrid",
+  "description": "Executive Decision Support System for Telkomsel Network Energy Efficiency & Scope 2 Decarbonization",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#ED0226",
+  "icons": [
+    {
+      "src": "/assets/logo_utama_impactgrid.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo_utama_impactgrid.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
