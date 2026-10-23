@@ -31,18 +31,31 @@ export const PRESENTATION_STEPS = Object.freeze([
   {
     step: 3,
     startSeconds: 120,
-    endSeconds: 210,
-    timing: '2:00–3:30',
-    title: 'Simulasi: empat langkah usulan',
+    endSeconds: 165,
+    timing: '2:00–2:45',
+    title: 'Simulasi: rekonsiliasi dan bandingkan skenario',
     tab: 'scenariolab',
-    message: 'Empat modul menggambarkan alur kerja; semua angka di layar adalah DEMO/SIMULATED.',
-    visual: 'Simulasi Skenario • tunjukkan input sensitivitas, bukan hasil jaringan',
+    message: 'Mulai dari rekonsiliasi data dan membandingkan skenario; semua angka di layar adalah DEMO/SIMULATED.',
+    visual: 'Simulasi Skenario • tinjau input sensitivitas, bukan hasil jaringan',
     evidence: 'Data pada prototype adalah contoh/simulasi. Tidak ada koneksi ke jaringan Telkomsel atau perangkat.',
-    script: 'Di prototipe ini, kita melihat rancangan empat langkah: rekonsiliasi data, bandingkan skenario, pilih portofolio sesuai anggaran, lalu catat hasil dan persetujuannya. Banner di atas menjelaskan bahwa data di layar adalah simulasi. Tidak ada integrasi langsung ke jaringan Telkomsel atau pengiriman perintah ke perangkat.',
-    presenterNote: 'Network Data Hub, Scenario Lab, Investment Prioritizer, dan ESG Impact Verification adalah rancangan dalam proposal; jangan menyebutnya sistem produksi.'
+    script: 'Di prototipe ini, kita melihat rancangan empat langkah. Pertama, rekonsiliasi data dan bandingkan skenario. Banner di atas menjelaskan bahwa data di layar adalah simulasi.',
+    presenterNote: 'Network Data Hub dan Scenario Lab adalah rancangan dalam proposal; jangan menyebutnya sistem produksi.'
   },
   {
     step: 4,
+    startSeconds: 165,
+    endSeconds: 210,
+    timing: '2:45–3:30',
+    title: 'Simulasi: prioritisasi dan bukti keputusan',
+    tab: 'scenariolab',
+    message: 'Prioritisasi dan pencatatan bukti masih berupa rancangan; tidak ada aksi ke jaringan.',
+    visual: 'Scenario Lab • lanjutkan ke portofolio dan persetujuan',
+    evidence: 'Semua angka prototype adalah simulasi. Tidak ada koneksi atau perintah ke perangkat.',
+    script: 'Langkah berikutnya ialah pilih portofolio sesuai anggaran, lalu catat hasil dan persetujuannya. Tidak ada integrasi langsung ke jaringan Telkomsel atau pengiriman perintah ke perangkat.',
+    presenterNote: 'Investment Prioritizer dan ESG Impact Verification adalah rancangan dalam proposal; prototype tidak menerapkan perubahan pada jaringan.'
+  },
+  {
+    step: 5,
     startSeconds: 210,
     endSeconds: 270,
     timing: '3:30–4:30',
@@ -55,7 +68,7 @@ export const PRESENTATION_STEPS = Object.freeze([
     presenterNote: 'Rp95 juta dan jumlah lokasi adalah parameter usulan, bukan anggaran yang disetujui atau pilot yang sudah berjalan.'
   },
   {
-    step: 5,
+    step: 6,
     startSeconds: 270,
     endSeconds: 345,
     timing: '4:30–5:45',
@@ -68,7 +81,7 @@ export const PRESENTATION_STEPS = Object.freeze([
     presenterNote: 'Kedua baseline adalah asumsi proposal yang belum diverifikasi. Nilai mengikuti horizon arus kas proposal 2027–2031; sebut sebagai sensitivitas, bukan forecast.'
   },
   {
-    step: 6,
+    step: 7,
     startSeconds: 345,
     endSeconds: 390,
     timing: '5:45–6:30',
@@ -81,7 +94,7 @@ export const PRESENTATION_STEPS = Object.freeze([
     presenterNote: 'Jangan mengklaim reduksi emisi, assurance, atau hasil pilot. Hash memeriksa perubahan berkas, bukan kebenaran data sumber.'
   },
   {
-    step: 7,
+    step: 8,
     startSeconds: 390,
     endSeconds: 420,
     timing: '6:30–7:00',

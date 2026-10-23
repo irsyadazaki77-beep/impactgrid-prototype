@@ -4,6 +4,7 @@ import cors from 'cors';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
+const HOST = process.env.HOST || '127.0.0.1';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const ALLOWED_MODELS = new Set(['gemini-2.5-flash']);
 const MAX_REQUESTS_PER_WINDOW = 30;
@@ -105,7 +106,7 @@ app.use((err, _req, res, _next) => {
 });
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => console.log(`ImpactGrid optional AI proxy listening on port ${PORT}`));
+  app.listen(PORT, HOST, () => console.log(`ImpactGrid optional AI proxy listening on ${HOST}:${PORT}`));
 }
 
 export default app;

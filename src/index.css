@@ -11,6 +11,10 @@
   --ig-accent-soft: #fff1f2;
   --ig-success: #166534;
   --ig-warning: #92400e;
+  --ig-warning-surface: #fffbeb;
+  --ig-warning-border: #fcd34d;
+  --ig-warning-text: #78350f;
+  --ig-warning-strong: #92400e;
   --ig-radius: 14px;
   --ig-shadow: 0 1px 3px rgb(15 23 42 / .06), 0 1px 2px rgb(15 23 42 / .04);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -128,6 +132,10 @@ p { line-height: 1.55; }
   --ig-muted: #cbd5e1;
   --ig-border: #334155;
   --ig-accent-soft: #3b1722;
+  --ig-warning-surface: #3b2a0d;
+  --ig-warning-border: #a16207;
+  --ig-warning-text: #fef3c7;
+  --ig-warning-strong: #fcd34d;
   background: var(--ig-bg);
   color: var(--ig-text);
 }
@@ -149,6 +157,12 @@ p { line-height: 1.55; }
 .impactgrid-app[data-theme="dark"] .bg-slate-800\/50 { background-color: #1e293b; }
 .impactgrid-app[data-theme="dark"] .bg-slate-100\/80,
 .impactgrid-app[data-theme="dark"] .bg-slate-50\/50 { background-color: #172033; }
+.impactgrid-app[data-theme="dark"] .bg-amber-50,
+.impactgrid-app[data-theme="dark"] .bg-amber-50\/95 { background-color: var(--ig-warning-surface); }
+.impactgrid-app[data-theme="dark"] .border-amber-200,
+.impactgrid-app[data-theme="dark"] .border-amber-300 { border-color: var(--ig-warning-border); }
+.impactgrid-app[data-theme="dark"] .text-amber-950,
+.impactgrid-app[data-theme="dark"] .text-amber-900 { color: var(--ig-warning-text); }
 .impactgrid-app[data-theme="dark"] .text-slate-900,
 .impactgrid-app[data-theme="dark"] .text-slate-800,
 .impactgrid-app[data-theme="dark"] .text-slate-700,
@@ -164,7 +178,7 @@ p { line-height: 1.55; }
 .impactgrid-app[data-theme="dark"] .text-rose-700 { color: #fda4af; }
 .impactgrid-app[data-theme="dark"] .text-amber-600,
 .impactgrid-app[data-theme="dark"] .text-amber-700,
-.impactgrid-app[data-theme="dark"] .text-amber-800 { color: #fcd34d; }
+.impactgrid-app[data-theme="dark"] .text-amber-800 { color: var(--ig-warning-strong); }
 .impactgrid-app[data-theme="dark"] .text-emerald-600,
 .impactgrid-app[data-theme="dark"] .text-emerald-700,
 .impactgrid-app[data-theme="dark"] .text-emerald-800,
@@ -214,8 +228,8 @@ p { line-height: 1.55; }
   .impactgrid-app header.sticky > div:last-child > div:first-child > span:nth-of-type(n+3) ~ span { display: none; }
   .impactgrid-app header.sticky > div:last-child { justify-content: flex-start; overflow: visible; }
   .impact-sidebar { display: none; }
-  .mobile-nav-toggle { display: inline-flex; position: sticky; top: 60px; align-self: flex-start; z-index: 32; gap: 8px; align-items: center; margin: 8px 12px 0; padding: 8px 12px; border: 1px solid var(--ig-border); border-radius: 9px; background: white; color: var(--ig-text); font-weight: 700; box-shadow: var(--ig-shadow); }
-  .impact-sidebar.mobile-open { display: flex; position: fixed; top: 60px; left: 0; bottom: 0; height: auto; width: min(300px, 86vw); box-shadow: 12px 0 36px rgb(15 23 42 / .14); }
+  .mobile-nav-toggle { display: inline-flex; position: sticky; top: 60px; align-self: flex-start; z-index: 46; gap: 8px; align-items: center; margin: 8px 12px 0; padding: 8px 12px; border: 1px solid var(--ig-border); border-radius: 9px; background: white; color: var(--ig-text); font-weight: 700; box-shadow: var(--ig-shadow); }
+  .impact-sidebar.mobile-open { display: flex; position: fixed; top: 60px; left: 0; bottom: 0; height: auto; width: min(300px, 86vw); z-index: 45; box-shadow: 12px 0 36px rgb(15 23 42 / .14); }
   .sidebar-backdrop { display: block; position: fixed; inset: 60px 0 0; z-index: 29; border: 0; background: rgb(15 23 42 / .28); }
 }
 

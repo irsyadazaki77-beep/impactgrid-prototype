@@ -25,6 +25,12 @@ const BodDefenseModal = lazy(() => import('./components/BodDefenseModal'));
 const AiCopilotModal = lazy(() => import('./components/AiCopilotModal'));
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
+const PRESENTATION_PREFLIGHT_ITEMS = [
+  'Seluruh angka layar adalah konteks publik atau simulasi/asumsi; tidak ada hasil pilot nyata.',
+  'Aplikasi tidak terhubung atau mengirim perintah ke BTS maupun jaringan aktif.',
+  'Demo dapat berjalan offline; AI eksternal opsional dan fallback lokal tersedia.',
+  'Pitch akan mengembalikan tab, skenario, skala, dan tema ke preset awal.'
+];
 
 function ModuleLoadingState() {
   return <div className="module-loading" role="status" aria-live="polite" aria-label="Memuat modul">
@@ -48,6 +54,8 @@ export default function App() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isDirectorTourOpen, setIsDirectorTourOpen] = useState(false);
   const [isPitchWalkthroughActive, setIsPitchWalkthroughActive] = useState(false);
+  const [isPreflightOpen, setIsPreflightOpen] = useState(false);
+  const [preflightChecks, setPreflightChecks] = useState(() => PRESENTATION_PREFLIGHT_ITEMS.map(() => false));
   const [pitchNotesExpanded, setPitchNotesExpanded] = useState(false);
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isExecutiveMemoOpen, setIsExecutiveMemoOpen] = useState(false);
@@ -61,15 +69,49 @@ export default function App() {
   // Live Executive Simulation Console State
   const [isSimBarOpen, setIsSimBarOpen] = useState(false);
   const [simState, setSimState] = useState(createInitialSimulationState);
-  const [isOnline, setIsOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
+  const [connectivityStatus, setConnectivityStatus] = useState(() => typeof navigator === 'undefined' || navigator.onLine ? 'checking' : 'offline');
 
   useEffect(() => {
-    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
+    let isMounted = true;
+    let controller;
+    let probeGeneration = 0;
+    const checkHost = async () => {
+      const generation = ++probeGeneration;
+      if (!navigator.onLine) {
+        setConnectivityStatus('offline');
+        return;
+      }
+      controller?.abort();
+      const requestController = new AbortController();
+      controller = requestController;
+      const timeout = window.setTimeout(() => requestController.abort(), 2500);
+      try {
+        const response = await fetch(`${window.location.origin}/?impactgrid-connectivity=${Date.now()}`, {
+          method: 'HEAD', cache: 'no-store', credentials: 'same-origin', signal: requestController.signal,
+        });
+        if (isMounted && generation === probeGeneration) setConnectivityStatus(response.ok ? 'reachable' : 'unreachable');
+      } catch {
+        if (isMounted && generation === probeGeneration) setConnectivityStatus(navigator.onLine ? 'unreachable' : 'offline');
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    };
+    const handleOffline = () => {
+      probeGeneration += 1;
+      controller?.abort();
+      setConnectivityStatus('offline');
+    };
+    window.addEventListener('online', checkHost);
+    window.addEventListener('offline', handleOffline);
+    void checkHost();
+    const probeInterval = window.setInterval(checkHost, 30_000);
     return () => {
-      window.removeEventListener('online', updateOnlineStatus);
-      window.removeEventListener('offline', updateOnlineStatus);
+      isMounted = false;
+      probeGeneration += 1;
+      controller?.abort();
+      window.clearInterval(probeInterval);
+      window.removeEventListener('online', checkHost);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
@@ -98,6 +140,7 @@ export default function App() {
     setLoadedTabs(new Set(['overview']));
     setIsSimBarOpen(false);
     setIsPitchWalkthroughActive(false);
+    setIsPreflightOpen(false);
     setPitchNotesExpanded(false);
     setIsDirectorTourOpen(false);
     setIsEmergencyModalOpen(false);
@@ -114,15 +157,19 @@ export default function App() {
     try { localStorage.setItem('impactgrid-theme', 'light'); } catch { /* Keep the presentation light for this session. */ }
     setIsPitchWalkthroughActive(true);
   }, [resetDemo]);
+  const requestPresentationStart = useCallback(() => {
+    setPreflightChecks(PRESENTATION_PREFLIGHT_ITEMS.map(() => false));
+    setIsPreflightOpen(true);
+  }, []);
   const togglePitchWalkthrough = useCallback(() => {
     if (isPitchWalkthroughActive) {
       setIsPitchWalkthroughActive(false);
       setPitchNotesExpanded(false);
-    } else startPresentation();
-  }, [isPitchWalkthroughActive, startPresentation]);
+    } else requestPresentationStart();
+  }, [isPitchWalkthroughActive, requestPresentationStart]);
 
   // Presenter Keyboard Shortcuts (T = Tour, S = Stress Test, P = Print Memo, Q = Q&A Defense, E = Simulation Bar, 1-9 = Tabs)
-  const hasBlockingModal = isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen;
+  const hasBlockingModal = isPreflightOpen || isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen;
   useEffect(() => {
     if (hasBlockingModal) return undefined;
     const handleKeyDown = (e) => {
@@ -201,7 +248,7 @@ export default function App() {
         })}
       />
 
-      <div className={`demo-status-bar border-b px-4 py-2 text-center text-xs font-semibold shadow-sm ${isOnline ? 'border-amber-300 bg-amber-50 text-amber-950' : 'border-sky-300 bg-sky-50 text-sky-950'}`} role="status">{isOnline ? 'DEMO LOKAL • Semua data adalah contoh/simulasi • Tidak ada koneksi atau perintah ke jaringan' : 'OFFLINE • Simulasi lokal tetap tersedia; peta dasar dan tautan sumber memerlukan internet'}</div>
+      <div className={`demo-status-bar border-b px-4 py-2 text-center text-xs font-semibold shadow-sm ${connectivityStatus === 'reachable' ? 'border-amber-300 bg-amber-50 text-amber-950' : 'border-sky-300 bg-sky-50 text-sky-950'}`} role="status">{connectivityStatus === 'reachable' ? 'DEMO LOKAL • Semua data adalah contoh/simulasi • Tidak ada koneksi atau perintah ke jaringan' : connectivityStatus === 'checking' ? 'MEMERIKSA HOST DEMO • Simulasi berjalan secara lokal' : connectivityStatus === 'offline' ? 'OFFLINE • Simulasi lokal tetap tersedia; peta dasar dan tautan sumber memerlukan internet' : 'HOST DEMO TIDAK TERJANGKAU • Simulasi lokal tetap tersedia; peta dan tautan sumber mungkin tidak tersedia'}</div>
       {/* Simulation Controls (local demo only) */}
       <GlobalSimulationBar
         key={resetVersion}
@@ -302,6 +349,60 @@ export default function App() {
           }
         }}
       /></Suspense></AppErrorBoundary>}
+
+      {isPreflightOpen && <div
+        className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="presentation-preflight-title"
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            setIsPreflightOpen(false);
+            return;
+          }
+          if (event.key === 'Tab') {
+            const focusable = [...event.currentTarget.querySelectorAll('input:not(:disabled), button:not(:disabled)')];
+            const first = focusable[0];
+            const last = focusable.at(-1);
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault();
+              last?.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault();
+              first?.focus();
+            }
+          }
+        }}
+      >
+        <section className="w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-2xl sm:p-7">
+          <p className="text-xs font-black uppercase tracking-wider text-red-700">Preflight demo · 7 menit</p>
+          <h2 id="presentation-preflight-title" className="mt-1 text-xl font-black">Periksa kesiapan presentasi</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">Konfirmasi batas demo sebelum pitch dimulai. Skenario akan direset ke preset lokal saat Anda melanjutkan.</p>
+          <ul className="mt-4 space-y-3">
+            {PRESENTATION_PREFLIGHT_ITEMS.map((item, index) => <li key={item}>
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm leading-relaxed hover:bg-slate-50">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 shrink-0 accent-red-600"
+                  autoFocus={index === 0}
+                  checked={preflightChecks[index]}
+                  onChange={(event) => setPreflightChecks((checks) => checks.map((checked, checkIndex) => checkIndex === index ? event.target.checked : checked))}
+                />
+                <span>{item}</span>
+              </label>
+            </li>)}
+          </ul>
+          <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row">
+            <button type="button" onClick={() => setIsPreflightOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100">Batal</button>
+            <button
+              type="button"
+              disabled={!preflightChecks.every(Boolean)}
+              onClick={startPresentation}
+              className="rounded-xl bg-[#ED0226] px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >Mulai pitch dan reset demo</button>
+          </div>
+        </section>
+      </div>}
 
       {/* Live Presenter Pitch Walkthrough Teleprompter */}
       <GuidedPitchBar

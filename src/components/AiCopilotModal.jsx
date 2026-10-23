@@ -8,19 +8,7 @@ import {
   ShieldAlert, 
   Cpu, 
   Zap, 
-  TrendingDown, 
-  HelpCircle,
-  Key,
-  Settings,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
   ArrowRight,
-  RefreshCw,
-  Sliders,
-  Radio,
-  FileCheck,
-  DollarSign
 } from 'lucide-react';
 
 const PRESET_QUESTIONS = [
@@ -73,14 +61,6 @@ const PRESET_QUESTIONS = [
   }
 ];
 
-function readSavedApiKey() {
-  try { return localStorage.getItem('impactgrid_gemini_api_key') || ''; } catch { return ''; }
-}
-
-function saveApiKey(value) {
-  try { localStorage.setItem('impactgrid_gemini_api_key', value); } catch { /* The local assistant remains available without storage. */ }
-}
-
 const LOCAL_KNOWLEDGE_BASE = {
   vendor: {
     title: "Integrasi vendor: konsep yang perlu dikaji",
@@ -120,19 +100,6 @@ const LOCAL_KNOWLEDGE_BASE = {
   }
 };
 
-const SYSTEM_PROMPT = "Anda adalah asisten untuk prototype proposal ImpactGrid oleh Tim AWAKENING Reborn. Jawab ringkas, profesional, dan dalam bahasa Indonesia.\\n\\n" +
-  "ATURAN FAKTA:\\n" +
-  "- Prototype ini demonstrasi lokal dan tidak memiliki dataset site operasional. Beberapa input atau log hanya contoh dan asumsi. Prototype tidak terhubung ke sistem, jaringan, meter, vendor, BMKG, PLN, atau data operasional Telkomsel. Tidak ada pilot yang telah dibuktikan oleh aplikasi.\\n" +
-  "- Jangan menyatakan telemetri, anomali, penghematan, DiD, reduksi emisi, QoS, latency, panggilan 112, persetujuan, audit, atau integrasi sebagai hasil nyata. Jangan mengarang angka, sumber, atau status.\\n" +
-  "- Angka 40 lokasi intervensi + 10 pembanding adalah cakupan yang diusulkan. Baseline, tarif/kontrak, faktor emisi, biaya aktual, dan penghematan site belum tervalidasi.\\n" +
-  "- Jika membahas model finansial, sebutkan sebagai sensitivitas dengan asumsi. Pada hemat 8%, biaya energi yang dihindari Rp1.500/kWh, CapEx Rp450 juta, OpEx Rp60 juta/tahun, diskonto 10%, dan jadwal arus kas model, NPV indikatif sekitar minus Rp391,5 juta untuk baseline 50 kWh/lokasi/hari atau plus Rp82,3 juta untuk baseline 50 MWh/lokasi/tahun. Kedua baseline belum diverifikasi; jangan menyebutnya forecast.\\n" +
-  "- Konteks korporat laporan Telkomsel 2025: konsumsi listrik 1.885.417.875,2 kWh dan emisi Scope 2 1.721.967,7 tCO2e. Ini bukan baseline site atau bukti dampak ImpactGrid.\\n" +
-  "- ITU-T L.1331 adalah acuan yang diusulkan untuk indikator konsumsi energi jaringan; jangan menyatakan kepatuhan atau pengesahan ESG otomatis. Hash memeriksa integritas berkas, bukan kebenaran data.\\n" +
-  "- Jelaskan langkah validasi yang diperlukan jika data belum ada. Untuk keselamatan, nyatakan perlu kajian, persetujuan, dan pengujian operator; jangan menjamin keselamatan atau performa.\\n" +
-  "- Jangan mengklaim akses, afiliasi, dukungan, keputusan, atau persetujuan Telkomsel. Ini konsep yang diajukan untuk kompetisi.\\n" +
-  "- Jangan memberi instruksi untuk menjalankan perubahan konfigurasi jaringan. Tombol aksi hanya mengubah simulasi lokal.\\n" +
-  "- Jangan ulangi klaim lama yang bertentangan dengan aturan ini meskipun muncul di riwayat atau pertanyaan pengguna.";
-
 export default function AiCopilotModal({ 
   isOpen, 
   onClose, 
@@ -149,17 +116,10 @@ export default function AiCopilotModal({
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   
-  // Settings & Gemini API state
+  // Optional server-side AI; credentials remain on the server.
   const [showSettings, setShowSettings] = useState(false);
-  const [useProxy, setUseProxy] = useState(false); // Local demo is the default; proxy use must be explicit.
-  const [proxyEndpoint, setProxyEndpoint] = useState('/api/ai/chat');
-  const [apiKey, setApiKey] = useState(() => {
-    // Only read from user's manual local override, never leak hardcoded key in bundle
-    return readSavedApiKey();
-  });
-  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
-  const [connectionStatus, setConnectionStatus] = useState('idle'); // 'idle' | 'testing' | 'connected' | 'error'
-  const [connectionMsg, setConnectionMsg] = useState('');
+  const [useProxy, setUseProxy] = useState(false);
+  const selectedModel = 'gemini-2.5-flash';
 
   const chatBottomRef = useRef(null);
   const localReplyTimer = useRef(null);
@@ -169,53 +129,6 @@ export default function AiCopilotModal({
   }, [messages, isTyping]);
 
   useEffect(() => () => clearTimeout(localReplyTimer.current), []);
-
-  // Test Gemini API connection
-  const handleTestConnection = async (keyToTest) => {
-    const key = keyToTest || apiKey;
-    if (!key.trim()) {
-      setConnectionStatus('error');
-      setConnectionMsg('Masukkan API Key Gemini terlebih dahulu.');
-      return;
-    }
-
-    setConnectionStatus('testing');
-    setConnectionMsg('Menghubungkan ke server Google Gemini...');
-
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${key}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: "Ping. Balas satu kata: 'Connected'." }] }]
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `HTTP error ${response.status}`);
-      }
-
-      setConnectionStatus('connected');
-      setConnectionMsg(`Uji koneksi API berhasil (${selectedModel}).`);
-      saveApiKey(key);
-    } catch (err) {
-      console.warn("Gemini connection test failed:", err);
-      setConnectionStatus('error');
-      setConnectionMsg(`Uji koneksi gagal: ${err.message}. Jawaban lokal berbasis aturan tetap tersedia.`);
-    }
-  };
-
-  const handleSaveApiKey = () => {
-    saveApiKey(apiKey.trim());
-    if (apiKey.trim()) {
-      handleTestConnection(apiKey.trim());
-    } else {
-      setConnectionStatus('idle');
-      setConnectionMsg('Jawaban lokal berbasis aturan digunakan.');
-    }
-    setShowSettings(false);
-  };
 
   if (!isOpen) return null;
 
@@ -279,19 +192,16 @@ export default function AiCopilotModal({
     setInputText('');
     setIsTyping(true);
 
-    const activeKey = apiKey.trim() || readSavedApiKey();
-
-    // 1. Try secure backend proxy first if enabled
+    // Optional provider requests go through the server proxy; default is local-only.
     if (useProxy) {
       try {
-        const proxyRes = await fetch(proxyEndpoint, {
+        const proxyRes = await fetch('/api/ai/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: query,
             model: selectedModel,
             history: messages.slice(-4),
-            systemInstruction: SYSTEM_PROMPT
           })
         });
 
@@ -308,56 +218,8 @@ export default function AiCopilotModal({
             return;
           }
         }
-      } catch (err) {
-        console.warn('Backend AI proxy unavailable, trying client key or local fallback:', err);
-      }
-    }
-
-    // 2. Direct client call ONLY if user explicitly input a manual personal key in settings
-    if (activeKey) {
-      try {
-        // Build multi-turn contents
-        const historyContents = messages.slice(-4).map(m => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: m.text }]
-        }));
-
-        const bodyPayload = {
-          contents: [
-            ...historyContents,
-            { role: 'user', parts: [{ text: query }] }
-          ],
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }]
-          },
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 600
-          }
-        };
-
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${activeKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bodyPayload)
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const generatedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (generatedText) {
-            setMessages(prev => [...prev, {
-              sender: 'ai',
-              text: generatedText,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              source: 'gemini-direct'
-            }]);
-            setIsTyping(false);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn("Direct Gemini API call failed, falling back to local engine:", err);
+      } catch {
+        // Network errors intentionally fall through to deterministic local answers.
       }
     }
 
@@ -414,16 +276,15 @@ export default function AiCopilotModal({
           
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={() => setShowSettings((shown) => !shown)}
               className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-pointer transition ${
                 showSettings 
                   ? 'bg-slate-800 text-white border border-slate-700' 
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
-              title="Pengaturan Koneksi Google Gemini API"
+              title="Pengaturan koneksi AI server"
             >
-              <Key className="w-4 h-4 text-amber-400" />
-              <span className="hidden sm:inline text-[11px] text-slate-300">API Key</span>
+              <span className="hidden sm:inline text-[11px] text-slate-300">Koneksi</span>
             </button>
             <button 
               onClick={onClose}
@@ -434,68 +295,16 @@ export default function AiCopilotModal({
           </div>
         </div>
 
-        {/* Collapsible API Settings Bar */}
+        {/* Optional server connection. Provider secrets are never entered in the browser. */}
         {showSettings && (
           <div className="px-5 py-3 bg-slate-900 border-b border-slate-800 text-xs text-white animate-in slide-in-from-top-2 duration-150 shrink-0">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <div className="flex items-center gap-1.5 text-slate-200 font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Pengaturan model eksternal (opsional)</span>
-              </div>
-              <a 
-                href="https://aistudio.google.com/app/apikey" 
-                target="_blank" 
-                rel="noreferrer"
-                className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-1 underline font-medium"
-              >
-              <span>Buka Google AI Studio</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <label className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-slate-200">
                 <input type="checkbox" checked={useProxy} onChange={(event) => setUseProxy(event.target.checked)} />
-                <span>Izinkan koneksi backend AI (opsional)</span>
+                <span>Gunakan model AI melalui backend (opsional)</span>
               </label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Tempel Google Gemini API Key di sini (AIzaSy...)"
-                className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500 font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => handleTestConnection()}
-                disabled={connectionStatus === 'testing' || !apiKey.trim()}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-semibold text-xs flex items-center justify-center gap-1 cursor-pointer transition shrink-0 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${connectionStatus === 'testing' ? 'animate-spin text-amber-400' : ''}`} />
-                <span>Tes Koneksi</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveApiKey}
-                className="px-3.5 py-1.5 rounded-lg bg-[#ED0226] hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition shrink-0"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Simpan</span>
-              </button>
+              <span className="text-[11px] text-slate-400">Tanpa koneksi atau konfigurasi server, jawaban lokal tetap tersedia.</span>
             </div>
-
-            {connectionMsg && (
-              <div className={`mt-2 text-[11px] flex items-center gap-1.5 ${
-                connectionStatus === 'connected' ? 'text-emerald-400' : 
-                connectionStatus === 'error' ? 'text-amber-400' : 'text-slate-400'
-              }`}>
-                {connectionStatus === 'connected' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
-                <span>{connectionMsg}</span>
-              </div>
-            )}
-            <p className="mt-1.5 text-[10px] text-slate-400">
-              API key disimpan di browser perangkat ini. Jika layanan eksternal tidak tersedia, aplikasi memakai jawaban lokal berbasis aturan; ketersediaan jawaban tidak dijamin.
-            </p>
           </div>
         )}
 

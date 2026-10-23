@@ -14,7 +14,7 @@ Angka publik yang dipakai sebagai konteks berasal dari sumber resmi tahun 2025: 
 
 ## Alur demonstrasi yang disarankan
 
-Gunakan tombol **Start Presentation** untuk memulai preset demo dan skrip direksi tujuh menit. Presenter notes memuat naskah resmi, cue visual, sumber/label asumsi, dan batas klaim. Tahapannya: masalah → solusi → simulasi → validasi → finansial → ESG → keputusan. Gunakan **Reset demo** untuk menutup presentasi dan mengembalikan state simulasi; tombol ulangi di presenter dock mengulang skrip beserta preset yang sama.
+Gunakan tombol **Start Presentation** untuk memulai preset demo dan skrip direksi tujuh menit. Presenter notes memuat naskah resmi, cue visual, sumber/label asumsi, dan batas klaim. Delapan tahapnya: masalah → solusi → rekonsiliasi/skenario → prioritisasi/bukti keputusan → validasi → finansial → ESG → keputusan. Gunakan **Reset demo** untuk menutup presentasi dan mengembalikan state simulasi; tombol ulangi di presenter dock mengulang skrip beserta preset yang sama.
 
 - **0:00–1:00 Masalah:** ringkasan konsumsi listrik dan Scope 2 korporat 2025; bukan baseline lokasi.
 - **1:00–2:00 Solusi:** jelaskan pertanyaan keputusan dan audit kemampuan existing.
@@ -49,21 +49,35 @@ Vite menampilkan alamat lokal, biasanya `http://localhost:5173`.
 
 Di Windows, skrip peluncur tersedia satu tingkat di atas folder prototype sebagai `..\run-prototype.bat`.
 
+Untuk mengaktifkan jawaban AI server-side secara opsional, buka terminal kedua dan jalankan `npm run dev:server`. Tanpa `GEMINI_API_KEY` di environment server, aplikasi tetap memakai jawaban lokal. Untuk provider eksternal, atur `GEMINI_API_KEY` hanya di environment server sebelum menjalankan skrip tersebut. Jangan menaruhnya di variabel `VITE_*`, source frontend, atau browser. Vite meneruskan `/api` ke server lokal port 3001; daftar origin lintas domain dapat diatur lewat `CORS_ORIGINS`.
+
+Proxy AI hanya bind ke `127.0.0.1` secara default. Jangan mengeksposnya langsung ke internet: CORS bukan autentikasi. Hosting lintas jaringan memerlukan gateway/autentikasi, TLS, konfigurasi origin, dan rate limit yang sesuai sebelum diaktifkan. Untuk bind eksplisit, `HOST` harus diatur hanya di belakang kontrol tersebut.
+
+## Hosting demo statis di Vercel
+
+Import repository ini sebagai proyek Vercel dan gunakan root repository. [vercel.json](./vercel.json) menetapkan `npm ci`, `npm run build`, folder output `dist`, dan rewrite SPA ke `index.html` agar akses langsung/refresh tetap membuka aplikasi. Versi Vite pada lockfile memerlukan Node.js 20.19+ atau 22.12+; lokal audit memakai Node 24.18.0. Demo statis tidak memerlukan environment variable frontend. Jangan menambahkan secret dengan prefix `VITE_`: nilai tersebut masuk ke bundle browser. Proxy Express opsional bukan Vercel Function dan tetap loopback-only; gunakan jawaban AI lokal pada deployment statis.
+
+Sebelum membagikan URL Preview/Production, cek halaman utama dan deep path dengan refresh, semua asset lokal, status demo, dan fallback map saat tile eksternal tidak dapat diakses. Deployment Vercel aktual memerlukan akses proyek/domain dan belum dijalankan dalam audit workspace ini.
+
 ## Validasi build dan demo
 
 ```bash
+npm ci
 npm run build
-npm run test
-npx playwright install chromium
+npm test
 npm run test:e2e
 ```
 
-`npm run test:e2e` membangun versi produksi lebih dahulu, lalu menguji navigasi modul, modal, reset, fallback offline, AI lokal, fungsi cetak/PDF, dan lebar desktop, tablet, serta mobile di Chromium. Tes ini juga mencetak metrik cold load browser.
+E2E Chromium membutuhkan browser Playwright yang sudah terpasang. Jika belum ada:
 
-### Snapshot verifikasi FASE 7 (23 Oktober 2026)
+```bash
+npx playwright install chromium
+```
 
-- `npm run build`: lulus, 2.576 modul Vite.
-- `npm run test`: 18 tes lulus.
-- `npm run test:e2e`: 8 tes Chromium lulus; pitch 420 detik dijalankan memakai clock virtual. Browser menguji preset ulang yang reproducible, ketujuh tahap/navigasi, presenter notes, modal/shortcut, viewport 1920×1080 dan mobile 390 px, overflow horizontal, offline fallback, serta error JavaScript.
-- Pada cold-load run final lokal tanpa throttling: DOMContentLoaded 52 ms, LCP 460 ms, JavaScript awal 102.511 byte ditransfer / 322.345 byte terurai. Angka ini khusus lingkungan lokal dan dapat berubah antar-run.
-- Tidak ada kegagalan test tersisa. Node menampilkan peringatan konfigurasi `NO_COLOR`/`FORCE_COLOR`; tidak ada console error browser pada tes pitch.
+`npm run test:e2e` membangun versi produksi lebih dahulu, lalu memeriksa navigasi modul, mode Executive/Engineering, modal, reset, simulasi keselamatan lokal, fallback AI offline/gagal, fungsi cetak laporan, tema Light/Dark, refresh deep path, asset lokal, status/fallback peta, dan layout desktop 1366×768, 1920×1080, tablet, serta smartphone di Chromium. Test visual menyimpan screenshot audit pada `test-results` untuk dashboard, ESG, dan Guided Pitch; belum ada baseline screenshot komited di repository. Pitch tujuh menit dijalankan dengan clock virtual agar seluruh rentang waktu dan perpindahan tahap dapat diperiksa tanpa menunggu tujuh menit nyata.
+
+## Release candidate
+
+Hasil dan batas audit rilis terbaru ada di [RELEASE_CANDIDATE_REPORT.md](./RELEASE_CANDIDATE_REPORT.md). Hasil fase sebelumnya tidak digunakan sebagai bukti status kandidat rilis ini.
+
+Catatan rilis kandidat: [RELEASE_NOTES_v1.0.0-rc1.md](./RELEASE_NOTES_v1.0.0-rc1.md).

@@ -8,9 +8,13 @@
 
 "Telkomsel sudah mempublikasikan kapabilitas RAN Energy Efficiency dan pemantauan energi. Usulan kami tidak menganggap kemampuan itu belum ada. Pertanyaan yang ingin diuji ialah apakah proses lintas fungsi dapat memilih lokasi dan intervensi dengan lebih baik, memperhitungkan biaya yang benar-benar dapat dihindari, menjaga mutu layanan, dan membuktikan hasilnya."
 
-## 2:00-3:30 | Demo alur ImpactGrid
+## 2:00-2:45 | Demo: rekonsiliasi dan bandingkan skenario
 
-"Di prototipe ini, kita melihat rancangan empat langkah: rekonsiliasi data, bandingkan skenario, pilih portofolio sesuai anggaran, lalu catat hasil dan persetujuannya. Banner di atas menjelaskan bahwa data di layar adalah simulasi. Tidak ada integrasi langsung ke jaringan Telkomsel atau pengiriman perintah ke perangkat."
+"Di prototipe ini, kita melihat rancangan empat langkah. Pertama, rekonsiliasi data dan bandingkan skenario. Banner di atas menjelaskan bahwa data di layar adalah simulasi."
+
+## 2:45-3:30 | Demo: prioritisasi dan bukti keputusan
+
+"Langkah berikutnya ialah pilih portofolio sesuai anggaran, lalu catat hasil dan persetujuannya. Tidak ada integrasi langsung ke jaringan Telkomsel atau pengiriman perintah ke perangkat."
 
 ## 3:30-4:30 | Audit dan pilot
 
