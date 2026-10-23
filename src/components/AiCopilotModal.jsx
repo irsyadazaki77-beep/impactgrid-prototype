@@ -167,8 +167,11 @@ export default function AiCopilotModal({
   
   // Settings & Gemini API state
   const [showSettings, setShowSettings] = useState(false);
+  const [useProxy, setUseProxy] = useState(true); // Default: secure backend proxy
+  const [proxyEndpoint, setProxyEndpoint] = useState('/api/ai/chat');
   const [apiKey, setApiKey] = useState(() => {
-    return localStorage.getItem('impactgrid_gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
+    // Only read from user's manual local override, never leak hardcoded key in bundle
+    return localStorage.getItem('impactgrid_gemini_api_key') || '';
   });
   const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
   const [connectionStatus, setConnectionStatus] = useState('idle'); // 'idle' | 'testing' | 'connected' | 'error'
@@ -312,9 +315,41 @@ export default function AiCopilotModal({
     setInputText('');
     setIsTyping(true);
 
-    const activeKey = apiKey.trim() || localStorage.getItem('impactgrid_gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY;
+    const activeKey = apiKey.trim() || localStorage.getItem('impactgrid_gemini_api_key') || '';
 
-    // IF WE HAVE A GEMINI API KEY, CALL LIVE GOOGLE GEMINI API!
+    // 1. Try secure backend proxy first if enabled
+    if (useProxy) {
+      try {
+        const proxyRes = await fetch(proxyEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: query,
+            model: selectedModel,
+            history: messages.slice(-4),
+            systemInstruction: SYSTEM_PROMPT
+          })
+        });
+
+        if (proxyRes.ok) {
+          const proxyData = await proxyRes.json();
+          if (proxyData?.reply) {
+            setMessages(prev => [...prev, {
+              sender: 'ai',
+              text: proxyData.reply,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              source: 'gemini-proxy'
+            }]);
+            setIsTyping(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Backend AI proxy unavailable, trying client key or local fallback:', err);
+      }
+    }
+
+    // 2. Direct client call ONLY if user explicitly input a manual personal key in settings
     if (activeKey) {
       try {
         // Build multi-turn contents
@@ -351,14 +386,14 @@ export default function AiCopilotModal({
               sender: 'ai',
               text: generatedText,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              source: 'gemini'
+              source: 'gemini-direct'
             }]);
             setIsTyping(false);
             return;
           }
         }
       } catch (err) {
-        console.warn("Live Gemini API call failed, falling back smoothly to local engine:", err);
+        console.warn("Direct Gemini API call failed, falling back to local engine:", err);
       }
     }
 
@@ -380,7 +415,7 @@ export default function AiCopilotModal({
     }, 450);
   };
 
-  const isGeminiActive = Boolean(apiKey.trim() || import.meta.env.VITE_GEMINI_API_KEY);
+  const isGeminiActive = Boolean(useProxy || apiKey.trim() || localStorage.getItem('impactgrid_gemini_api_key'));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-xs animate-in fade-in duration-200">

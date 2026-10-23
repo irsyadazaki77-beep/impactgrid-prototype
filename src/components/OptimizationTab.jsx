@@ -50,7 +50,8 @@ export default function OptimizationTab({
   isAutonomous, 
   setIsAutonomous, 
   onOpenEmergencyModal,
-  emergencyState = { active: false }
+  emergencyState = { active: false },
+  simState = { simHour: 14, tempC: 28, trafficMultiplier: 1.0, plnTariffIDR: 1500, emergencyActive: false }
 }) {
   // Only evaluate the 40 candidate intervention sites
   const candidateSites = useMemo(() => {
@@ -67,12 +68,20 @@ export default function OptimizationTab({
   const [isAllocationMemoOpen, setIsAllocationMemoOpen] = useState(false);
   const [isNetconfModalOpen, setIsNetconfModalOpen] = useState(false);
 
-  // Knapsack Optimization Algorithm with Multi-Objective Scoring
+  // Knapsack Optimization Algorithm with Multi-Objective Scoring and Central Simulation Synced Dynamics
   const portfolioResult = useMemo(() => {
+    // Dynamic multipliers derived from central simulation state
+    const tariffFactor = (simState.plnTariffIDR || 1500) / 1500;
+    const isEmergency = emergencyState.active || simState.emergencyActive;
+    
     // 1. Calculate Multi-Objective Score for each candidate site
     const scoredSites = candidateSites.map(site => {
+      // Scale benefits dynamically with live PLN tariff
+      const dynamicAnnualBenefit = site.netAnnualBenefitIDR * tariffFactor;
+      const dynamicNpv5Years = Math.round(site.npv5YearsIDR * tariffFactor);
+
       // Normalize attributes
-      const financialRatio = (site.netAnnualBenefitIDR / Math.max(1, site.capexIDR));
+      const financialRatio = (dynamicAnnualBenefit / Math.max(1, site.capexIDR));
       const carbonDensity = (site.emissionsReducedTon / (site.capexIDR / 1000000));
       const qosSafety = Math.max(0, 1 - (site.latencyDeltaMs / 0.5)); // lower latency delta = higher safety
 
@@ -90,6 +99,8 @@ export default function OptimizationTab({
 
       return {
         ...site,
+        netAnnualBenefitIDR: dynamicAnnualBenefit,
+        npv5YearsIDR: dynamicNpv5Years,
         dssScore: score
       };
     });
@@ -134,9 +145,9 @@ export default function OptimizationTab({
     const totalCarbonReduced = selected.reduce((acc, s) => acc + s.emissionsReducedTon, 0);
     const totalNpv5Years = selected.reduce((acc, s) => acc + s.npv5YearsIDR, 0);
     const avgPayback = totalNetBenefitYear > 0 ? (totalCapExUsed / totalNetBenefitYear).toFixed(2) : '0';
-    const avgLatencyDelta = totalSelectedSites > 0 
+    const avgLatencyDelta = isEmergency ? '0.00' : (totalSelectedSites > 0 
       ? (selected.reduce((acc, s) => acc + s.latencyDeltaMs, 0) / totalSelectedSites).toFixed(2) 
-      : '0';
+      : '0');
 
     return {
       selected,
@@ -149,9 +160,10 @@ export default function OptimizationTab({
       totalCarbonReduced: +totalCarbonReduced.toFixed(1),
       totalNpv5Years,
       avgPayback,
-      avgLatencyDelta
+      avgLatencyDelta,
+      isEmergencyActive: isEmergency
     };
-  }, [candidateSites, budgetCapIDR, optimizationStrategy, forcedOverrides]);
+  }, [candidateSites, budgetCapIDR, optimizationStrategy, forcedOverrides, simState.plnTariffIDR, emergencyState.active, simState.emergencyActive]);
 
   // Handle manual override toggle
   const toggleOverride = (siteId) => {
@@ -682,10 +694,11 @@ export default function OptimizationTab({
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => setSelectedExplainer(site)}
-                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-indigo-600 transition cursor-pointer"
-                          title="Inspeksi SHAP Explainability & Payload Vendor"
+                          className="px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] transition cursor-pointer flex items-center gap-1 border border-indigo-200"
+                          title="Inspeksi XAI Rationale, Parameters, Risks & Alternatives"
                         >
-                          <Cpu className="w-3.5 h-3.5" />
+                          <Cpu className="w-3 h-3 text-indigo-600" />
+                          <span>XAI</span>
                         </button>
                         <button
                           onClick={() => toggleOverride(site.id)}
@@ -720,7 +733,12 @@ export default function OptimizationTab({
                   <Cpu className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-indigo-600 uppercase">AI Decision Explainability (XAI)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-bold text-indigo-600 uppercase">Explainable AI (XAI) Engine</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Confidence 96,8%
+                    </span>
+                  </div>
                   <h3 className="text-base font-black text-slate-900">{selectedExplainer.id} - {selectedExplainer.name}</h3>
                 </div>
               </div>
@@ -732,9 +750,19 @@ export default function OptimizationTab({
               </button>
             </div>
 
+            {/* XAI Structured Rationale Section */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+              <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">
+                1. Alasan Pemilihan & Rationale Model (Physics-Informed LSTM)
+              </span>
+              <p className="text-slate-700 leading-relaxed font-normal">
+                Situs <strong>{selectedExplainer.name}</strong> ({selectedExplainer.vendor}) memiliki utilisasi PRB off-peak rata-rata hanya <strong>18,2%</strong> pada jam 01:00-05:00 WIB, dengan suhu shelter terkontrol pada <strong>{selectedExplainer.tempC}°C</strong>. Intervensi <strong>{selectedExplainer.intervensiUtama}</strong> menghasilkan efisiensi energi tertinggi <strong>+{selectedExplainer.savingPercent}%</strong> tanpa mempengaruhi panggilan darurat 112 (carrier 700/900MHz dipertahankan aktif).
+              </p>
+            </div>
+
             <div className="space-y-3">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                Faktor Bobot Penentu Keputusan (SHAP Feature Importance):
+                2. Faktor Bobot Penentu Keputusan (SHAP Feature Importance):
               </span>
               <div className="space-y-2 text-xs">
                 <div>
@@ -772,6 +800,30 @@ export default function OptimizationTab({
                   <div className="w-full bg-slate-100 rounded-full h-2">
                     <div className="bg-slate-400 h-2 rounded-full" style={{ width: '10%' }}></div>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Multi-Criteria Decision Alternatives */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                3. Alternatif Keputusan yang Diuji (Multi-Criteria Trade-offs):
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                  <span className="font-extrabold text-emerald-900 block">Opsi A (Dipilih)</span>
+                  <p className="text-slate-600 mt-1">{selectedExplainer.intervensiUtama}</p>
+                  <span className="text-[10px] text-emerald-700 font-bold block mt-1">Efisiensi +{selectedExplainer.savingPercent}%</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="font-bold text-slate-700 block">Opsi B (Konservatif)</span>
+                  <p className="text-slate-500 mt-1">Hanya AC Setpoint 26°C tanpa carrier sleep</p>
+                  <span className="text-[10px] text-slate-500 font-bold block mt-1">Efisiensi +6.5%</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="font-bold text-slate-700 block">Opsi C (Status Quo)</span>
+                  <p className="text-slate-500 mt-1">AC 22°C & Semua Carrier Aktif Penuh</p>
+                  <span className="text-[10px] text-red-600 font-bold block mt-1">Efisiensi 0% (Boros)</span>
                 </div>
               </div>
             </div>
@@ -915,7 +967,7 @@ export default function OptimizationTab({
       <NetconfDeploymentModal
         isOpen={isNetconfModalOpen}
         onClose={() => setIsNetconfModalOpen(false)}
-        selectedSitesCount={portfolioResult.selectedSites.length}
+        selectedSitesCount={portfolioResult.totalSelectedSites}
         totalCapExIDR={portfolioResult.totalCapExUsed}
       />
     </div>

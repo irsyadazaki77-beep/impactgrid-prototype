@@ -1,8 +1,33 @@
-import React from 'react';
-import { Award, CheckCircle2, X, Printer, ShieldCheck, Download, Sparkles, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { Award, CheckCircle2, X, Printer, ShieldCheck, Download, Sparkles, FileText, Lock, AlertTriangle, Key } from 'lucide-react';
 
 export default function BoDCertificateModal({ isOpen, onClose }) {
+  const [authorizationStep, setAuthorizationStep] = useState(0); // 0: Review, 1: Gate Evaluation, 2: Authorized
+  const [authPasscode, setAuthPasscode] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [signOffLogs, setSignOffLogs] = useState([]);
+
   if (!isOpen) return null;
+
+  const handleStartReview = () => {
+    setAuthorizationStep(1);
+    setAuthError('');
+  };
+
+  const handleAuthorizeDecree = () => {
+    // Requires governance confirmation
+    if (authPasscode.trim().toUpperCase() !== 'TELKOMSEL2027') {
+      setAuthError('Kode otorisasi tata kelola salah. Gunakan TELKOMSEL2027 untuk validasi demo.');
+      return;
+    }
+
+    setSignOffLogs([
+      'Audit 4 Gates diverifikasi otomatis oleh Komite Transisi Jaringan...',
+      'Gerbang 1-4 dinyatakan LULUS sesuai kriteria objektif naskah proposal.',
+      'Otorisasi dewan disahkan untuk simulasi ekspansi regional Jamali.'
+    ]);
+    setAuthorizationStep(2);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
@@ -89,25 +114,65 @@ export default function BoDCertificateModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Formal Ratification Decree */}
-          <div className="p-4 rounded-2xl bg-emerald-700 text-white space-y-1 text-center shadow-md">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200 block">
-              KEPUTUSAN SIDANG DEWAN DIREKSI (BOARD OF DIRECTORS):
-            </span>
-            <div className="text-base font-black tracking-tight">
-              DISETUJUI UNTUK EKSPANSI REGIONAL (5.000 MENARA BTS JAMALI 2028–2029)
+          {/* Formal Ratification Decree or Pending Sign-off Box */}
+          {authorizationStep === 2 ? (
+            <div className="p-4 rounded-2xl bg-emerald-700 text-white space-y-1 text-center shadow-md animate-in fade-in duration-300">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200 block">
+                  KEPUTUSAN SIDANG DEWAN DIREKSI TELKOMSEL (TERVERIFIKASI & DISETUJUI):
+                </span>
+              </div>
+              <div className="text-base font-black tracking-tight">
+                DISETUJUI UNTUK EKSPANSI REGIONAL (5.000 MENARA BTS JAMALI 2028–2029)
+              </div>
+              <p className="text-[11px] text-emerald-100">
+                Pemanfaatan mekanisme swadana <em>Self-Funding Reinvestment Pool</em> (50% OpEx savings) untuk membiayai CapEx Fase 2 tanpa membebani kas korporat baru.
+              </p>
             </div>
-            <p className="text-[11px] text-emerald-100">
-              Pemanfaatan mekanisme swadana <em>Self-Funding Reinvestment Pool</em> (50% OpEx savings) untuk membiayai CapEx Fase 2 tanpa membebani kas korporat baru.
-            </p>
-          </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 space-y-2 text-center shadow-xs">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-amber-900">
+                <Lock className="w-4 h-4 text-amber-700" />
+                <span>STATUS PROTOKOL TATA KELOLA: MENUNGGU EVALUASI & OTORISASI DEWAN DIREKSI</span>
+              </div>
+              <p className="text-[11px] text-amber-800 max-w-xl mx-auto">
+                Sesuai prinsip GCG (*Good Corporate Governance*), keputusan ekspansi tahap 2 tidak dapat diterbitkan tanpa peninjauan langsung metrik 4 Gerbang Kelulusan oleh pemegang otorisasi.
+              </p>
+              
+              {authorizationStep === 1 && (
+                <div className="pt-2 max-w-md mx-auto space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="password" 
+                      placeholder="Masukkan kode otorisasi demo (TELKOMSEL2027)" 
+                      value={authPasscode}
+                      onChange={(e) => setAuthPasscode(e.target.value)}
+                      className="flex-1 px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <button
+                      onClick={handleAuthorizeDecree}
+                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer transition shrink-0"
+                    >
+                      Otorisasi
+                    </button>
+                  </div>
+                  {authError && (
+                    <span className="text-[10px] text-rose-600 font-bold block">{authError}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Signatures Grid */}
           <div className="pt-4 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs">
             <div>
               <span className="text-[10px] text-slate-400 uppercase block">Direktur Utama (CEO)</span>
-              <div className="h-10 flex items-center justify-center font-serif italic font-bold text-slate-800">
-                [Tanda Tangan Digital]
+              <div className={`h-10 flex items-center justify-center font-serif italic font-bold ${
+                authorizationStep === 2 ? 'text-emerald-800' : 'text-slate-400 line-through'
+              }`}>
+                {authorizationStep === 2 ? 'Nugroho [Digital Sign]' : '[Menunggu Otorisasi]'}
               </div>
               <span className="text-[11px] font-bold text-slate-900 block">Nugroho</span>
               <span className="text-[9px] text-slate-400">PT Telkomsel</span>
@@ -115,8 +180,10 @@ export default function BoDCertificateModal({ isOpen, onClose }) {
 
             <div>
               <span className="text-[10px] text-slate-400 uppercase block">Direktur Network (CTO)</span>
-              <div className="h-10 flex items-center justify-center font-serif italic font-bold text-slate-800">
-                [Tanda Tangan Digital]
+              <div className={`h-10 flex items-center justify-center font-serif italic font-bold ${
+                authorizationStep === 2 ? 'text-emerald-800' : 'text-slate-400 line-through'
+              }`}>
+                {authorizationStep === 2 ? 'Indra M. [Digital Sign]' : '[Menunggu Otorisasi]'}
               </div>
               <span className="text-[11px] font-bold text-slate-900 block">Indra Mardiatna</span>
               <span className="text-[9px] text-slate-400">Network Director</span>
@@ -124,8 +191,10 @@ export default function BoDCertificateModal({ isOpen, onClose }) {
 
             <div>
               <span className="text-[10px] text-slate-400 uppercase block">Direktur Keuangan (CFO)</span>
-              <div className="h-10 flex items-center justify-center font-serif italic font-bold text-slate-800">
-                [Tanda Tangan Digital]
+              <div className={`h-10 flex items-center justify-center font-serif italic font-bold ${
+                authorizationStep === 2 ? 'text-emerald-800' : 'text-slate-400 line-through'
+              }`}>
+                {authorizationStep === 2 ? 'M. Ramzy [Digital Sign]' : '[Menunggu Otorisasi]'}
               </div>
               <span className="text-[11px] font-bold text-slate-900 block">Mohamad Ramzy</span>
               <span className="text-[9px] text-slate-400">Finance Director</span>
@@ -133,8 +202,10 @@ export default function BoDCertificateModal({ isOpen, onClose }) {
 
             <div>
               <span className="text-[10px] text-slate-400 uppercase block">Head of Sustainability (ESG)</span>
-              <div className="h-10 flex items-center justify-center font-serif italic font-bold text-slate-800">
-                [Tanda Tangan Digital]
+              <div className={`h-10 flex items-center justify-center font-serif italic font-bold ${
+                authorizationStep === 2 ? 'text-emerald-800' : 'text-slate-400 line-through'
+              }`}>
+                {authorizationStep === 2 ? 'Saki B. [Digital Sign]' : '[Menunggu Otorisasi]'}
               </div>
               <span className="text-[11px] font-bold text-slate-900 block">Saki Bramono</span>
               <span className="text-[9px] text-slate-400">VP Corporate Comm.</span>
@@ -152,21 +223,34 @@ export default function BoDCertificateModal({ isOpen, onClose }) {
         {/* Modal Action Footer */}
         <div className="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between">
           <span className="text-xs text-slate-500 font-medium">
-            Dokumen sah berstatus <strong>EXECUTIVELY RATIFIED</strong>
+            Status Otorisasi: <strong className={authorizationStep === 2 ? 'text-emerald-700' : 'text-amber-700'}>
+              {authorizationStep === 2 ? 'EXECUTIVELY RATIFIED & SIGNED' : 'PENDING BoD GOVERNANCE REVIEW'}
+            </strong>
           </span>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => window.print()}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Cetak Sertifikat</span>
-            </button>
+            {authorizationStep < 2 && (
+              <button
+                onClick={handleStartReview}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-xs"
+              >
+                <Key className="w-3.5 h-3.5" />
+                <span>Mulai Verifikasi BoD</span>
+              </button>
+            )}
+            {authorizationStep === 2 && (
+              <button
+                onClick={() => window.print()}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Cetak Sertifikat</span>
+              </button>
+            )}
             <button
               onClick={onClose}
               className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer transition"
             >
-              Selesai
+              Tutup
             </button>
           </div>
         </div>

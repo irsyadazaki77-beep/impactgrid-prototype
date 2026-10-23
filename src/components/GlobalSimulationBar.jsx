@@ -104,6 +104,7 @@ export default function GlobalSimulationBar({
   onTriggerEmergency 
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [snapshotCopied, setSnapshotCopied] = useState(false);
 
   // Play timeline simulation
   useEffect(() => {
@@ -142,6 +143,32 @@ export default function GlobalSimulationBar({
     if (onTriggerEmergency) {
       onTriggerEmergency(sc.emergencyActive);
     }
+  };
+
+  const handleResetToBaseline = () => {
+    setSimState({
+      seed: 2026,
+      simHour: 14,
+      simTimeString: '14:00 WIB',
+      scenarioKey: 'normal',
+      tempC: 28,
+      trafficMultiplier: 1.0,
+      carrierSleepActive: true,
+      plnTariffIDR: 1500,
+      emergencyActive: false
+    });
+    if (onTriggerEmergency) onTriggerEmergency(false);
+  };
+
+  const handleCopySnapshot = () => {
+    const snapshotJson = JSON.stringify({
+      timestamp: new Date().toISOString(),
+      seed: simState.seed || 2026,
+      simState
+    }, null, 2);
+    navigator.clipboard.writeText(snapshotJson);
+    setSnapshotCopied(true);
+    setTimeout(() => setSnapshotCopied(false), 2000);
   };
 
   const handleTimeChange = (hour) => {
@@ -193,6 +220,24 @@ export default function GlobalSimulationBar({
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               <span>{isPlaying ? 'Pause' : 'Play 24 Jam'}</span>
+            </button>
+
+            <button
+              onClick={handleResetToBaseline}
+              title="Reset seluruh parameter simulasi ke baseline awal"
+              className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 cursor-pointer transition"
+            >
+              <RotateCcw className="w-3 h-3 text-slate-400" />
+              <span>Reset</span>
+            </button>
+
+            <button
+              onClick={handleCopySnapshot}
+              title="Salin snapshot state simulasi saat ini ke clipboard"
+              className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 cursor-pointer transition"
+            >
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              <span>{snapshotCopied ? 'Tersalin!' : 'Snapshot'}</span>
             </button>
 
             <button

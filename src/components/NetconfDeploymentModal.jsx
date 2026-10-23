@@ -30,9 +30,9 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
 
     // Auto-run deployment sequence
     setLogs([
-      "Initiating O-RAN O1 Netconf/YANG Closed-Loop Dispatch...",
-      "Connecting to Telkomsel Non-RT RIC Policy Manager (O-RAN A1/O1)...",
-      `Target Deployment: ${selectedSitesCount} BTS Macro Nodes (CapEx: Rp ${(totalCapExIDR / 1e6).toFixed(0)} Juta)`
+      "[SIMULATION MODE] Memulai simulasi O-RAN O1 Netconf/YANG closed-loop dispatch (DEMO ONLY - no real BTS connections)...",
+      "Memeriksa parameter simulasi Telkomsel Non-RT RIC Policy Manager (O-RAN A1/O1)...",
+      `Target Simulasi: ${selectedSitesCount} BTS Macro Nodes (CapEx simulasi: Rp ${(totalCapExIDR / 1e6).toFixed(0)} Juta)`
     ]);
 
     const timer1 = setTimeout(() => {
@@ -40,9 +40,9 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
       setProgress(35);
       setLogs(prev => [
         ...prev,
-        "✓ Pre-Flight SLA Check PASSED: Emergency 112 Hard-Lock Verified (ITU-T E.106)",
-        "✓ Fast-Wakeup Latency Guaranteed: <120ms threshold met across all cells",
-        "Compiling Netconf YANG Payload: urn:o-ran:energy-saving:1.0..."
+        "✓ Pre-Flight SLA Check SIMULATED: Emergency 112 Hard-Lock Rule Verified (ITU-T E.106)",
+        "✓ Fast-Wakeup Latency Threshold: <120ms threshold rule confirmed across simulated models",
+        "Compiling Mock Netconf YANG Payload: urn:o-ran:energy-saving:1.0 (DEMO SPECIFICATION)..."
       ]);
     }, 900);
 
@@ -51,11 +51,11 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
       setProgress(75);
       setLogs(prev => [
         ...prev,
-        "Transmitting Netconf over SSH (Port 830) to Multi-Vendor EMS...",
-        "• Ericsson ENM (AIR 6449 / 32T32R): Policy Acknowledged (200 OK)",
-        "• Huawei iMaster MAE (Blade AAU): Policy Acknowledged (200 OK)",
-        "• ZTE NetNumen (Uni-RAN): Policy Acknowledged (200 OK)",
-        "• Nokia NetAct (AirScale): Policy Acknowledged (200 OK)"
+        "Simulating RFC 6241 SSH (Port 830) handshake against multi-vendor EMS mock emulators...",
+        "• Ericsson ENM Emulator (AIR 6449 / 32T32R): Mock Policy Acknowledged (200 OK)",
+        "• Huawei iMaster MAE Emulator (Blade AAU): Mock Policy Acknowledged (200 OK)",
+        "• ZTE NetNumen Emulator (Uni-RAN): Mock Policy Acknowledged (200 OK)",
+        "• Nokia NetAct Emulator (AirScale): Mock Policy Acknowledged (200 OK)"
       ]);
     }, 2000);
 
@@ -64,9 +64,9 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
       setProgress(100);
       setLogs(prev => [
         ...prev,
-        "✓ Closed-loop policy deployment SUCCESSFUL!",
-        `40 BTS nodes are now running under AI Knapsack Energy Optimization.`,
-        "Audit Trail SHA-256 Hash recorded to GreenLedger."
+        "✓ Simulasi closed-loop dispatch SUKSES (LINGKUNGAN DEMO / SIMULASI TERKONTROL)!",
+        `${selectedSitesCount} model BTS virtual kini aktif di bawah AI Knapsack Energy Optimization.`,
+        "Peringatan Keamanan: Tidak ada transmisi instruksi RF/daya riil ke menara BTS fisik komersial Telkomsel."
       ]);
     }, 3200);
 
@@ -109,15 +109,18 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-sm text-white">O-RAN O1 Netconf/YANG Closed-Loop Dispatcher</span>
+                <span className="font-extrabold text-sm text-white">Simulasi O-RAN O1 Netconf/YANG Dispatcher</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  DEMO ONLY / SIMULATED ENVIRONMENT
+                </span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                   phase === 3 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                 }`}>
-                  {phase === 3 ? '✓ DEPLOYED (200 OK)' : 'DISPATCHING...'}
+                  {phase === 3 ? '✓ SIMULASI SUKSES (200 OK)' : 'DISPATCHING...'}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                Penyebaran kebijakan alokasi CapEx ke 40 BTS multi-vendor secara otomatis tanpa melanggar garansi vendor.
+                Simulasi arsitektur penyebaran kebijakan ke {selectedSitesCount} profil BTS secara virtual tanpa koneksi langsung ke jaringan BTS live komersial Telkomsel.
               </p>
             </div>
           </div>
@@ -195,7 +198,7 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
         {/* Footer */}
         <div className="px-6 py-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
           <span className="text-[11px] text-slate-400">
-            {phase === 3 ? 'Status: 40 Menara Telkomsel Berhasil Diperbarui' : 'Menunggu respon seluruh Baseband Unit...'}
+            {phase === 3 ? `Status Simulasi: ${selectedSitesCount} Profil BTS Virtual Terkonfigurasi (DEMO ONLY)` : 'Menjalankan emulator Baseband Unit virtual...'}
           </span>
           <button
             onClick={onClose}

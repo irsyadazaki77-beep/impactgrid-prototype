@@ -33,6 +33,8 @@ import {
   SYSTEM_METADATA, 
   INTERVENTION_TYPES 
 } from '../data/mockData';
+import BeforeVsAfterComparison from './BeforeVsAfterComparison';
+import DataBadge from './DataBadge';
 
 export default function ScenarioLabTab() {
   const pilot = IMPLEMENTATION_HORIZONS.pilot;
@@ -190,6 +192,15 @@ export default function ScenarioLabTab() {
           })}
         </div>
       </div>
+
+      {/* Before vs After Detailed Metric Comparison */}
+      <BeforeVsAfterComparison
+        scenarioName={`Skenario ${currentScenario.name} (${effectiveEffPct.toFixed(1)}% Efisiensi) - ${activeIntervention.shortName}`}
+        baselineEnergyKWh={totalBaselineKWh}
+        savingPct={+effectiveEffPct.toFixed(1)}
+        tariffIDR={SYSTEM_METADATA.electricityTariff}
+        siteCount={customSites}
+      />
 
       {/* Grid: Controls & Output */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

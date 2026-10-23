@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import KpiStatRow from './components/KpiStatRow';
 import OverviewTab from './components/OverviewTab';
+import PilotValidationCenterTab from './components/PilotValidationCenterTab';
 import DigitalTwinTab from './components/DigitalTwinTab';
 import AgentOrchestratorTab from './components/AgentOrchestratorTab';
 import TelemetryTab from './components/TelemetryTab';
@@ -21,6 +23,7 @@ import GlobalSimulationBar from './components/GlobalSimulationBar';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [viewMode, setViewMode] = useState('executive'); // 'executive' | 'engineering' (Instruction #2)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isDirectorTourOpen, setIsDirectorTourOpen] = useState(false);
   const [isPitchWalkthroughActive, setIsPitchWalkthroughActive] = useState(false);
@@ -52,6 +55,7 @@ export default function App() {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
       if (e.key === '1') setActiveTab('overview');
+      if (e.key.toLowerCase() === 'v') setActiveTab('pilotvalidation');
       if (e.key === '2') setActiveTab('digitaltwin');
       if (e.key === '3') setActiveTab('agents');
       if (e.key === '4') setActiveTab('telemetry');
@@ -78,8 +82,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-[#ED0226] selection:text-white">
-      {/* Top Streamlined Executive Navbar */}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-[#ED0226] selection:text-white">
+      {/* Top Streamlined Executive Navbar with Presentation View Switcher & Consolidated Toolkit */}
       <Navbar 
         onOpenReportModal={() => setIsReportModalOpen(true)}
         onOpenDirectorTour={() => setIsDirectorTourOpen(true)}
@@ -99,6 +103,8 @@ export default function App() {
         onToggleSimBar={() => setIsSimBarOpen(prev => !prev)}
         isSimBarOpen={isSimBarOpen}
         simState={simState}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
       />
 
       {/* Live Global Simulation Console Dropdown Bar */}
@@ -112,13 +118,24 @@ export default function App() {
 
       {/* Main Layout: Sidebar + Main Content Area */}
       <div className="flex-1 flex flex-col md:flex-row min-h-[calc(100vh-60px)]">
-        {/* Left Clean Sidebar */}
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        {/* Left Structured Sidebar (Instruction #1) */}
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          viewMode={viewMode}
+        />
 
         {/* Dynamic Content Viewport */}
-        <main className={`flex-1 p-4 md:p-6 lg:p-8 max-w-6xl w-full mx-auto overflow-y-auto transition-all duration-300 ${
+        <main className={`flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto overflow-y-auto transition-all duration-300 ${
           isPitchWalkthroughActive ? 'pb-28 md:pb-32' : ''
         }`}>
+          {/* Standardized Reusable KPI Stat Banner across all Tabs (Instruction #3) */}
+          <KpiStatRow 
+            simState={simState} 
+            selectedScale={selectedScale}
+          />
+
+          {/* Active Tab View */}
           {activeTab === 'overview' && (
             <OverviewTab 
               setActiveTab={setActiveTab} 
@@ -135,35 +152,46 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'pilotvalidation' && (
+            <PilotValidationCenterTab 
+              simState={simState} 
+              emergencyState={emergencyState}
+              onOpenReportModal={() => setIsReportModalOpen(true)}
+            />
+          )}
+
           {activeTab === 'digitaltwin' && (
-            <DigitalTwinTab />
+            <DigitalTwinTab simState={simState} emergencyState={emergencyState} />
           )}
 
           {activeTab === 'agents' && (
-            <AgentOrchestratorTab />
+            <AgentOrchestratorTab simState={simState} emergencyState={emergencyState} />
           )}
 
           {activeTab === 'telemetry' && (
-            <TelemetryTab />
+            <TelemetryTab simState={simState} emergencyState={emergencyState} />
           )}
 
           {activeTab === 'scenariolab' && (
-            <ScenarioLabTab />
+            <ScenarioLabTab simState={simState} emergencyState={emergencyState} />
           )}
 
           {activeTab === 'optimization' && (
             <OptimizationTab 
               isAutonomous={isAutonomous} 
               setIsAutonomous={setIsAutonomous} 
+              onOpenEmergencyModal={() => setIsEmergencyModalOpen(true)}
+              emergencyState={emergencyState}
+              simState={simState}
             />
           )}
 
           {activeTab === 'esg' && (
-            <ESGComplianceTab onOpenReportModal={() => setIsReportModalOpen(true)} />
+            <ESGComplianceTab onOpenReportModal={() => setIsReportModalOpen(true)} simState={simState} emergencyState={emergencyState} />
           )}
 
           {activeTab === 'financial' && (
-            <FinancialModelTab />
+            <FinancialModelTab simState={simState} emergencyState={emergencyState} />
           )}
 
           {activeTab === 'architecture' && (
@@ -175,7 +203,8 @@ export default function App() {
       {/* Audit Report Export Modal */}
       <ReportModal 
         isOpen={isReportModalOpen} 
-        onClose={() => setIsReportModalOpen(false)} 
+        onClose={() => setIsReportModalOpen(false)}
+        simState={simState}
       />
 
       {/* Director Presentation Tour Modal */}

@@ -30,7 +30,10 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 
-export default function DigitalTwinTab() {
+export default function DigitalTwinTab({
+  simState = { simHour: 14, tempC: 28, trafficMultiplier: 1.0, carrierSleepActive: true, emergencyActive: false },
+  emergencyState = { active: false }
+}) {
   // BTS Archetype presets
   const [selectedSiteKey, setSelectedSiteKey] = useState('CGK-401');
 
@@ -128,6 +131,54 @@ export default function DigitalTwinTab() {
   const [ambientTempC, setAmbientTempC] = useState(32); // Tropical midday ambient
   const [solarIrradianceW, setSolarIrradianceW] = useState(850); // W/m2 midday sun
   const [trafficLoadPct, setTrafficLoadPct] = useState(28); // 28% off-peak load
+
+  // Synchronize internal state with Central Simulation State
+  useEffect(() => {
+    if (simState.tempC) {
+      setAmbientTempC(simState.tempC);
+    }
+    if (emergencyState.active || simState.emergencyActive) {
+      // Force all carriers ACTIVE for emergency hard-lock
+      setCarrierStates({
+        c700: 'ACTIVE',
+        c900: 'ACTIVE',
+        c1800: 'ACTIVE',
+        c2100: 'ACTIVE',
+        c2300: 'ACTIVE'
+      });
+      setTrafficLoadPct(95);
+    } else if (!simState.carrierSleepActive) {
+      setCarrierStates({
+        c700: 'ACTIVE',
+        c900: 'ACTIVE',
+        c1800: 'ACTIVE',
+        c2100: 'ACTIVE',
+        c2300: 'ACTIVE'
+      });
+    } else {
+      // Normal schedule: off peak vs peak
+      const isOffPeak = simState.simHour >= 1 && simState.simHour <= 5;
+      if (isOffPeak) {
+        setCarrierStates({
+          c700: 'ACTIVE',
+          c900: 'ACTIVE',
+          c1800: 'MICRO_SLEEP',
+          c2100: 'SHALLOW_SLEEP',
+          c2300: 'DEEP_SLEEP'
+        });
+        setTrafficLoadPct(22);
+      } else {
+        setCarrierStates({
+          c700: 'ACTIVE',
+          c900: 'ACTIVE',
+          c1800: 'ACTIVE',
+          c2100: 'SHALLOW_SLEEP',
+          c2300: 'MICRO_SLEEP'
+        });
+        setTrafficLoadPct(Math.round(65 * (simState.trafficMultiplier || 1.0)));
+      }
+    }
+  }, [simState.tempC, simState.simHour, simState.trafficMultiplier, simState.carrierSleepActive, simState.emergencyActive, emergencyState.active]);
 
   // Sleep Power Factors
   const sleepFactors = {

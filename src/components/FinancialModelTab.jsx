@@ -34,6 +34,7 @@ import {
   IMPLEMENTATION_HORIZONS, 
   FIVE_YEAR_FINANCIAL_PROJECTION 
 } from '../data/mockData';
+import { runMonteCarloSimulation } from '../utils/monteCarloEngine';
 
 export default function FinancialModelTab() {
   const pilot = IMPLEMENTATION_HORIZONS.pilot;
@@ -111,28 +112,26 @@ export default function FinancialModelTab() {
   ];
 
   // Monte Carlo Simulation 1,000 Iterations (Stochastic Modeling)
-  const [monteCarloSeed, setMonteCarloSeed] = useState(1);
+  const [monteCarloSeed, setMonteCarloSeed] = useState(42);
   const [isSimulatingMonteCarlo, setIsSimulatingMonteCarlo] = useState(false);
 
-  const monteCarloDistribution = useMemo(() => {
-    // Normal distribution simulation around baseline NPV +41.48B with standard deviation ~4.8B
-    return [
-      { range: 'Rp 26-30 M', count: 18, probability: '1.8%', fill: '#cbd5e1' },
-      { range: 'Rp 30-34 M', count: 82, probability: '8.2%', fill: '#94a3b8' },
-      { range: 'Rp 34-38 M', count: 195, probability: '19.5%', fill: '#38bdf8' },
-      { range: 'Rp 38-42 M', count: 320, probability: '32.0%', fill: '#0284c7' }, // P50 center
-      { range: 'Rp 42-46 M', count: 235, probability: '23.5%', fill: '#10b981' },
-      { range: 'Rp 46-50 M', count: 112, probability: '11.2%', fill: '#059669' },
-      { range: 'Rp 50-54 M', count: 38, probability: '3.8%', fill: '#047857' },
-    ];
-  }, [monteCarloSeed]);
+  // Dynamic 1,000 stochastic iteration run with P5 / P50 / P95 quantiles
+  const monteCarloResult = useMemo(() => {
+    return runMonteCarloSimulation({
+      iterations: 1000,
+      seed: monteCarloSeed,
+      baseNpvBillions: 41.48 * (plnTariff / 1500) * (10 / waccDiscount)
+    });
+  }, [monteCarloSeed, plnTariff, waccDiscount]);
+
+  const monteCarloDistribution = monteCarloResult.histogram;
 
   const handleReRunMonteCarlo = () => {
     setIsSimulatingMonteCarlo(true);
     setTimeout(() => {
       setMonteCarloSeed(prev => prev + 1);
       setIsSimulatingMonteCarlo(false);
-    }, 600);
+    }, 400);
   };
 
   return (
@@ -500,24 +499,24 @@ export default function FinancialModelTab() {
           </button>
         </div>
 
-        {/* 3 Confidence Intervals P10, P50, P90 */}
+        {/* 3 Confidence Intervals P5, P50, P95 from true 1,000 Stochastic Iterations */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">P10 (Skenario Pesimistis)</span>
-            <span className="text-xl font-black text-slate-900 block">+Rp 34,2 Miliar</span>
-            <span className="text-[11px] text-slate-500">Probabilitas keberhasilan 99,8% NPV &gt; 0</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">P5 (Ekor Pesimistis 5%)</span>
+            <span className="text-xl font-black text-slate-900 block">+Rp {monteCarloResult.p5.toFixed(2)} Miliar</span>
+            <span className="text-[11px] text-slate-500">Probabilitas NPV positif: {monteCarloResult.probabilityPositive}%</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200 space-y-1">
-            <span className="text-[10px] font-bold text-sky-800 uppercase tracking-wider block">P50 (Median Baseline)</span>
-            <span className="text-xl font-black text-sky-950 block">+Rp 41,48 Miliar</span>
-            <span className="text-[11px] text-sky-800">Sesuai kalkulasi proposal naskah semifinal</span>
+            <span className="text-[10px] font-bold text-sky-800 uppercase tracking-wider block">P50 (Median Baseline 50%)</span>
+            <span className="text-xl font-black text-sky-950 block">+Rp {monteCarloResult.p50.toFixed(2)} Miliar</span>
+            <span className="text-[11px] text-sky-800">Rata-rata simulasi: +Rp {monteCarloResult.mean.toFixed(2)} M</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
-            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">P90 (Skenario Optimistis)</span>
-            <span className="text-xl font-black text-emerald-950 block">+Rp 50,8 Miliar</span>
-            <span className="text-[11px] text-emerald-800">Jika tarif listrik PLN naik 8% per tahun</span>
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">P95 (Ekor Optimistis 95%)</span>
+            <span className="text-xl font-black text-emerald-950 block">+Rp {monteCarloResult.p95.toFixed(2)} Miliar</span>
+            <span className="text-[11px] text-emerald-800">Seed #{monteCarloResult.seed} (1.000 iterasi stokastik)</span>
           </div>
         </div>
 
