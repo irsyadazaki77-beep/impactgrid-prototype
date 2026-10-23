@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { 
   Zap, 
   Leaf, 
@@ -24,24 +24,11 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Legend 
-} from 'recharts';
-import { 
-  SYSTEM_METADATA, 
-  IMPLEMENTATION_HORIZONS, 
-  HOURLY_PILOT_PROFILE, 
-  PILOT_SITES_SAMPLE,
   DECISION_GATE_CRITERIA
 } from '../data/mockData';
-import IndonesiaGisMap from './IndonesiaGisMap';
 import BoDCertificateModal from './BoDCertificateModal';
+
+const IndonesiaGisMap = lazy(() => import('./IndonesiaGisMap'));
 
 export default function OverviewTab({ 
   setActiveTab, 
@@ -51,41 +38,20 @@ export default function OverviewTab({
   onOpenEmergencyModal,
   simState = { simHour: 14, tempC: 28, trafficMultiplier: 1.0, carrierSleepActive: true, simTimeString: '14:00 WIB' }
 }) {
-  const [selectedMetric, setSelectedMetric] = useState('power');
   const [showGisMap, setShowGisMap] = useState(false); // Collapsible: clean by default!
+  const [isBrowserOnline, setIsBrowserOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
   const [isBodSigned, setIsBodSigned] = useState(false);
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
-  // Static illustrative values only; this prototype has no operational telemetry connection.
-
-  // Dynamic 24-hour load curve responding to emergency state and global simulation conditions
-  const dynamicHourlyData = HOURLY_PILOT_PROFILE.map(item => {
-    const isCurrentSimHour = parseInt(item.hour, 10) === simState.simHour;
-    if (emergencyState.active || !simState.carrierSleepActive) {
-      // During emergency surge or non-sleep scenario: sleep mode deactivated, power restored to 100% capacity
-      const scaledBaseline = +(item.baselineKW * (simState.trafficMultiplier > 1.5 ? 1.25 : 1.0)).toFixed(1);
-      return {
-        ...item,
-        baselineKW: scaledBaseline,
-        optimizedKW: scaledBaseline,
-        savedKW: 0,
-        isCurrent: isCurrentSimHour
-      };
-    }
-
-    // Modulate by ambient temperature (HVAC compressor load) and traffic multiplier
-    const weatherFactor = simState.tempC > 32 ? 1.12 : 1.0;
-    const loadFactor = simState.trafficMultiplier > 1.2 ? 1.15 : 1.0;
-    const dynamicBaseline = +(item.baselineKW * weatherFactor * loadFactor).toFixed(1);
-    const dynamicOptimized = +(item.optimizedKW * (weatherFactor > 1 ? 1.05 : 1.0)).toFixed(1);
-
-    return {
-      ...item,
-      baselineKW: dynamicBaseline,
-      optimizedKW: dynamicOptimized,
-      savedKW: Math.max(0, +(dynamicBaseline - dynamicOptimized).toFixed(1)),
-      isCurrent: isCurrentSimHour
+  useEffect(() => {
+    const updateOnlineStatus = () => setIsBrowserOnline(navigator.onLine);
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
     };
-  });
+  }, []);
+  // Static illustrative values only; this prototype has no operational telemetry connection.
 
   // Data dinamis sesuai skala terpilih tanpa clutter
   const scaleData = {
@@ -135,7 +101,7 @@ export default function OverviewTab({
           <div className="flex items-center space-x-3">
             <Flame className="w-5 h-5 text-amber-200 animate-pulse" />
             <div>
-              <span className="font-extrabold text-xs block">SIMULASI LONJAKAN TRAFIK AKTIF</span>
+              <span className="font-extrabold text-xs block">SKENARIO DEMO DIPILIH</span>
               <p className="text-[11px] text-red-100">
                 Skenario visual untuk membahas fail-safe; tidak menguji jaringan, latency, atau layanan darurat.
               </p>
@@ -164,7 +130,7 @@ export default function OverviewTab({
             <span className="text-[11px] text-slate-400">• Listrik korporat 2025: 1.885,4 GWh</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            ImpactGrid: Platform Keputusan Investasi Efisiensi Jaringan & ESG
+            ImpactGrid: Rancangan DSS Efisiensi Jaringan & ESG
           </h1>
           <p className="text-xs text-slate-500 leading-relaxed font-normal">
             Mendemonstrasikan rancangan DSS untuk membandingkan opsi efisiensi energi. Baseline, manfaat, batas mutu layanan, dan kelayakan investasi masih harus divalidasi oleh pemilik data dan operasi.
@@ -205,24 +171,24 @@ export default function OverviewTab({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
           <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1">
-            <span className="text-[10px] text-amber-400 uppercase font-bold block">1. Skala Beban Energi Korporat</span>
-            <div className="text-xl font-black text-white">1,885 Miliar kWh</div>
+            <span className="text-[10px] text-amber-400 uppercase font-bold block">1. Konsumsi Listrik Korporat 2025</span>
+            <div className="text-lg font-black text-white">1.885.417.875,2 kWh</div>
             <p className="text-[11px] text-slate-300">
               Total konsumsi listrik Telkomsel pada 2025; nilai tagihan tidak dihitung di sini.
             </p>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1">
-            <span className="text-[10px] text-cyan-400 uppercase font-bold block">2. Emisi Scope 2 Dominan</span>
-            <div className="text-xl font-black text-white">1,722 Juta ton CO₂e</div>
+            <span className="text-[10px] text-cyan-400 uppercase font-bold block">2. Emisi Scope 2 Korporat 2025</span>
+            <div className="text-lg font-black text-white">1.721.967,7 tCO₂e</div>
             <p className="text-[11px] text-slate-300">
-              Menyumbang <strong>63,6%</strong> dari total emisi GRK Telkomsel, menjadikannya prioritas absolut dekarbonisasi.
+              Menyumbang <strong>63,6%</strong> dari total emisi Telkomsel; angka ini memberi konteks perusahaan, bukan dampak yang dapat diklaim dari ImpactGrid.
             </p>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1">
-            <span className="text-[10px] text-red-400 uppercase font-bold block">3. Kesenjangan Integrasi (Data Silo)</span>
-            <div className="text-sm font-bold text-white">IoT Envion vs PLN vs NOC</div>
+            <span className="text-[10px] text-red-400 uppercase font-bold block">3. Kebutuhan Integrasi Belum Dinilai</span>
+            <div className="text-sm font-bold text-white">Pemetaan sistem existing</div>
             <p className="text-[11px] text-slate-300">
               Kondisi integrasi sistem internal belum diverifikasi. ImpactGrid mengusulkan satu alur analisis untuk data yang diizinkan.
             </p>
@@ -285,7 +251,7 @@ export default function OverviewTab({
           </div>
           <div className="pt-2.5 border-t border-slate-100 flex justify-between text-[11px] text-slate-500 font-medium">
             <span>Hemat Daya: <strong className="text-slate-800">{scaleData.savingKwYear}</strong></span>
-            <span>Audit: <strong className="text-cyan-700">ITU-T L.1331</strong></span>
+            <span>Rujukan: <strong className="text-cyan-700">ITU-T L.1331</strong></span>
           </div>
         </div>
 
@@ -324,13 +290,13 @@ export default function OverviewTab({
             </div>
             <div>
               <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                <span>Peta contoh sebaran lokasi (data sintetis)</span>
+                <span>Peta dasar Indonesia — tanpa data lokasi</span>
                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
                   {showGisMap ? 'Klik untuk Ciutkan' : 'Klik untuk Buka Peta Interaktif'}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Penanda dan nama lokasi hanya untuk demonstrasi; bukan daftar site Telkomsel.
+                Belum ada kluster, nama lokasi, atau titik intervensi yang dipetakan.
               </p>
             </div>
           </div>
@@ -343,148 +309,36 @@ export default function OverviewTab({
         {showGisMap && (
           <div className="p-6 pt-0 border-t border-slate-100 space-y-3 animate-fade-in">
             <div className="h-[420px] rounded-xl overflow-hidden border border-slate-200 shadow-inner">
-              <IndonesiaGisMap />
+              {isBrowserOnline ? <Suspense fallback={<div className="module-loading" role="status">Memuat peta contoh…</div>}><IndonesiaGisMap /></Suspense> : <div className="grid h-full place-items-center bg-slate-100 p-6 text-center text-sm text-slate-600">Peta tidak tersedia saat offline. Simulasi lokal tetap berjalan.</div>}
             </div>
             <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-500 pt-1">
-              <div className="flex items-center space-x-4">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Intervensi Pendingin (26°C)
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Intervensi RAN Sleep Mode
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Intervensi Gabungan (A+B)
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Solar PV + BESS
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Kontrol Pembanding (DiD)
-                </span>
-              </div>
+              <span>Peta dasar saja; belum ada kluster, lokasi, atau titik intervensi yang dipetakan.</span>
               <button 
                 onClick={() => setActiveTab('telemetry')}
                 className="text-red-600 font-bold hover:underline"
               >
-                Lihat Tabel Detail 50 Site di Tab Telemetri →
+                Lihat daftar data yang diperlukan →
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* 4. Kurva Beban Daya Dinamis 24 Jam */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      {/* 4. Data availability */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Zap className="h-4 w-4 text-amber-600" />
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Profil daya 24 jam (data sintetis untuk demonstrasi)
-              </span>
-              {emergencyState.active && (
-                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold animate-pulse">
-                  SKENARIO DEMO AKTIF
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Kurva ilustratif; bukan pengukuran sebelum/sesudah intervensi atau keluaran sistem O-RAN.
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl text-xs">
-            <button
-              onClick={() => setSelectedMetric('power')}
-              className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
-                selectedMetric === 'power' 
-                  ? 'bg-white text-slate-900 shadow-2xs' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Beban Total (kW)
-            </button>
-            <button
-              onClick={() => setSelectedMetric('saving')}
-              className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
-                selectedMetric === 'saving' 
-                  ? 'bg-white text-slate-900 shadow-2xs' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Daya Dihemat (kW)
-            </button>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">Pengukuran energi dan layanan</h2>
+            <p className="mt-1 text-xs text-slate-500">Belum ada baseline site atau telemetri operasional yang terhubung.</p>
           </div>
         </div>
-
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dynamicHourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="baselineColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="optimizedColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="savedColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#0284c7" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="hour" tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
-              <YAxis tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  borderColor: '#e2e8f0', 
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                  fontSize: '12px',
-                  color: '#0f172a'
-                }} 
-              />
-              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-
-              {selectedMetric === 'power' ? (
-                <>
-                  <Area 
-                    type="monotone" 
-                    dataKey="baselineKW" 
-                    name="Baseline Terkoreksi (kW)" 
-                    stroke="#ef4444" 
-                    strokeWidth={2} 
-                    fillOpacity={1} 
-                    fill="url(#baselineColor)" 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="optimizedKW" 
-                    name="Konsumsi Teroptimasi (kW)" 
-                    stroke="#10b981" 
-                    strokeWidth={2} 
-                    fillOpacity={1} 
-                    fill="url(#optimizedColor)" 
-                  />
-                </>
-              ) : (
-                <Area 
-                  type="monotone" 
-                  dataKey="savedKW" 
-                  name="Daya Dihemat per Jam (kW)" 
-                  stroke="#0284c7" 
-                  strokeWidth={2} 
-                  fillOpacity={1} 
-                  fill="url(#savedColor)" 
-                />
-              )}
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="grid gap-3 sm:grid-cols-3 text-xs">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><strong className="block text-amber-950">Energi per lokasi</strong><span className="mt-1 block text-amber-900">Menunggu meter, tagihan, dan periode ukur.</span></div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><strong className="block text-amber-950">QoS dan latency</strong><span className="mt-1 block text-amber-900">Belum diuji; batas ditetapkan operator.</span></div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><strong className="block text-amber-950">Emisi terhindar</strong><span className="mt-1 block text-amber-900">Belum dihitung; faktor dan batas inventaris belum dipilih.</span></div>
         </div>
-      </div>
+      </section>
 
       {/* AMBANG BATAS KELANJUTAN (4 DECISION GATES TRACKER - TABEL 4 & PARAGRAF 33 EXEC SUMMARY) */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-4">
@@ -497,7 +351,7 @@ export default function OverviewTab({
               </h2>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Kriteria mutlak dewan direksi untuk meluluskan proyek dari Tahap Pilot (2027) ke Tahap Regional (2028).
+              Kerangka awal; ambang dan pihak yang menyetujui harus ditetapkan sebelum pilot.
             </p>
           </div>
 
@@ -550,7 +404,7 @@ export default function OverviewTab({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-slate-400 font-mono">{gate.unit}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-200">
                     BELUM DIUJI
                   </span>
                 </div>
@@ -579,7 +433,7 @@ export default function OverviewTab({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-xs">
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-            <span className="font-bold text-slate-900 block">Fase 1: Uji Coba 9 Bulan (2027)</span>
+            <span className="font-bold text-slate-900 block">Tahap 1: Audit dan rancangan pilot</span>
             <p className="text-slate-600 font-medium">40 Lokasi Intervensi + 10 Kontrol</p>
             <p className="text-slate-500 text-[11px] leading-relaxed">
               Plafon awal yang diusulkan Rp95 juta untuk audit; baseline dan NPV belum dapat dipastikan sebelum data lokasi dan kontrak diperiksa.
@@ -587,24 +441,24 @@ export default function OverviewTab({
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-            <span className="font-bold text-slate-900 block">Fase 2: Regional Jamali (2028–2029)</span>
+            <span className="font-bold text-slate-900 block">Tahap 2: Evaluasi regional bersyarat</span>
             <p className="text-slate-600 font-medium">Cakupan ditentukan setelah hasil pilot</p>
             <p className="text-slate-500 text-[11px] leading-relaxed">
-              Replikasi 100–200 lokasi hanya dipertimbangkan setelah pilot lolos gerbang dan biaya marginal tervalidasi.
+              Pertimbangkan hanya setelah hasil pilot, biaya marginal, izin aset, dan batas layanan ditinjau.
             </p>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-            <span className="font-bold text-slate-900 block">Fase 3: Skala Nasional (2030–2031)</span>
-            <p className="text-slate-600 font-medium">10.000+ Menara Makro Terpilih</p>
+            <span className="font-bold text-slate-900 block">Tahap 3: Evaluasi perluasan</span>
+            <p className="text-slate-600 font-medium">Skala dan waktu belum ditentukan</p>
             <p className="text-slate-500 text-[11px] leading-relaxed">
-              Skenario 10.000 lokasi bersifat hipotetis; belum menjadi target, proyeksi, atau sumber pendanaan.
+              Perluasan hanya dibahas jika bukti dampak, kelayakan, kesiapan operasi, dan pendanaan disetujui.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Official BoD Approval Certificate Modal */}
+      {/* Decision framework preview */}
       <BoDCertificateModal
         isOpen={isCertModalOpen}
         onClose={() => setIsCertModalOpen(false)}

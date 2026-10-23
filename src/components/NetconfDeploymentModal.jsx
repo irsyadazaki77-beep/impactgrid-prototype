@@ -15,8 +15,8 @@ import {
   Lock
 } from 'lucide-react';
 
-export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesCount = 40, totalCapExIDR = 450000000 }) {
-  const [phase, setPhase] = useState(0); // 0: Pre-flight, 1: Compiling YANG, 2: Pushing to Nodes, 3: Completed
+export default function NetconfDeploymentModal({ isOpen, onClose }) {
+  const [phase, setPhase] = useState(0); // Local preview sequence only
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState([]);
 
@@ -28,11 +28,11 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
       return;
     }
 
-    // Auto-run deployment sequence
+    // Auto-run a local preview sequence only
     setLogs([
       "Demo lokal: tidak membuka koneksi ke NMS, meter, atau perangkat jaringan.",
       "Menampilkan contoh alur kebijakan; kelayakan protokol dan vendor belum diuji.",
-      `Jumlah profil untuk demonstrasi: ${selectedSitesCount} (bukan site target atau anggaran yang disetujui).`
+      "Belum ada daftar site atau target perangkat yang disetujui."
     ]);
 
     const timer1 = setTimeout(() => {
@@ -71,7 +71,7 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, [isOpen, selectedSitesCount, totalCapExIDR]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -95,7 +95,7 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-sm text-white">Simulasi O-RAN O1 Netconf/YANG Dispatcher</span>
+                <span className="font-extrabold text-sm text-white">Pratinjau alur integrasi jaringan (nonoperasional)</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
                   DEMO ONLY / SIMULATED ENVIRONMENT
                 </span>
@@ -122,7 +122,7 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
         {/* Deployment Progress Bar */}
         <div className="px-6 py-3 bg-slate-950/60 border-b border-slate-800">
           <div className="flex justify-between text-xs font-mono mb-1.5 text-slate-300">
-            <span>Progress Penyebaran Kebijakan:</span>
+            <span>Progress pratinjau lokal:</span>
             <span className="font-bold text-cyan-400">{progress}%</span>
           </div>
           <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
@@ -158,7 +158,7 @@ export default function NetconfDeploymentModal({ isOpen, onClose, selectedSitesC
                 <Terminal className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Log simulasi lokal</span>
               </span>
-              <span>RFC 6241 / RFC 6020 Compliant</span>
+              <span>Contoh lokal; bukan pesan NETCONF/YANG</span>
             </div>
             {logs.map((log, index) => (
               <div key={index} className="flex items-start space-x-2">

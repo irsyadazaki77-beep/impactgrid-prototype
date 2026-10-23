@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createInitialSimulationState } from '../utils/demoState';
 import { 
   Play, 
   Pause, 
@@ -24,75 +25,57 @@ import {
 export const SIMULATION_SCENARIOS = {
   normal: {
     id: 'normal',
-    name: 'Operasi Normal 24 Jam (Hari Kerja Standar)',
-    shortName: '🟢 Normal 24 Jam',
-    tempC: 28,
-    trafficMultiplier: 1.0,
-    carrierSleepActive: true,
-    plnTariffIDR: 1500,
+    category: 'Tampilan demo',
+    name: 'Tampilan awal',
+    shortName: 'Tampilan awal',
     emergencyActive: false,
     color: 'emerald',
-    description: 'Skenario normal untuk antarmuka demo; tidak mengubah operasi jaringan.'
+    description: 'Status visual lokal; tidak menggambarkan kondisi operasi atau baseline jaringan.'
   },
   heatwave: {
     id: 'heatwave',
-    name: 'Gelombang Panas Ekstrem (BMKG 36°C Heatwave)',
-    shortName: '☀️ Heatwave 36°C',
-    tempC: 36,
-    trafficMultiplier: 1.15,
-    carrierSleepActive: true,
-    plnTariffIDR: 1500,
+    category: 'Sensitivitas',
+    name: 'Perubahan kondisi cuaca',
+    shortName: 'Cuaca',
     emergencyActive: false,
     color: 'amber',
-    description: 'Skenario cuaca ilustratif; suhu, beban, dan respons tidak berasal dari sensor atau model terkalibrasi.'
+    description: 'Skenario konseptual; tidak memakai observasi BMKG, sensor lokasi, atau model cuaca terkalibrasi.'
   },
   mudik: {
     id: 'mudik',
-    name: 'Lonjakan Mudik Lebaran / Pantura (+250% Trafik)',
-    shortName: '🚗 Mudik Pantura +250%',
-    tempC: 30,
-    trafficMultiplier: 2.5,
-    carrierSleepActive: false,
-    plnTariffIDR: 1500,
+    category: 'Sensitivitas',
+    name: 'Perubahan pola trafik',
+    shortName: 'Trafik',
     emergencyActive: false,
     color: 'blue',
-    description: 'Skenario kenaikan trafik lokal; tidak menguji tindakan fail-safe, latency, QoS, atau call drop.'
+    description: 'Skenario konseptual; tidak memakai profil trafik, lokasi, atau kapasitas jaringan aktual.'
   },
   pln_peak: {
     id: 'pln_peak',
-    name: 'PLN Waktu Beban Puncak (WBP Tarif Rp1.950/kWh)',
-    shortName: '⚡ PLN Tarif WBP',
-    tempC: 29,
-    trafficMultiplier: 1.2,
-    carrierSleepActive: true,
-    plnTariffIDR: 1950,
+    category: 'Sensitivitas',
+    name: 'Perubahan biaya energi',
+    shortName: 'Biaya energi',
     emergencyActive: false,
     color: 'purple',
-    description: 'Skenario perubahan biaya energi; tarif, BESS, dan kebijakan operasi aktual belum dihubungkan.'
+    description: 'Skenario konseptual; tarif efektif dan struktur kontrak perlu diperiksa, tidak ada data PLN yang terhubung.'
   },
   blackout_sumatera: {
     id: 'blackout_sumatera',
-    name: 'Blackout Transmisi PLN Sumatera (Grid Collapse Islanding)',
-    shortName: '⚠️ Blackout PLN Grid',
-    tempC: 31,
-    trafficMultiplier: 0.9,
-    carrierSleepActive: true,
-    plnTariffIDR: 0,
+    category: 'Skenario konseptual',
+    name: 'Gangguan pasokan listrik',
+    shortName: 'Gangguan listrik',
     emergencyActive: false,
     color: 'amber',
-    description: 'Skenario gangguan listrik dalam demo; tidak memodelkan transisi islanding atau daya cadangan secara tervalidasi.'
+    description: 'Tidak memodelkan keandalan grid, islanding, UPS, baterai, atau genset; perlu analisis teknis terpisah.'
   },
   emergency: {
     id: 'emergency',
-    name: 'Skenario darurat (ilustrasi)',
-    shortName: '🚨 Darurat 112 Drill',
-    tempC: 27,
-    trafficMultiplier: 3.0,
-    carrierSleepActive: false,
-    plnTariffIDR: 1500,
+    category: 'Skenario konseptual',
+    name: 'Keselamatan dan layanan darurat',
+    shortName: 'Keselamatan',
     emergencyActive: true,
     color: 'red',
-    description: 'Skenario untuk membahas kebutuhan keselamatan; tidak memicu layanan 112 atau mengukur fast-wakeup.'
+    description: 'Hanya pengingat kebutuhan kajian operator; tidak memicu layanan 112, mengukur QoS, atau menguji respons.'
   }
 };
 
@@ -130,13 +113,14 @@ export default function GlobalSimulationBar({
 
   const handleSelectScenario = (key) => {
     const sc = SIMULATION_SCENARIOS[key];
+    if (!sc) return;
     setSimState(prev => ({
       ...prev,
       scenarioKey: key,
-      tempC: sc.tempC,
-      trafficMultiplier: sc.trafficMultiplier,
-      carrierSleepActive: sc.carrierSleepActive,
-      plnTariffIDR: sc.plnTariffIDR,
+      tempC: null,
+      trafficMultiplier: null,
+      carrierSleepActive: null,
+      plnTariffIDR: null,
       emergencyActive: sc.emergencyActive
     }));
 
@@ -146,29 +130,21 @@ export default function GlobalSimulationBar({
   };
 
   const handleResetToBaseline = () => {
-    setSimState({
-      seed: 2026,
-      simHour: 14,
-      simTimeString: '14:00 WIB',
-      scenarioKey: 'normal',
-      tempC: 28,
-      trafficMultiplier: 1.0,
-      carrierSleepActive: true,
-      plnTariffIDR: 1500,
-      emergencyActive: false
-    });
+    setSimState(createInitialSimulationState());
+    setIsPlaying(false);
+    setSnapshotCopied(false);
     if (onTriggerEmergency) onTriggerEmergency(false);
   };
 
   const handleCopySnapshot = () => {
     const snapshotJson = JSON.stringify({
       timestamp: new Date().toISOString(),
-      seed: simState.seed || 2026,
       simState
     }, null, 2);
-    navigator.clipboard.writeText(snapshotJson);
-    setSnapshotCopied(true);
-    setTimeout(() => setSnapshotCopied(false), 2000);
+    navigator.clipboard?.writeText(snapshotJson).then(() => {
+      setSnapshotCopied(true);
+      setTimeout(() => setSnapshotCopied(false), 2000);
+    }).catch(() => setSnapshotCopied(false));
   };
 
   const handleTimeChange = (hour) => {
@@ -191,7 +167,7 @@ export default function GlobalSimulationBar({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-xs text-white uppercase tracking-wider">
-                  Konsol Simulasi Eksekutif
+                  Konsol Skenario Demo
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
@@ -199,7 +175,7 @@ export default function GlobalSimulationBar({
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                Uji respon dinamis platform terhadap waktu 24 jam, fluktuasi cuaca ekstrem BMKG, dan lonjakan beban darurat.
+                Kontrol di bawah hanya mengubah tampilan lokal. Tidak ada telemetri, data BMKG/PLN, model operasi, atau perintah jaringan yang terhubung.
               </p>
             </div>
           </div>
@@ -219,12 +195,12 @@ export default function GlobalSimulationBar({
               }`}
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-              <span>{isPlaying ? 'Pause' : 'Play 24 Jam'}</span>
+              <span>{isPlaying ? 'Pause' : 'Putar jam demo'}</span>
             </button>
 
             <button
               onClick={handleResetToBaseline}
-              title="Reset seluruh parameter simulasi ke baseline awal"
+              title="Kembalikan tampilan ke skenario demo awal"
               className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 cursor-pointer transition"
             >
               <RotateCcw className="w-3 h-3 text-slate-400" />
@@ -250,7 +226,7 @@ export default function GlobalSimulationBar({
           </div>
         </div>
 
-        {/* 5 Scenario Presets Buttons */}
+        {/* Scenario Presets */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
           {Object.values(SIMULATION_SCENARIOS).map((sc) => {
             const isSelected = simState.scenarioKey === sc.id;
@@ -265,17 +241,13 @@ export default function GlobalSimulationBar({
                 }`}
               >
                 <div className="flex items-center justify-between w-full mb-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400">
-                    {sc.id === 'normal' ? 'Baseline' : sc.id === 'heatwave' ? 'Cuaca' : sc.id === 'mudik' ? 'Trafik' : sc.id === 'pln_peak' ? 'Tarif' : 'QoS SLA'}
-                  </span>
+                  <span className="text-[10px] font-black uppercase text-slate-400">{sc.category}</span>
                   {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-red-400" />}
                 </div>
                 <span className="font-extrabold text-[11px] truncate block text-white">
                   {sc.shortName}
                 </span>
-                <span className="text-[10px] text-slate-400 mt-0.5 font-mono">
-                  {sc.tempC}°C • {sc.trafficMultiplier}x Load
-                </span>
+                <span className="text-[10px] text-slate-400 mt-0.5 font-mono">Data tidak terhubung</span>
               </button>
             );
           })}
@@ -287,10 +259,10 @@ export default function GlobalSimulationBar({
             <div className="flex justify-between text-[11px] text-slate-300 font-mono">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3 text-cyan-400" />
-                <span>Geser Waktu Simulasi 24 Jam (00:00 - 23:00 WIB):</span>
+                <span>Geser jam demo (kontrol visual saja):</span>
               </span>
               <strong className="text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-                {simState.simHour}:00 WIB {simState.simHour >= 1 && simState.simHour <= 5 ? '(Off-Peak Malam)' : simState.simHour >= 18 && simState.simHour <= 21 ? '(Prime-Time Peak)' : '(Normal)'}
+                {simState.simHour}:00 WIB (ilustrasi)
               </strong>
             </div>
 
@@ -305,28 +277,26 @@ export default function GlobalSimulationBar({
             />
 
             <div className="flex justify-between text-[9px] text-slate-500 font-mono">
-              <span>00:00 (Malam)</span>
-              <span>06:00 (Pagi)</span>
-              <span>12:00 (Siang Terik)</span>
-              <span>18:00 (Peak Malam)</span>
-              <span>23:00 (Trough)</span>
+              <span>00:00</span>
+              <span>06:00</span>
+              <span>12:00</span>
+              <span>18:00</span>
+              <span>23:00</span>
             </div>
           </div>
 
           <div className="md:col-span-5 grid grid-cols-3 gap-2 text-center text-xs">
             <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-[9px] text-slate-400 uppercase block">Suhu Lingkungan</span>
-              <span className="text-xs font-black text-amber-400">{simState.tempC}°C BMKG</span>
+              <span className="text-[9px] text-slate-400 uppercase block">Data cuaca</span>
+              <span className="text-xs font-black text-amber-400">Tidak terhubung</span>
             </div>
             <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-[9px] text-slate-400 uppercase block">Beban Trafik</span>
-              <span className="text-xs font-black text-cyan-400">
-                {(simState.trafficMultiplier * (simState.simHour >= 1 && simState.simHour <= 5 ? 0.25 : simState.simHour >= 18 && simState.simHour <= 21 ? 1.0 : 0.65) * 100).toFixed(0)}% Kapasitas
-              </span>
+              <span className="text-[9px] text-slate-400 uppercase block">Data trafik</span>
+              <span className="text-xs font-black text-cyan-400">Tidak terhubung</span>
             </div>
             <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-[9px] text-slate-400 uppercase block">Perlindungan layanan darurat</span>
-              <span className="text-xs font-black text-amber-300">Belum diuji</span>
+              <span className="text-[9px] text-slate-400 uppercase block">Uji keselamatan / 112</span>
+              <span className="text-xs font-black text-amber-300">Belum dilakukan</span>
             </div>
           </div>
         </div>
@@ -340,7 +310,7 @@ export default function GlobalSimulationBar({
             </span>
           </div>
           <span className="text-[10px] text-slate-500 font-mono shrink-0 hidden sm:inline">
-            Tarif PLN: Rp{simState.plnTariffIDR}/kWh
+            Mode demonstrasi lokal
           </span>
         </div>
       </div>

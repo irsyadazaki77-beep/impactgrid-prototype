@@ -39,7 +39,7 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
       actionPrompt: "Tunjukkan visualisasi sebagai konsep dan sebutkan kebutuhan uji teknis."
     },
     {
-      title: "3. O-RAN Autonomous AI Multi-Agent Swarm",
+      title: "3. Alur analisis konseptual",
       targetTab: "agents",
       targetDirector: "Direktur Network / CTO & R&D",
       keyMetric: "Alur agen konseptual",

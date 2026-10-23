@@ -1,41 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { PILOT_SITES_SAMPLE, SYSTEM_METADATA } from '../src/data/mockData';
+import { DID_ANALYSIS_DATA, ESG_COMPLIANCE_STANDARDS, KPI_SUMMARY, PILOT_SITES_SAMPLE, SYSTEM_METADATA } from '../src/data/mockData.js';
 
-describe('Phase 3 Executive & Live Demo Test Suite', () => {
-  it('should have 50 sample sites total (40 intervention, 10 control)', () => {
-    expect(PILOT_SITES_SAMPLE.length).toBe(50);
-    const interventions = PILOT_SITES_SAMPLE.filter(s => s.type === 'Intervensi');
-    const controls = PILOT_SITES_SAMPLE.filter(s => s.type.includes('Pembanding') || s.type.includes('Kontrol'));
-    expect(interventions.length).toBe(40);
-    expect(controls.length).toBe(10);
+describe('demo data boundaries', () => {
+  it('does not represent proposed pilot locations as measured sample data', () => {
+    expect(PILOT_SITES_SAMPLE).toEqual([]);
+    expect(KPI_SUMMARY.proposedInterventionSites).toBe(40);
+    expect(KPI_SUMMARY.proposedComparisonSites).toBe(10);
+    expect(KPI_SUMMARY.validatedSiteBaselineKWh).toBeNull();
   });
 
-  it('should guarantee emergency 112 wake-up latency constraint (< 120ms)', () => {
-    PILOT_SITES_SAMPLE.forEach(site => {
-      // 3GPP Rel-18 micro-sleep latency constraint
-      expect(site.latencyDeltaMs).toBeLessThanOrEqual(120);
-    });
+  it('keeps pilot impact and evidence metrics explicitly unavailable', () => {
+    expect(DID_ANALYSIS_DATA.status).toBe('NOT_AVAILABLE');
+    expect(DID_ANALYSIS_DATA.interventionCount).toBeNull();
+    expect(DID_ANALYSIS_DATA.isolatedEnergySavedKWh).toBeNull();
+    expect(DID_ANALYSIS_DATA.isolatedEmissionsReducedTon).toBeNull();
+    expect(DID_ANALYSIS_DATA.pValue).toBeNull();
   });
 
-  it('should verify SLA availability is maintained at safe levels across all sites (>= 99.9%)', () => {
-    PILOT_SITES_SAMPLE.forEach(site => {
-      expect(site.qosSLA).toBeDefined();
-      const numMatch = parseFloat(site.qosSLA.replace('%', ''));
-      expect(numMatch).toBeGreaterThanOrEqual(99.9);
-    });
+  it('does not label ESG standards as compliant before review', () => {
+    expect(ESG_COMPLIANCE_STANDARDS.length).toBeGreaterThan(0);
+    expect(ESG_COMPLIANCE_STANDARDS.every((item) => item.complianceScore === 'Belum dinilai')).toBe(true);
   });
 
-  it('should ensure positive financial net benefit across all intervention sites', () => {
-    const interventions = PILOT_SITES_SAMPLE.filter(s => s.type === 'Intervensi');
-    interventions.forEach(site => {
-      expect(site.netAnnualBenefitIDR).toBeGreaterThan(0);
-      expect(site.savedKWh).toBeGreaterThan(0);
-      expect(site.emissionsReducedTon).toBeGreaterThan(0);
-    });
-  });
-
-  it('should verify baseline PLN tariff is set correctly', () => {
+  it('keeps energy tariff as an illustrative input and emission factor unknown', () => {
     expect(SYSTEM_METADATA.electricityTariff).toBe(1500);
-    expect(SYSTEM_METADATA.gridEmissionFactor).toBe(0.87);
+    expect(SYSTEM_METADATA.gridEmissionFactor).toBeNull();
   });
 });

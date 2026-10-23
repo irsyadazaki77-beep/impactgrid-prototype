@@ -9,7 +9,7 @@ const RATES = [5, 8, 12];
 
 const rupiah = (value) => `Rp ${Math.round(value / 1_000_000).toLocaleString('id-ID')} juta`;
 
-export default function ScenarioLabTab() {
+export default function ScenarioLabTab({ isActive = true }) {
   const [baselineKey, setBaselineKey] = useState('daily');
   const [sites, setSites] = useState(40);
   const [savingPct, setSavingPct] = useState(8);
@@ -57,14 +57,14 @@ export default function ScenarioLabTab() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-xs font-bold uppercase text-slate-500">Baseline tahunan model</div><div className="mt-2 text-2xl font-black text-slate-900">{annualKWh.toLocaleString('id-ID')} kWh</div><p className="mt-1 text-xs text-slate-500">{sites} lokasi × {baseline.annualPerSite.toLocaleString('id-ID')} kWh/lokasi/tahun</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-xs font-bold uppercase text-slate-500">Energi pada asumsi {savingPct}%</div><div className="mt-2 text-2xl font-black text-slate-900">{Math.round(savedKWh).toLocaleString('id-ID')} kWh</div><p className="mt-1 text-xs text-slate-500">Hasil hitung dari input di atas</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-xs font-bold uppercase text-slate-500">Nilai bruto setahun penuh</div><div className="mt-2 text-2xl font-black text-slate-900">{rupiah(grossSavings)}</div><p className="mt-1 text-xs text-slate-500">Belum dikurangi biaya pilot/operasi dan belum disahkan Finance</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-xs font-bold uppercase text-slate-500">Baseline tahunan model</div><div className="mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums text-slate-900">{annualKWh.toLocaleString('id-ID')} kWh</div><p className="mt-1 text-xs text-slate-500">{sites} lokasi × {baseline.annualPerSite.toLocaleString('id-ID')} kWh/lokasi/tahun</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-xs font-bold uppercase text-slate-500">Energi pada asumsi {savingPct}%</div><div className="mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums text-slate-900">{Math.round(savedKWh).toLocaleString('id-ID')} kWh</div><p className="mt-1 text-xs text-slate-500">Hasil hitung dari input di atas</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-xs font-bold uppercase text-slate-500">Nilai bruto setahun penuh</div><div className="mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums text-slate-900">{rupiah(grossSavings)}</div><p className="mt-1 text-xs text-slate-500">Belum dikurangi biaya pilot/operasi dan belum disahkan Finance</p></article>
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6 space-y-4">
         <div><h2 className="font-extrabold text-slate-900">Perbandingan asumsi penghematan</h2><p className="text-xs text-slate-500">Semua angka berubah mengikuti baseline dan biaya energi yang dipilih.</p></div>
-        <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={scenarios} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}><CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" /><XAxis dataKey="rate" /><YAxis /><Tooltip formatter={(value, name) => name === 'cost' ? [`Rp ${Number(value).toFixed(1)} juta`, 'Manfaat bruto'] : [`${Number(value).toLocaleString('id-ID')} kWh`, 'Energi']} /><Bar dataKey="energy" fill="#0f766e" radius={[4, 4, 0, 0]} name="Energi" /></BarChart></ResponsiveContainer></div>
+        <div className="h-80 w-full md:h-96">{isActive && <ResponsiveContainer width="100%" height="100%"><BarChart data={scenarios} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}><CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" /><XAxis dataKey="rate" /><YAxis /><Tooltip formatter={(value, name) => name === 'cost' ? [`Rp ${Number(value).toFixed(1)} juta`, 'Manfaat bruto'] : [`${Number(value).toLocaleString('id-ID')} kWh`, 'Energi']} /><Bar dataKey="energy" fill="#0f766e" radius={[4, 4, 0, 0]} name="Energi" /></BarChart></ResponsiveContainer>}</div>
         <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="p-3">Asumsi penghematan</th><th className="p-3">Energi/tahun</th><th className="p-3">Nilai bruto/tahun</th></tr></thead><tbody>{scenarios.map((item) => <tr key={item.rate} className="border-t border-slate-100"><td className="p-3">{item.rate}</td><td className="p-3">{item.energy.toLocaleString('id-ID')} kWh</td><td className="p-3">{rupiah(item.cost * 1_000_000)}</td></tr>)}</tbody></table></div>
       </section>
 

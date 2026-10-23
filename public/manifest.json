@@ -1,7 +1,7 @@
 {
-  "name": "Telkomsel ImpactGrid Control Tower",
+  "name": "ImpactGrid — Prototipe BCC TSF 2026",
   "short_name": "ImpactGrid",
-  "description": "Executive Decision Support System for Telkomsel Network Energy Efficiency & Scope 2 Decarbonization",
+  "description": "Prototipe demonstrasi untuk usulan efisiensi energi dan pengukuran dampak; tidak terhubung ke jaringan operasional.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0f19",

@@ -47,12 +47,12 @@ export default function FinancialModelTab() {
       <section className="grid gap-4 md:grid-cols-2">
         <article className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="text-xs font-bold uppercase text-slate-500">Skenario rendah, hemat 8%</div>
-          <div className="mt-2 text-2xl font-black text-rose-700">{rupiah(baseCase.npv)}</div>
+          <div className="mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums text-rose-700">{rupiah(baseCase.npv)}</div>
           <p className="mt-2 text-xs text-slate-600">Baseline 50 kWh/lokasi/hari; belum diukur di lapangan.</p>
         </article>
         <article className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="text-xs font-bold uppercase text-slate-500">Skenario alternatif, hemat 8%</div>
-          <div className={`mt-2 text-2xl font-black ${alternateCase.npv >= 0 ? 'text-amber-700' : 'text-rose-700'}`}>{rupiah(alternateCase.npv)}</div>
+          <div className={`mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums ${alternateCase.npv >= 0 ? 'text-amber-700' : 'text-rose-700'}`}>{rupiah(alternateCase.npv)}</div>
           <p className="mt-2 text-xs text-slate-600">Baseline 50 MWh/lokasi/tahun; asumsi alternatif bahan tim.</p>
         </article>
       </section>

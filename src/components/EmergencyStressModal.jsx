@@ -1,14 +1,10 @@
 import React from 'react';
 import { 
-  Zap, 
   ShieldAlert, 
   ShieldCheck, 
   AlertTriangle, 
   PhoneCall, 
-  Activity, 
   RotateCcw,
-  Sparkles,
-  CheckCircle2,
   Lock
 } from 'lucide-react';
 
@@ -31,10 +27,10 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold tracking-tight">
-                  Simulasi skenario lonjakan trafik
+                  Pemilihan skenario keselamatan
                 </h2>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
-                  Demo Direktur Network
+                  Pratinjau lokal
                 </span>
               </div>
               <p className="text-xs text-white/80">
@@ -67,64 +63,63 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
             <div className="space-y-1">
               <span className="font-bold text-sm block">
                 {emergencyState.active 
-                  ? 'SKENARIO DEMO AKTIF: input lonjakan trafik dipilih' 
-                  : 'SKENARIO DEMO NORMAL: tidak ada sistem operasi yang berjalan'}
+                  ? 'SKENARIO KESELAMATAN DIPILIH UNTUK DEMO'
+                  : 'TIDAK ADA SKENARIO YANG DIPILIH'}
               </span>
               <p className="text-slate-600 leading-relaxed text-[11px]">
                 {emergencyState.active
-                  ? 'Perubahan hanya memengaruhi visualisasi lokal. Tidak ada mode sleep yang dibatalkan dan tidak ada tindakan atau pengukuran jaringan.'
-                  : 'Prototype tidak memantau atau mengendalikan power amplifier; seluruh nilai merupakan data contoh.'}
+                  ? 'Perubahan hanya memengaruhi tampilan lokal. Tidak ada perubahan konfigurasi atau pengukuran jaringan.'
+                  : 'Prototype tidak memantau atau mengendalikan jaringan; tidak ada data lokasi yang terhubung.'}
               </p>
             </div>
           </div>
 
-          {/* Real-time Telemetry Comparison in Drill */}
+          {/* Status bukti keselamatan yang belum tersedia */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Skenario input</span>
+              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Pilihan tampilan</span>
               <span className={`text-base font-extrabold ${emergencyState.active ? 'text-red-600 animate-pulse' : 'text-slate-900'}`}>
-                {emergencyState.active ? 'Lonjakan (ilustrasi)' : 'Normal (ilustrasi)'}
+                {emergencyState.active ? 'Keselamatan (konsep)' : 'Belum dipilih'}
               </span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Panggilan 112 SLA</span>
+              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Layanan darurat 112</span>
               <span className="text-base font-extrabold text-amber-700">Belum diuji</span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Wake-up Latency</span>
+              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Wake-up latency</span>
               <span className="text-base font-extrabold text-indigo-600">
                 Belum diukur
               </span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Drop Call Probability</span>
+              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Risiko drop call</span>
               <span className="text-base font-extrabold text-teal-600">
                 Belum diukur
               </span>
             </div>
           </div>
 
-          {/* 3-Layer Fail-Safe Explainer for CTO */}
           <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5" />
-              <span>Persyaratan desain yang perlu ditinjau dan diuji</span>
+              <span>Hal yang harus ditetapkan sebelum pilot</span>
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-slate-300">
               <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-                <strong className="text-white block mb-0.5">Lapis 1: Traffic Gradient</strong>
-                Ambang deteksi dan respons harus ditentukan berdasarkan data serta uji operasi.
+                <strong className="text-white block mb-0.5">Batas mutu layanan</strong>
+                Pemilik jaringan perlu menetapkan ambang dan metode pemantauan dari data yang disetujui.
               </div>
               <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-                <strong className="text-white block mb-0.5">Lapis 2: 112 Priority Preemption</strong>
-                Interaksi layanan darurat harus dirancang bersama operator dan pemilik layanan; belum diuji di prototype.
+                <strong className="text-white block mb-0.5">Layanan darurat</strong>
+                Dampak dan tanggung jawab layanan 112 perlu ditinjau bersama operator serta pemilik layanan.
               </div>
               <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-                <strong className="text-white block mb-0.5">Lapis 3: Heartbeat Watchdog</strong>
-                Perilaku saat koneksi terputus dan prosedur rollback perlu didefinisikan serta diuji sebelum pilot.
+                <strong className="text-white block mb-0.5">Pemulihan dan rollback</strong>
+                Perilaku saat koneksi terputus dan prosedur pemulihan harus ditetapkan serta diuji.
               </div>
             </div>
           </div>

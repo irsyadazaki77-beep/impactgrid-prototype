@@ -8,22 +8,28 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
+    cssCodeSplit: true,
+    assetsInlineLimit: 2048,
+    reportCompressedSize: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/recharts')) {
-            return 'vendor-charts';
-          }
-          if (id.includes('node_modules/lucide-react')) {
-            return 'vendor-icons';
-          }
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+          const path = id.replaceAll('\\', '/');
+          if (/node_modules\/(react|react-dom|scheduler|use-sync-external-store)\//.test(path)) {
             return 'vendor-react';
           }
         }
       }
     },
-    chunkSizeWarningLimit: 600
+    chunkSizeWarningLimit: 500
   }
 })

@@ -85,8 +85,8 @@ export default function ArchitectureTab() {
     {
       id: 'issue_tree',
       title: 'Gambar 1: Kerangka analisis masalah (Issue Tree)',
-      subtitle: 'Pembedahan Paradoks Dekarbonisasi: 1,885 Miliar kWh & 1,722 Juta ton CO2e',
-      image: '/assets/gambar1_issue_tree.png',
+      subtitle: 'Konteks korporat 2025 dan kesenjangan data per lokasi',
+      image: '/assets/diagram1-bukti.svg',
       caption: 'Data perusahaan 2025 memberi konteks emisi Scope 2. Hambatan integrasi, sistem existing, dan kebutuhan analisis kausal perlu diverifikasi melalui wawancara serta data internal.',
       rubricMapping: 'Kriteria Pendahuluan & Identifikasi Masalah Mendalam (Bobot 10%)'
     },
@@ -94,23 +94,23 @@ export default function ArchitectureTab() {
       id: 'roadmap',
       title: 'Gambar 2: Roadmap Implementasi 3 Jangka Waktu (2027–2031)',
       subtitle: 'Audit awal, pilot bersyarat, lalu evaluasi ekspansi setelah bukti tersedia',
-      image: '/assets/gambar2_roadmap.png',
+      image: '/assets/diagram2-roadmap.svg',
       caption: 'Roadmap bersifat usulan. Ekspansi, anggaran, integrasi, dan klaim emisi menunggu hasil audit/pilot serta persetujuan pemilik fungsi.',
       rubricMapping: 'Kriteria Roadmap Implementasi & Keberlanjutan Bisnis (Bobot 20%)'
     },
     {
       id: 'arsitektur',
       title: 'Gambar 3: Arsitektur Ekosistem 4 Modul ImpactGrid',
-      subtitle: 'Integrasi Multi-Vendor RAN, Digital Twin, AI Engine, dan Audit MRV',
-      image: '/assets/gambar3_arsitektur.png',
+      subtitle: 'Empat modul usulan; integrasi operasional belum tersedia',
+      image: '/assets/diagram3-arsitektur.svg',
       caption: 'Arsitektur konseptual yang masih memerlukan validasi terhadap sistem existing, protokol yang diizinkan, keamanan, kepemilikan data, dan biaya integrasi.',
       rubricMapping: 'Kriteria Solusi & Kelayakan Teknologi (Bobot 20%)'
     },
     {
       id: 'alur_optimasi',
       title: 'Gambar 4: Alur Pengambilan Keputusan Optimasi AI & Guardrail',
-      subtitle: 'Alur usulan untuk analisis dan persetujuan manusia',
-      image: '/assets/gambar4_alur_optimasi.png',
+      subtitle: 'Validasi data, simulasi, tinjauan operator, lalu keputusan bersyarat',
+      image: '/assets/diagram4-alur-keputusan.svg',
       caption: 'Gambaran alur konseptual. Deteksi, guardrail, layanan darurat, waktu respons, dan eksekusi belum diimplementasikan atau diuji.',
       rubricMapping: 'Kriteria Analisis Risiko & Mitigasi Keandalan Jaringan (Bobot 15%)'
     },
@@ -118,7 +118,7 @@ export default function ArchitectureTab() {
       id: 'logo_resmi',
       title: 'Identitas visual konsep ImpactGrid',
       subtitle: 'AI-Powered Sustainable Network Intelligence (Sphere Connectivity & Green Leaf)',
-      image: '/assets/logo_utama_impactgrid.png',
+      image: '/assets/logo_utama_impactgrid.webp',
       caption: 'Logo konsep tim AWAKENING Reborn; bukan identitas atau produk resmi Telkomsel.',
       rubricMapping: 'Identitas Produk & Branding Korporat Telkomsel'
     }
@@ -275,6 +275,8 @@ export default function ArchitectureTab() {
             {/* Display Image Container */}
             <div className="flex items-center justify-center p-6 rounded-2xl bg-slate-50 border border-slate-200/80 overflow-hidden min-h-[380px]">
               <img 
+                loading="lazy"
+                decoding="async"
                 src={currentDiagram.image} 
                 alt={currentDiagram.title}
                 className="max-h-[500px] w-auto object-contain rounded-xl shadow-md transition hover:scale-[1.01]" 
@@ -534,7 +536,7 @@ export default function ArchitectureTab() {
                 Matriks Penilaian dan Mitigasi Risiko (Risk Assessment Matrix)
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Pengendalian komprehensif atas 6 risiko operasional, teknis, vendor, aset menara, dan audit ESG.
+                  Enam risiko usulan untuk ditinjau; pengendalian belum diterapkan atau diuji.
               </p>
             </div>
             <div className="p-2 rounded-xl bg-red-50 text-red-700 border border-red-200">

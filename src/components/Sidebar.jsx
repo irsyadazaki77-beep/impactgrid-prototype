@@ -34,7 +34,7 @@ export default function Sidebar({ activeTab, setActiveTab, viewMode = 'executive
         </button>)}</div>}
       </section>)}
     </nav>
-    <div className="sidebar-foot"><strong>Telkomsel ImpactGrid</strong><span>BCC TDC 2026</span></div>
+    <div className="sidebar-foot"><strong>ImpactGrid · Konsep</strong><span>BCC TSF 2026</span></div>
   </>;
   return <>
     <button className="mobile-nav-toggle" aria-label={mobileOpen ? 'Tutup navigasi' : 'Buka navigasi'} onClick={() => setMobileOpen(v => !v)}>{mobileOpen ? <X size={20} /> : <Menu size={20} />}<span>Menu</span></button>

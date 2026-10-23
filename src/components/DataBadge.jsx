@@ -1,12 +1,12 @@
 import React from 'react';
-import { Database, TrendingUp, CheckCircle2, Info } from 'lucide-react';
+import { Database, TrendingUp, Info } from 'lucide-react';
 
 /**
  * DataBadge:
  * Visually categorizes data provenance across the prototype:
- * - 'verified': Hasil Terverifikasi Lapangan (Audit-Ready, DiD, Smart Meter PLN)
- * - 'projection': Proyeksi Model Matematis (Monte Carlo, 5-Year WACC, What-If)
- * - 'synthetic': Data simulasi demo (Sampel 40 BTS, Standar 3GPP Rel 18)
+ * - 'verified': Reserved for evidence validated by an accountable data owner
+ * - 'projection': Sensitivity results calculated from explicitly stated assumptions
+ * - 'synthetic': Local demonstration values, not operational data
  */
 export default function DataBadge({ type = 'synthetic', className = '' }) {
   if (type === 'verified') {
@@ -20,9 +20,9 @@ export default function DataBadge({ type = 'synthetic', className = '' }) {
 
   if (type === 'projection') {
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200/90 shadow-2xs ${className}`} title="Proyeksi model probabilistik / finansial berbasis simulasi numerik">
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200/90 shadow-2xs ${className}`} title="Sensitivitas berbasis asumsi; bukan forecast atau hasil aktual">
         <TrendingUp className="w-3 h-3 text-blue-600" />
-        <span>Proyeksi Model</span>
+        <span>Sensitivitas Asumsi</span>
       </span>
     );
   }

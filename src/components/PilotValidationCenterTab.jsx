@@ -43,7 +43,7 @@ export default function PilotValidationCenterTab({ onOpenReportModal }) {
         </div>
         <h1 className="text-2xl font-black text-slate-900">Belum ada hasil pilot atau bukti lapangan</h1>
         <p className="max-w-4xl text-sm leading-relaxed text-slate-700">
-          Prototipe ini memakai data sintetis untuk mendemonstrasikan alur analisis. Angka simulasi tidak membuktikan penghematan, signifikansi statistik, kelulusan gerbang, status QoS, ataupun persetujuan Telkomsel. Gunakan daftar di bawah sebagai prasyarat pengumpulan dan validasi data.
+          Prototipe ini tidak memiliki dataset lokasi operasional. Daftar di bawah menjelaskan kebutuhan data dan rancangan evaluasi; tidak ada penghematan, signifikansi statistik, kelulusan gerbang, status QoS, ataupun persetujuan Telkomsel yang dihasilkan dari halaman ini.
         </p>
         {onOpenReportModal && (
           <button onClick={onOpenReportModal} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800">

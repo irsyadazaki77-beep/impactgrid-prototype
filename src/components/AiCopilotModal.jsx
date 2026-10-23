@@ -30,7 +30,6 @@ const PRESET_QUESTIONS = [
     action: {
       type: 'APPLY_OPTIMIZATION',
       label: 'Lihat simulasi lokal',
-      payload: { carrierSleepActive: true, tempC: 26, plnTariffIDR: 1500 }
     }
   },
   {
@@ -38,12 +37,12 @@ const PRESET_QUESTIONS = [
     category: "Simulasi",
     action: {
       type: 'SWITCH_SCENARIO',
-      label: 'Simulasi Blackout Sumatera',
+      label: 'Lihat skenario gangguan (konsep)',
       scenarioKey: 'blackout_sumatera'
     }
   },
   {
-    q: "Apa diferensiasi ImpactGrid dibanding fitur sleep mode bawaan vendor Telkomsel?",
+    q: "Apa nilai tambah ImpactGrid dibanding fitur efisiensi energi RAN yang sudah tersedia?",
     category: "Architecture",
     tab: "telemetry"
   },
@@ -63,16 +62,24 @@ const PRESET_QUESTIONS = [
     tab: "financial"
   },
   {
-    q: "Bagaimana metodologi Difference-in-Differences (DiD) ITU-T L.1331 memverifikasi audit ESG?",
+    q: "Bagaimana ITU-T L.1331 dapat menjadi rujukan pengukuran efisiensi energi jaringan?",
     category: "ESG Audit",
     tab: "esg"
   },
   {
-    q: "Bagaimana algoritma Knapsack DSS menyeimbangkan trade-off CFO, CTO, dan ESG?",
+    q: "Bagaimana rancangan prioritisasi dapat mempertimbangkan biaya, layanan, dan ESG?",
     category: "DSS Knapsack",
     tab: "optimization"
   }
 ];
+
+function readSavedApiKey() {
+  try { return localStorage.getItem('impactgrid_gemini_api_key') || ''; } catch { return ''; }
+}
+
+function saveApiKey(value) {
+  try { localStorage.setItem('impactgrid_gemini_api_key', value); } catch { /* The local assistant remains available without storage. */ }
+}
 
 const LOCAL_KNOWLEDGE_BASE = {
   vendor: {
@@ -115,10 +122,10 @@ const LOCAL_KNOWLEDGE_BASE = {
 
 const SYSTEM_PROMPT = "Anda adalah asisten untuk prototype proposal ImpactGrid oleh Tim AWAKENING Reborn. Jawab ringkas, profesional, dan dalam bahasa Indonesia.\\n\\n" +
   "ATURAN FAKTA:\\n" +
-  "- Prototype ini adalah demonstrasi lokal dengan data site sintetis. Prototype tidak terhubung ke sistem, jaringan, meter, vendor, BMKG, PLN, atau data operasional Telkomsel. Tidak ada pilot yang telah dibuktikan oleh aplikasi.\\n" +
+  "- Prototype ini demonstrasi lokal dan tidak memiliki dataset site operasional. Beberapa input atau log hanya contoh dan asumsi. Prototype tidak terhubung ke sistem, jaringan, meter, vendor, BMKG, PLN, atau data operasional Telkomsel. Tidak ada pilot yang telah dibuktikan oleh aplikasi.\\n" +
   "- Jangan menyatakan telemetri, anomali, penghematan, DiD, reduksi emisi, QoS, latency, panggilan 112, persetujuan, audit, atau integrasi sebagai hasil nyata. Jangan mengarang angka, sumber, atau status.\\n" +
   "- Angka 40 lokasi intervensi + 10 pembanding adalah cakupan yang diusulkan. Baseline, tarif/kontrak, faktor emisi, biaya aktual, dan penghematan site belum tervalidasi.\\n" +
-  "- Jika membahas model finansial, sebutkan sebagai sensitivitas dengan asumsi. Pada hemat 8%, Rp1.500/kWh, CapEx Rp450 juta, OpEx Rp60 juta/tahun, WACC 10%, dan jadwal arus kas model, NPV indikatif sekitar minus Rp391,5 juta untuk baseline 50 kWh/lokasi/hari atau plus Rp82,3 juta untuk baseline 50 MWh/lokasi/tahun. Kedua baseline belum diverifikasi; jangan menyebutnya forecast.\\n" +
+  "- Jika membahas model finansial, sebutkan sebagai sensitivitas dengan asumsi. Pada hemat 8%, biaya energi yang dihindari Rp1.500/kWh, CapEx Rp450 juta, OpEx Rp60 juta/tahun, diskonto 10%, dan jadwal arus kas model, NPV indikatif sekitar minus Rp391,5 juta untuk baseline 50 kWh/lokasi/hari atau plus Rp82,3 juta untuk baseline 50 MWh/lokasi/tahun. Kedua baseline belum diverifikasi; jangan menyebutnya forecast.\\n" +
   "- Konteks korporat laporan Telkomsel 2025: konsumsi listrik 1.885.417.875,2 kWh dan emisi Scope 2 1.721.967,7 tCO2e. Ini bukan baseline site atau bukti dampak ImpactGrid.\\n" +
   "- ITU-T L.1331 adalah acuan yang diusulkan untuk indikator konsumsi energi jaringan; jangan menyatakan kepatuhan atau pengesahan ESG otomatis. Hash memeriksa integritas berkas, bukan kebenaran data.\\n" +
   "- Jelaskan langkah validasi yang diperlukan jika data belum ada. Untuk keselamatan, nyatakan perlu kajian, persetujuan, dan pengujian operator; jangan menjamin keselamatan atau performa.\\n" +
@@ -135,7 +142,7 @@ export default function AiCopilotModal({
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: 'Halo! Saya **ImpactGrid AI Copilot**.\n\nSaya dapat menjelaskan rancangan, asumsi, dan kebutuhan validasi proposal. Data pada prototype ini sintetis dan tidak terhubung ke jaringan, meter, atau site operasional.',
+      text: 'Halo! Saya **ImpactGrid Copilot (demo)**.\n\nSaya dapat menjelaskan rancangan, asumsi, dan kebutuhan validasi proposal. Jawaban lokal mengikuti naskah yang disiapkan; prototype tidak memiliki dataset site atau koneksi operasional.',
       timestamp: 'Baru saja'
     }
   ]);
@@ -144,21 +151,24 @@ export default function AiCopilotModal({
   
   // Settings & Gemini API state
   const [showSettings, setShowSettings] = useState(false);
-  const [useProxy, setUseProxy] = useState(true); // Default: secure backend proxy
+  const [useProxy, setUseProxy] = useState(false); // Local demo is the default; proxy use must be explicit.
   const [proxyEndpoint, setProxyEndpoint] = useState('/api/ai/chat');
   const [apiKey, setApiKey] = useState(() => {
     // Only read from user's manual local override, never leak hardcoded key in bundle
-    return localStorage.getItem('impactgrid_gemini_api_key') || '';
+    return readSavedApiKey();
   });
   const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
   const [connectionStatus, setConnectionStatus] = useState('idle'); // 'idle' | 'testing' | 'connected' | 'error'
   const [connectionMsg, setConnectionMsg] = useState('');
 
   const chatBottomRef = useRef(null);
+  const localReplyTimer = useRef(null);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  useEffect(() => () => clearTimeout(localReplyTimer.current), []);
 
   // Test Gemini API connection
   const handleTestConnection = async (keyToTest) => {
@@ -182,44 +192,27 @@ export default function AiCopilotModal({
       });
 
       if (!response.ok) {
-        // Try fallback to gemini-1.5-flash
-        const fallbackRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "Ping." }] }]
-          })
-        });
-
-        if (fallbackRes.ok) {
-          setSelectedModel('gemini-1.5-flash');
-          setConnectionStatus('connected');
-          setConnectionMsg('Tersambung via Gemini 1.5 Flash!');
-          localStorage.setItem('impactgrid_gemini_api_key', key);
-          return;
-        }
-
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData?.error?.message || `HTTP error ${response.status}`);
       }
 
       setConnectionStatus('connected');
-      setConnectionMsg(`Tersambung aktif ke Google Gemini (${selectedModel})!`);
-      localStorage.setItem('impactgrid_gemini_api_key', key);
+      setConnectionMsg(`Uji koneksi API berhasil (${selectedModel}).`);
+      saveApiKey(key);
     } catch (err) {
       console.warn("Gemini connection test failed:", err);
       setConnectionStatus('error');
-      setConnectionMsg(`Koneksi gagal: ${err.message}. Mode Failsafe Lokal tetap aktif.`);
+      setConnectionMsg(`Uji koneksi gagal: ${err.message}. Jawaban lokal berbasis aturan tetap tersedia.`);
     }
   };
 
   const handleSaveApiKey = () => {
-    localStorage.setItem('impactgrid_gemini_api_key', apiKey.trim());
+    saveApiKey(apiKey.trim());
     if (apiKey.trim()) {
       handleTestConnection(apiKey.trim());
     } else {
       setConnectionStatus('idle');
-      setConnectionMsg('Mode Failsafe Lokal aktif.');
+      setConnectionMsg('Jawaban lokal berbasis aturan digunakan.');
     }
     setShowSettings(false);
   };
@@ -268,8 +261,8 @@ export default function AiCopilotModal({
       return LOCAL_KNOWLEDGE_BASE.knapsack;
     } else {
       return {
-        title: "Analisis Arsitektur Cyber-Physical Telkomsel ImpactGrid",
-        answer: `Pertanyaan Anda sangat relevan dengan operasional 293.000 BTS Telkomsel!\n\nImpactGrid mengintegrasikan 4 modul terpadu:\n1. **Network Data Hub (Modul 1):** Ingesti O-RAN O1 & Smart Meter PLN untuk deteksi Phantom Load.\n2. **Scenario Lab (Modul 2):** Digital Twin konsumsi energi BTS dengan modifikasi cuaca BMKG.\n3. **Investment Prioritizer (Modul 3):** Knapsack DSS alokasi CapEx berbasis Lensa CFO, CTO, dan ESG.\n4. **ESG Verification (Modul 4):** Validasi DiD ITU-T L.1331 dengan jejak audit kriptografis SHA-256.\n\nAnda dapat mengeksplorasi modul-modul ini langsung melalui navigasi tab di layar utama!`,
+        title: "Rancangan ImpactGrid",
+        answer: "ImpactGrid adalah konsep sistem pendukung keputusan dengan empat area: konsolidasi data, simulasi, prioritisasi, dan kerangka pengukuran ESG. Prototype memakai data sintetis, belum terhubung ke sumber operasional, dan belum menghasilkan rekomendasi atau bukti dampak. Tinjau asumsi serta kebutuhan validasinya di tab terkait.",
         suggestedTab: 'telemetry',
         suggestedTabLabel: 'Eksplorasi Modul di Tab Telemetri'
       };
@@ -286,7 +279,7 @@ export default function AiCopilotModal({
     setInputText('');
     setIsTyping(true);
 
-    const activeKey = apiKey.trim() || localStorage.getItem('impactgrid_gemini_api_key') || '';
+    const activeKey = apiKey.trim() || readSavedApiKey();
 
     // 1. Try secure backend proxy first if enabled
     if (useProxy) {
@@ -369,7 +362,7 @@ export default function AiCopilotModal({
     }
 
     // FALLBACK: INSTANT ON-DEVICE TELECOM LOCAL EXPERT ENGINE
-    setTimeout(() => {
+    localReplyTimer.current = setTimeout(() => {
       const localResult = getLocalResponse(query);
       const formatted = `**${localResult.title}**\n\n${localResult.answer}`;
       
@@ -386,7 +379,7 @@ export default function AiCopilotModal({
     }, 450);
   };
 
-  const isGeminiActive = Boolean(useProxy || apiKey.trim() || localStorage.getItem('impactgrid_gemini_api_key'));
+  const hasExternalReply = messages.some((message) => ['gemini-proxy', 'gemini-direct'].includes(message.source));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-xs animate-in fade-in duration-200">
@@ -401,15 +394,15 @@ export default function AiCopilotModal({
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-sm text-white">ImpactGrid AI Reasoning Copilot</span>
-                {isGeminiActive ? (
+                {hasExternalReply ? (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    Live Gemini AI Active
+                    Model eksternal telah memberi jawaban
                   </span>
                 ) : (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                    Telecom Local Engine (Failsafe)
+                    Jawaban lokal berbasis naskah
                   </span>
                 )}
               </div>
@@ -447,7 +440,7 @@ export default function AiCopilotModal({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-1.5 text-slate-200 font-bold">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Konfigurasi Google Gemini API (Live Generative Reasoning)</span>
+                <span>Pengaturan model eksternal (opsional)</span>
               </div>
               <a 
                 href="https://aistudio.google.com/app/apikey" 
@@ -455,12 +448,16 @@ export default function AiCopilotModal({
                 rel="noreferrer"
                 className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-1 underline font-medium"
               >
-                <span>Dapatkan API Key Gratis di Google AI Studio</span>
+              <span>Buka Google AI Studio</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2">
+              <label className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-slate-200">
+                <input type="checkbox" checked={useProxy} onChange={(event) => setUseProxy(event.target.checked)} />
+                <span>Izinkan koneksi backend AI (opsional)</span>
+              </label>
               <input
                 type="password"
                 value={apiKey}
@@ -497,7 +494,7 @@ export default function AiCopilotModal({
               </div>
             )}
             <p className="mt-1.5 text-[10px] text-slate-400">
-              *Catatan Presentasi: Jika tidak memasukkan API Key, sistem otomatis beralih ke <strong>Mode Failsafe Lokal</strong> berbasis proposal resmi, sehingga demo tidak akan pernah gagal di depan juri.
+              API key disimpan di browser perangkat ini. Jika layanan eksternal tidak tersedia, aplikasi memakai jawaban lokal berbasis aturan; ketersediaan jawaban tidak dijamin.
             </p>
           </div>
         )}
@@ -538,15 +535,15 @@ export default function AiCopilotModal({
               }`}>
                 {msg.sender === 'ai' && msg.source && (
                   <div className="flex items-center gap-1 mb-1.5">
-                    {msg.source === 'gemini' ? (
+                    {['gemini', 'gemini-proxy', 'gemini-direct'].includes(msg.source) ? (
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
                         <Sparkles className="w-2.5 h-2.5 text-purple-600" />
-                        Google Gemini Live
+                        Jawaban model eksternal
                       </span>
                     ) : (
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
                         <Cpu className="w-2.5 h-2.5 text-blue-600" />
-                        On-Device Telecom Engine
+                        Jawaban lokal berbasis naskah
                       </span>
                     )}
                   </div>
@@ -571,7 +568,7 @@ export default function AiCopilotModal({
                       <span>{msg.actionData.label || 'Eksekusi Aksi'}</span>
                     </button>
                     <span className="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      Live Telemetri Update
+                      Hanya membuka tampilan demo lokal
                     </span>
                   </div>
                 )}
@@ -613,7 +610,7 @@ export default function AiCopilotModal({
               </div>
               <div className="bg-white px-3 py-2 rounded-xl border border-slate-200 text-[11px] text-slate-500 shadow-2xs flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
-                <span>ImpactGrid AI sedang menganalisis telemetri & model keputusan...</span>
+                <span>Menyiapkan jawaban dari informasi yang tersedia...</span>
               </div>
             </div>
           )}
@@ -648,7 +645,7 @@ export default function AiCopilotModal({
           <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-400">
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Dual Engine: Google Gemini API Live + On-Device Telecom Failsafe
+              Jawaban lokal tersedia; koneksi model eksternal bersifat opsional
             </span>
             <span>Shortcut: <kbd className="bg-slate-100 px-1 py-0.5 rounded border border-slate-200 font-mono">Enter</kbd></span>
           </div>

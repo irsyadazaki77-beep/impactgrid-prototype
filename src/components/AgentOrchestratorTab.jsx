@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bot, 
   Cpu, 
@@ -25,10 +25,11 @@ import {
 export default function AgentOrchestratorTab() {
   const [selectedScenario, setSelectedScenario] = useState('midnight');
   const [isSimulating, setIsSimulating] = useState(false);
-  const [activeStep, setActiveStep] = useState(4); // 0 to 4
+  const [activeStep, setActiveStep] = useState(0); // Visual progress through local example logs
   const [terminalLogs, setTerminalLogs] = useState([]);
+  const simulationTimers = useRef([]);
 
-  // 4 Autonomous Agents definition
+  // Four conceptual work areas; these are not deployed or autonomous agents.
   const agents = [
     {
       id: 'prophet',
@@ -36,7 +37,7 @@ export default function AgentOrchestratorTab() {
       role: 'Rancangan analisis trafik',
       tech: 'Model prediksi belum diimplementasikan/kalibrasi',
       avatarColor: 'bg-indigo-600',
-      badge: 'Non-RT RIC rApp',
+      badge: 'Konsep analitik',
       description: 'Konsep analisis untuk membandingkan trafik; akurasi belum diuji karena prototype tidak memakai data trafik.'
     },
     {
@@ -45,7 +46,7 @@ export default function AgentOrchestratorTab() {
       role: 'Rancangan analisis energi pendingin',
       tech: 'Model konseptual; belum diuji dengan data perangkat',
       avatarColor: 'bg-cyan-600',
-      badge: 'Edge Node Agent',
+      badge: 'Konsep energi',
       description: 'Konsep untuk menilai beban pendingin; tidak mengontrol AC dan belum menetapkan batas operasi aman.'
     },
     {
@@ -54,7 +55,7 @@ export default function AgentOrchestratorTab() {
       role: 'Rancangan batas keselamatan operasi',
       tech: 'Belum terhubung ke kontrol jaringan',
       avatarColor: 'bg-rose-600',
-      badge: 'Zero-Tolerance Safety',
+      badge: 'Syarat keselamatan',
       description: 'Persyaratan keselamatan dan rollback harus ditetapkan serta diuji operator; simulasi ini tidak memantau trafik atau panggilan darurat.'
     },
     {
@@ -63,7 +64,7 @@ export default function AgentOrchestratorTab() {
       role: 'Rancangan pelacakan data dan asumsi ESG',
       tech: 'Metode perlu persetujuan; hash bukan assurance',
       avatarColor: 'bg-emerald-600',
-      badge: 'Anti-Greenwash',
+      badge: 'Asumsi ESG',
       description: 'Perhitungan emisi belum tersedia sampai baseline dan faktor emisi disahkan; tidak membuat sertifikat.'
     }
   ];
@@ -72,12 +73,12 @@ export default function AgentOrchestratorTab() {
   const scenarios = {
     midnight: {
       id: 'midnight',
-      title: '1. Dini Hari Jam 02:30 (Off-Peak Datar)',
-      traffic: '8,4% Kapasitas',
-      weather: '24°C Malam Normal',
+      title: 'Skenario awal (ilustrasi)',
+      traffic: 'Tidak tersedia',
+      weather: 'Tidak tersedia',
       emergency: 'NORMAL',
       icon: Clock,
-      targetAction: 'Contoh rekomendasi konseptual untuk ditinjau manusia; tidak dijalankan pada perangkat.',
+      targetAction: 'Tinjau data dasar yang perlu diminta; tidak ada rekomendasi operasional atau perintah perangkat.',
       logs: [
         { time: 'DEMO 1', agent: 'Prophet-RAN', type: 'info', text: 'Contoh langkah: bandingkan profil trafik dengan baseline yang disahkan. Nilai trafik di sini hanya ilustrasi.' },
         { time: 'DEMO 2', agent: 'ThermoOptima', type: 'info', text: 'Contoh langkah: tinjau kebutuhan pendingin dan batas perangkat. Tidak ada setpoint yang dikirim.' },
@@ -87,12 +88,12 @@ export default function AgentOrchestratorTab() {
     },
     concert: {
       id: 'concert',
-      title: '2. Konser Musik / Event GBK (Lonjakan Trafik 350%)',
-      traffic: '96,2% Kapasitas Ekstrem',
-      weather: '29°C Lembab',
+      title: 'Perubahan trafik (ilustrasi)',
+      traffic: 'Tidak tersedia',
+      weather: 'Tidak digunakan',
       emergency: 'CAPACITY_SPIKE',
       icon: Activity,
-      targetAction: 'Contoh respons lonjakan beban untuk dibahas; batas dan tindakan harus ditentukan operator.',
+      targetAction: 'Tentukan data, batas layanan, dan metode uji bersama operator sebelum menilai respons.',
       logs: [
         { time: 'DEMO 1', agent: 'Sentinel-SLA', type: 'warning', text: 'Skenario ilustratif: kenaikan beban memicu peninjauan guardrail; tidak ada deteksi jaringan nyata.' },
         { time: 'DEMO 2', agent: 'Sentinel-SLA', type: 'warning', text: 'Latency dan call drop tidak diukur oleh prototype ini.' },
@@ -102,12 +103,12 @@ export default function AgentOrchestratorTab() {
     },
     disaster: {
       id: 'disaster',
-      title: '3. Status Bencana / Gempa & Panggilan 112 Aktif',
-      traffic: 'Panggilan Darurat Penuh',
-      weather: 'Anomali Bencana',
-      emergency: 'DISASTER_112_OVERRIDE',
+      title: 'Keselamatan layanan (konsep)',
+      traffic: 'Tidak tersedia',
+      weather: 'Tidak digunakan',
+      emergency: 'SAFETY_REVIEW_REQUIRED',
       icon: ShieldAlert,
-      targetAction: 'Contoh respons keselamatan; tidak ada perintah atau layanan darurat yang diuji.',
+      targetAction: 'Rumuskan kajian operator, prosedur pemulihan, dan uji layanan darurat; demo ini tidak menguji semuanya.',
       logs: [
         { time: 'DEMO 1', agent: 'Sentinel-SLA', type: 'danger', text: 'Skenario darurat dipilih. Tidak ada panggilan atau broadcast nyata diterima.' },
         { time: 'DEMO 2', agent: 'Prophet-RAN', type: 'info', text: 'Prosedur respons harus diselaraskan dengan kebijakan operator dan pemilik layanan.' },
@@ -117,12 +118,12 @@ export default function AgentOrchestratorTab() {
     },
     heatwave: {
       id: 'heatwave',
-      title: '4. Gelombang Panas Terik Siang Hari (35°C)',
-      traffic: '62,0% Kapasitas Siang',
-      weather: '35,4°C Panas Terik',
+      title: 'Perubahan kondisi cuaca (ilustrasi)',
+      traffic: 'Tidak digunakan',
+      weather: 'Tidak tersedia',
       emergency: 'THERMAL_STRESS',
       icon: Flame,
-      targetAction: 'Contoh pertanyaan what-if; hasil cuaca, solar, dan suhu perlu data lokasi.',
+      targetAction: 'Sediakan data lokasi dan metode cuaca yang tervalidasi sebelum membuat sensitivitas.',
       logs: [
         { time: 'DEMO 1', agent: 'ThermoOptima', type: 'info', text: 'Masukkan pengukuran ambien dan keluaran PV aktual bila tersedia; demo ini tidak membaca sensor.' },
         { time: 'DEMO 2', agent: 'Prophet-RAN', type: 'info', text: 'Perubahan konfigurasi harus ditinjau operator dan vendor terkait.' },
@@ -135,26 +136,32 @@ export default function AgentOrchestratorTab() {
   const currentScenarioData = scenarios[selectedScenario];
 
   const handleRunSimulation = (scenKey) => {
+    simulationTimers.current.forEach(clearTimeout);
+    simulationTimers.current = [];
+    const logs = scenarios[scenKey]?.logs;
+    if (!Array.isArray(logs)) return;
     setSelectedScenario(scenKey);
     setIsSimulating(true);
     setTerminalLogs([]);
     setActiveStep(0);
 
-    const logs = scenarios[scenKey].logs;
     logs.forEach((log, index) => {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setTerminalLogs(prev => [...prev, log]);
         setActiveStep(index + 1);
         if (index === logs.length - 1) {
           setIsSimulating(false);
         }
       }, (index + 1) * 450);
+      simulationTimers.current.push(timer);
     });
   };
 
   useEffect(() => {
     setTerminalLogs(scenarios.midnight.logs);
   }, []);
+
+  useEffect(() => () => simulationTimers.current.forEach(clearTimeout), []);
 
   return (
     <div className="space-y-6">
@@ -230,10 +237,10 @@ export default function AgentOrchestratorTab() {
             <div className="border-b border-slate-100 pb-3">
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-indigo-600" />
-                <span>Simulasi Skenario Dinamis (Uji Respon Agen)</span>
+                <span>Urutan contoh skenario</span>
               </h2>
               <p className="text-xs text-slate-500">
-                Pilih skenario operasional lapangan untuk melihat bagaimana para agen bernegosiasi dan mengambil keputusan otonom:
+                Pilih salah satu skenario konseptual. Pemilihan hanya mengganti teks dan log lokal:
               </p>
             </div>
 
@@ -262,7 +269,7 @@ export default function AgentOrchestratorTab() {
                       </div>
                       <div>
                         <span className="font-extrabold text-xs text-slate-900 block">{sc.title}</span>
-                        <span className="text-[10px] text-slate-500">Beban: {sc.traffic} • Cuaca: {sc.weather}</span>
+                        <span className="text-[10px] text-slate-500">Data trafik: {sc.traffic} • Data cuaca: {sc.weather}</span>
                       </div>
                     </div>
 
@@ -275,7 +282,7 @@ export default function AgentOrchestratorTab() {
             {/* Target Action Callout */}
             <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-1.5 text-xs">
               <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block">
-                Target Keputusan Otonom:
+                Pertanyaan untuk tinjauan manusia:
               </span>
               <p className="font-medium leading-relaxed text-slate-200 text-[11px]">
                 {currentScenarioData.targetAction}
@@ -284,17 +291,17 @@ export default function AgentOrchestratorTab() {
           </div>
         </div>
 
-        {/* Right: Live Agent Thought Terminal & Closed-Loop Output (7 Cols) */}
+        {/* Right: Local example log sequence */}
         <div className="lg:col-span-7 space-y-4">
           <div className="p-6 rounded-3xl bg-slate-950 text-white border border-slate-800 shadow-xl space-y-4 font-mono text-xs">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2">
                 <Terminal className="w-4 h-4 text-emerald-400" />
-                <span className="font-bold text-slate-200 text-xs">O-RAN Non-RT RIC Consensus Stream</span>
+                <span className="font-bold text-slate-200 text-xs">Urutan log demonstrasi</span>
               </div>
               <div className="flex items-center space-x-2 text-[10px] text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                <span>Log contoh; bukan latency jaringan</span>
+                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>Log sintetis; tidak mengukur jaringan</span>
               </div>
             </div>
 
@@ -324,7 +331,7 @@ export default function AgentOrchestratorTab() {
               {isSimulating && (
                 <div className="flex items-center space-x-2 text-[11px] text-slate-400 italic py-2 animate-pulse">
                   <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                  <span>Agen sedang menghitung optimasi multi-objektif...</span>
+                  <span>Memutar urutan log demonstrasi...</span>
                 </div>
               )}
             </div>

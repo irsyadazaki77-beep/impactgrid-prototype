@@ -18,10 +18,8 @@ import { SIMULATION_SCENARIOS } from './GlobalSimulationBar';
 /**
  * DemoSafeModeBar:
  * Safeguard controller for high-stakes executive demonstrations:
- * - 1-Click Fast State Reset (returns all parameters to clean baseline)
- * - Preset Scenario Snapshots (Normal, Heatwave, Mudik, PLN Peak, Blackout)
- * - Offline Fallback status indicator
- * - Data Category Disclaimer (Synthetic / Projection / Verified)
+ * - Local demo scenario selection and reset
+ * - Scenario labels contain no operational telemetry
  */
 export default function DemoSafeModeBar({
   simState,
@@ -35,10 +33,6 @@ export default function DemoSafeModeBar({
       setSimState(prev => ({
         ...prev,
         scenarioKey: key,
-        tempC: sc.tempC,
-        trafficMultiplier: sc.trafficMultiplier,
-        carrierSleepActive: sc.carrierSleepActive,
-        plnTariffIDR: sc.plnTariffIDR,
         emergencyActive: sc.emergencyActive || false
       }));
     }
@@ -52,11 +46,11 @@ export default function DemoSafeModeBar({
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[10px]">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>DEMO SAFE MODE 2.0</span>
+          <span>DEMO LOKAL</span>
         </div>
 
         {/* Quick Snapshot Presets */}
-        <span className="text-slate-400 text-[11px] hidden sm:inline">Snapshot:</span>
+          <span className="text-slate-400 text-[11px] hidden sm:inline">Skenario:</span>
         <div className="flex items-center gap-1 overflow-x-auto py-0.5">
           {Object.entries(SIMULATION_SCENARIOS).map(([key, sc]) => {
             const isSelected = simState.scenarioKey === key;
@@ -82,7 +76,7 @@ export default function DemoSafeModeBar({
         <div className="flex items-center gap-1 text-[10px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
           <Database className="w-3 h-3 text-cyan-400" />
           <span className="hidden md:inline">Mode:</span>
-          <span className="text-cyan-300 font-bold">Offline High-Speed Cache</span>
+          <span className="text-cyan-300 font-bold">Tanpa koneksi jaringan</span>
         </div>
 
         {/* One-Click Clean Reset */}

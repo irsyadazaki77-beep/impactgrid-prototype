@@ -21,7 +21,8 @@ import {
   Wrench,
   Check,
   Moon,
-  Sun
+  Sun,
+  RotateCcw
 } from 'lucide-react';
 import { SYSTEM_METADATA } from '../data/mockData';
 
@@ -47,7 +48,8 @@ export default function Navbar({
   viewMode = 'executive', // 'executive' | 'engineering'
   setViewMode,
   theme = 'light',
-  onToggleTheme
+  onToggleTheme,
+  onResetDemo
 }) {
   const [isToolkitOpen, setIsToolkitOpen] = useState(false);
   const toolkitRef = useRef(null);
@@ -71,15 +73,16 @@ export default function Navbar({
         <div className="flex items-center space-x-2.5 shrink-0">
           <div className="flex items-center justify-center p-1.5 rounded-xl bg-slate-900 border border-slate-800 shadow-2xs">
             <img 
-              src="/assets/logo_utama_impactgrid.png" 
-              alt="Telkomsel ImpactGrid Logo" 
+              src="/assets/logo_utama_impactgrid.webp"
+                alt="Logo konsep ImpactGrid"
               className="h-7 sm:h-8 w-auto object-contain" 
+                decoding="async"
             />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-sm sm:text-base font-black tracking-tight text-white whitespace-nowrap">
-                Telkomsel <span className="text-[#ED0226]">ImpactGrid</span>
+                <span className="text-[#ED0226]">ImpactGrid</span>
               </span>
               <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
                 BCC TSF 2026
@@ -89,7 +92,7 @@ export default function Navbar({
               </span>
             </div>
             <p className="text-[10px] text-slate-400 hidden xl:block whitespace-nowrap">
-              Cyber-Physical Energy System & DSS • Tim <strong className="text-slate-200">AWAKENING Reborn</strong>
+              Konsep DSS untuk studi kasus Telkomsel • Tim <strong className="text-slate-200">AWAKENING Reborn</strong>
             </p>
           </div>
         </div>
@@ -115,7 +118,7 @@ export default function Navbar({
                 ? 'bg-slate-800 text-cyan-400 border border-cyan-500/30 shadow-xs'
                 : 'text-slate-400 hover:text-white'
             }`}
-            title="Deep Engineering Mode: Menampilkan seluruh tab dan instrumen telemetri secara lengkap"
+            title="Menampilkan tab analisis teknis; prototype tidak memuat telemetri live"
           >
             <Wrench className="w-3.5 h-3.5" />
             <span className="whitespace-nowrap">Deep Engineering</span>
@@ -144,7 +147,7 @@ export default function Navbar({
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Regional (5k BTS)
+              Regional (belum dihitung)
             </button>
             <button
               onClick={() => setSelectedScale('national')}
@@ -154,7 +157,7 @@ export default function Navbar({
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Nasional (10k+)
+              Nasional (belum dihitung)
             </button>
           </div>
 
@@ -201,6 +204,9 @@ export default function Navbar({
 
         {/* Right Action Tools: Consolidated Executive Toolkit (Instruction #4) */}
         <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+          <button type="button" onClick={onResetDemo} aria-label="Reset seluruh simulasi" title="Kembalikan seluruh state demo ke awal" className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer">
+            <RotateCcw size={15} /><span className="hidden xl:inline">Reset demo</span>
+          </button>
           <button type="button" onClick={onToggleTheme} aria-label={`Aktifkan mode ${theme === 'light' ? 'gelap' : 'terang'}`} title={`Aktifkan mode ${theme === 'light' ? 'gelap' : 'terang'}`} className="theme-toggle inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-semibold cursor-pointer">
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}<span className="hidden xl:inline">{theme === 'light' ? 'Gelap' : 'Terang'}</span>
           </button>
@@ -212,15 +218,15 @@ export default function Navbar({
                 ? 'bg-slate-800 text-white border-slate-700 ring-2 ring-slate-600'
                 : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-800'
             }`}
-            title="Buka Konsol Simulasi Lapangan Real-Time (Shortcut: 'E')"
+            title="Buka konsol skenario demo lokal (Shortcut: 'E')"
           >
             <Sliders className="w-3.5 h-3.5 text-[#ED0226]" />
             <span className="whitespace-nowrap font-black">
-              {simState.scenarioKey === 'normal' ? '🟢 Normal 24J' : 
-               simState.scenarioKey === 'heatwave' ? '☀️ Heatwave' :
-               simState.scenarioKey === 'mudik' ? '🚗 Mudik' :
-               simState.scenarioKey === 'pln_peak' ? '⚡ Tarif WBP' :
-               simState.scenarioKey === 'blackout_sumatera' ? '⚠️ Blackout' : '🚨 Darurat 112'}
+              {simState.scenarioKey === 'normal' ? 'Demo lokal' :
+               simState.scenarioKey === 'heatwave' ? 'Asumsi cuaca' :
+               simState.scenarioKey === 'mudik' ? 'Asumsi trafik' :
+               simState.scenarioKey === 'pln_peak' ? 'Asumsi biaya' :
+               simState.scenarioKey === 'blackout_sumatera' ? 'Gangguan (konsep)' : 'Keselamatan (konsep)'}
             </span>
           </button>
 
@@ -232,10 +238,11 @@ export default function Navbar({
                 ? 'bg-[#ED0226] text-white border-red-600 ring-2 ring-red-500/40' 
                 : 'bg-red-500/10 hover:bg-red-500/20 text-rose-300 border-red-500/30'
             }`}
-            title="Mulai Mode Panduan Presentasi 7 Menit (Shortcut: 'W')"
+            aria-label={isPitchWalkthroughActive ? 'Presentasi aktif, tutup presentasi' : 'Start Presentation 7 menit'}
+            title={isPitchWalkthroughActive ? 'Tutup presentasi (W)' : 'Mulai presentasi 7 menit (W)'}
           >
             <Sparkles className="w-3.5 h-3.5 text-rose-300" />
-            <span className="whitespace-nowrap">{isPitchWalkthroughActive ? 'Walkthrough On' : 'Walkthrough 7m'}</span>
+            <span className="whitespace-nowrap">{isPitchWalkthroughActive ? 'Presentasi aktif' : 'Start Presentation'}</span>
           </button>
 
           {/* CONSOLIDATED DROPDOWN: "Executive & Defense Toolkit" (Instruction #4) */}
@@ -325,7 +332,7 @@ export default function Navbar({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-white group-hover:text-purple-300">AI Energy Copilot</p>
-                        <p className="text-[10px] text-slate-400">Asisten dialog teknis O-RAN & telemetri</p>
+                        <p className="text-[10px] text-slate-400">Asisten konseptual; tanpa data jaringan live</p>
                       </div>
                     </div>
                     <span className="text-[9px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">A</span>
@@ -351,9 +358,9 @@ export default function Navbar({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-white group-hover:text-rose-300">
-                          {emergencyState.active ? '⚠️ Emergency Drill Aktif' : 'CTO Emergency Stress-Test'}
+                          {emergencyState.active ? 'Skenario keselamatan dipilih' : 'Tinjauan keselamatan layanan'}
                         </p>
-                        <p className="text-[10px] text-slate-400">Uji lonjakan trafik 300% & kanal darurat 112</p>
+                        <p className="text-[10px] text-slate-400">Checklist konseptual; tidak menguji trafik atau layanan 112</p>
                       </div>
                     </div>
                     <span className="text-[9px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">S</span>
@@ -373,13 +380,13 @@ export default function Navbar({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-white group-hover:text-cyan-300">Executive Memo A4</p>
-                        <p className="text-[10px] text-slate-400">Cetak lembar memo eksekutif format resmi</p>
+                        <p className="text-[10px] text-slate-400">Cetak ringkasan eksekutif untuk ditinjau</p>
                       </div>
                     </div>
                     <span className="text-[9px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">P</span>
                   </button>
 
-                  {/* Audit Report Export Modal */}
+                  {/* Planning assumptions worksheet */}
                   <button
                     onClick={() => {
                       onOpenReportModal();
@@ -392,11 +399,11 @@ export default function Navbar({
                         <FileDown className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-white group-hover:text-emerald-300">Download Laporan Audit</p>
-                        <p className="text-[10px] text-slate-400">Format resmi ISO 14064 & ITU-T L.1331</p>
+                        <p className="text-xs font-bold text-white group-hover:text-emerald-300">Lihat Lembar Kerja Asumsi</p>
+                        <p className="text-[10px] text-slate-400">Konteks, sensitivitas, dan langkah validasi</p>
                       </div>
                     </div>
-                    <span className="text-[9px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">PDF</span>
+                    <span className="text-[9px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">LEMBAR</span>
                   </button>
                 </div>
               </div>
@@ -405,12 +412,12 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Real-Time Live Telemetry Ticker (Mission Control Cockpit) */}
+      {/* Demo provenance and connection status */}
       <div className="telemetry-ticker px-3 sm:px-5 py-2 text-xs font-mono flex items-center justify-between border-t">
         <div className="telemetry-ticker-metrics flex items-center gap-x-4 gap-y-1">
           <div className="flex items-center space-x-1.5 text-emerald-400 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span>DEMO LOKAL</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>PROTOTIPE LOKAL</span>
           </div>
           <span className="text-slate-400">
             Data operasi: <strong className="text-amber-300">Belum terhubung</strong>
