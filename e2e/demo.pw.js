@@ -367,6 +367,23 @@ test('captures visual audit evidence for Light and Dark at presentation viewport
         await expect(page.locator('main .tab-panel:not([hidden]) h1').first()).toBeVisible();
         const dimensions = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
         expect(Math.max(dimensions.document, dimensions.body), `${theme} ${module} overflow at ${viewport.width}px`).toBeLessThanOrEqual(dimensions.viewport);
+        if (viewport.width < 768) {
+          const ticker = await page.locator('.telemetry-ticker-metrics').evaluate(element => ({
+            display: getComputedStyle(element).display,
+            clientWidth: element.clientWidth,
+            scrollWidth: element.scrollWidth,
+          }));
+          expect(ticker.display, `${theme} phone status ticker should stack`).toBe('grid');
+          expect(ticker.scrollWidth, `${theme} phone status ticker should not clip`).toBeLessThanOrEqual(ticker.clientWidth);
+          const menu = await page.locator('.mobile-nav-toggle').evaluate(element => ({
+            foreground: getComputedStyle(element).color,
+            background: getComputedStyle(element).backgroundColor,
+          }));
+          if (theme === 'dark') {
+            expect(menu.foreground, 'Dark Mode phone menu should use readable text').toBe('rgb(241, 245, 249)');
+            expect(menu.background, 'Dark Mode phone menu should use a dark surface').toBe('rgb(17, 24, 39)');
+          }
+        }
         const screenshotName = `${theme}-${viewport.name}-${module === 'Ringkasan' ? 'dashboard' : 'esg'}`;
         const screenshotPath = testInfo.outputPath(`${screenshotName}.png`);
         await page.screenshot({ path: screenshotPath, animations: 'disabled' });

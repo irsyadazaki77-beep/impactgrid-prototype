@@ -18,7 +18,8 @@
 | P1 | Offline/host availability and map-tile failure needed clearer status. | Same-origin host reachability probe has timeout/cleanup and distinguishes host reachability from local simulation. Browser offline and unavailable map tiles have separate fallback messages; app simulation remains local. |
 | P1 | Responsive mobile drawer was obscured by the sticky header in an earlier E2E run. | Raised drawer/toggle stacking order; mobile drawer navigation is now exercised by E2E. |
 | P1 | Vercel static SPA settings and direct-route refresh behavior needed verification. | Added explicit install/build/output and SPA rewrite configuration. Production preview opens and refreshes a client route with local assets. Actual Vercel deployment remains unverified. |
-| P2 | No screenshot baseline existed for visual-regression comparison. | Captured and reviewed 17 Playwright screenshot artifacts across light/dark, pitch, and requested viewport sizes. No baseline was invented or updated. Mobile status indicators are intentionally compact; only the leading indicators are visible in the captured phone viewport. |
+| P1 | The mobile header status ticker clipped its indicators, and its Dark Mode Menu button used a light foreground on a white surface. | Phone ticker now stacks the visible provenance indicators, the dark menu uses the dark theme surface, and E2E asserts no ticker clipping plus the expected dark menu colors. |
+| P2 | No screenshot baseline existed for visual-regression comparison. | Captured and reviewed 17 Playwright screenshot artifacts across light/dark, pitch, and requested viewport sizes. No baseline was invented or updated. |
 | P2 | Existing lockfile was incomplete for reproducible installation. | `npm ci` completed from the refreshed lockfile; `npm audit` found no known vulnerabilities. |
 
 No proposal amount was changed in this phase. Previously audited financial outputs remain sensitivity calculations under stated assumptions, not measured savings or forecasts. Company-level public figures do not constitute a BTS/site baseline. Synthetic inputs and model outputs remain labeled as simulation/proposal data.
@@ -38,7 +39,7 @@ No proposal amount was changed in this phase. Previously audited financial outpu
 | Browser viewport/theme inspection | **PASS with scope limits** — screenshots captured for 1366×768, 1920×1080, 768×1024 and 390×844 in both themes, plus pitch. Reviewed 1366×768 Light dashboard, 1366×768 Dark ESG, and 390×844 Dark dashboard. Playwright ran Chromium only; no physical display/device verification. |
 | SPA production preview | **PASS locally** — direct client route, refresh, and local image asset loading work under Vite Preview. This does not verify a hosted Vercel URL or CDN behavior. |
 
-Performance observations from the final E2E local run: module navigation measured about 390–454 ms; initial JavaScript transfer about 103,788 bytes (encoded); DOMContentLoaded/load about 60 ms and LCP about 440 ms. These are one local Chromium run, not production guarantees. Feature modules remain lazy-loaded. The seven-minute guided pitch was advanced with a virtual clock to 420 seconds; no spoken rehearsal was performed. The UI has no BTS control path.
+Performance observations from the final E2E local run: module navigation measured about 376–465 ms; initial JavaScript transfer about 103,788 bytes (encoded); DOMContentLoaded/load about 65 ms and LCP about 476 ms. These are one local Chromium run, not production guarantees. Feature modules remain lazy-loaded. The seven-minute guided pitch was advanced with a virtual clock to 420 seconds; no spoken rehearsal was performed. The UI has no BTS control path.
 
 ## Release checklist
 

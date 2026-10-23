@@ -201,7 +201,8 @@ p { line-height: 1.55; }
 .impactgrid-app[data-theme="dark"] header.sticky [class*="bg-slate-800"] { background-color: #1e293b; }
 .impactgrid-app[data-theme="dark"] .impact-sidebar,
 .impactgrid-app[data-theme="dark"] .sidebar-collapse-toggle,
-.impactgrid-app[data-theme="dark"] .theme-toggle { background: #111827; color: var(--ig-text); border-color: var(--ig-border); }
+.impactgrid-app[data-theme="dark"] .theme-toggle,
+.impactgrid-app[data-theme="dark"] .mobile-nav-toggle { background: #111827; color: var(--ig-text); border-color: var(--ig-border); }
 .impactgrid-app[data-theme="dark"] .sidebar-item { color: #cbd5e1; }
 .impactgrid-app[data-theme="dark"] .sidebar-item:hover { background: #1e293b; }
 .impactgrid-app[data-theme="dark"] input,
@@ -227,6 +228,8 @@ p { line-height: 1.55; }
   .impactgrid-app header.sticky > div:last-child > div:first-child > span:nth-of-type(n+3),
   .impactgrid-app header.sticky > div:last-child > div:first-child > span:nth-of-type(n+3) ~ span { display: none; }
   .impactgrid-app header.sticky > div:last-child { justify-content: flex-start; overflow: visible; }
+  .impactgrid-app .telemetry-ticker { display: block; }
+  .impactgrid-app .telemetry-ticker-metrics { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; width: 100%; min-width: 0; }
   .impact-sidebar { display: none; }
   .mobile-nav-toggle { display: inline-flex; position: sticky; top: 60px; align-self: flex-start; z-index: 46; gap: 8px; align-items: center; margin: 8px 12px 0; padding: 8px 12px; border: 1px solid var(--ig-border); border-radius: 9px; background: white; color: var(--ig-text); font-weight: 700; box-shadow: var(--ig-shadow); }
   .impact-sidebar.mobile-open { display: flex; position: fixed; top: 60px; left: 0; bottom: 0; height: auto; width: min(300px, 86vw); z-index: 45; box-shadow: 12px 0 36px rgb(15 23 42 / .14); }
