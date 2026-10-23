@@ -1,5 +1,5 @@
-// Data and configurations for Telkomsel ImpactGrid Prototype
-// 100% ALIGNED dengan Naskah Proposal Semifinal AWAKENING Reborn (TSF 2026) & Laporan Keberlanjutan Resmi
+// Synthetic demonstration data for the ImpactGrid concept prototype.
+// Corporate context is sourced separately; site-level values are not operational Telkomsel data.
 
 export const SYSTEM_METADATA = {
   appName: "Telkomsel ImpactGrid",
@@ -7,22 +7,22 @@ export const SYSTEM_METADATA = {
   teamName: "AWAKENING Reborn",
   competition: "TDC Summit Fest (TSF) 2026 - Business Case Competition",
   caseCollaborator: "PT Telekomunikasi Selular (Telkomsel)",
-  version: "v2.8-Finalist-Ready",
+  version: "Prototype demo - synthetic site data",
   
-  // Data Resmi Laporan Keberlanjutan TelkomGroup & Telkomsel 2024/2025
+  // Public corporate context from 2025 reporting. These values are not site baselines.
   totalNationwideBTS: 293136,
   totalSubscribers: "156,1 Juta Pelanggan",
-  totalAnnualPowerTelkomselKWh: 1885000000,
-  totalScope2EmissionsTon: 1722000,
+  totalAnnualPowerTelkomselKWh: 1885417875.2,
+  totalScope2EmissionsTon: 1721967.7,
   totalEmissionsOverallTon: 2708749,
   scope2PortionPct: 63.6,
-  jamaliPowerConsumptionGWh: 835.5,
-  jamaliEmissionsTon: 726890,
+  jamaliPowerConsumptionGWh: null,
+  jamaliEmissionsTon: null,
   
-  // Parameter Perencanaan Uji Coba (Tabel 5 & Paragraf 183 Proposal)
+  // Illustrative model inputs only; confirm with Finance before use.
   electricityTariff: 1500,
-  gridEmissionFactor: 0.870,
-  baselinePowerPerSiteKWh: 50000,
+  gridEmissionFactor: null,
+  baselinePowerPerSiteKWh: null,
   waccDiscountRate: 10,
   
   // 4 Modul Resmi Naskah Proposal
@@ -34,76 +34,76 @@ export const SYSTEM_METADATA = {
   ]
 };
 
-// 3 Tahap Horizon Implementasi (Tabel 7 Proposal)
+// Proposal horizons are conditional. Only the pilot parameters below are illustrative sensitivities.
 export const IMPLEMENTATION_HORIZONS = {
   pilot: {
-    name: "Jangka Pendek (2027) - Uji Coba 9 Bulan",
-    scope: "40 Lokasi Intervensi + 10 Lokasi Pembanding (Kontrol)",
+    name: "Rancangan pilot (bersyarat; baseline belum tervalidasi)",
+    scope: "Usulan 40 lokasi intervensi + 10 lokasi pembanding",
     totalSites: 50,
     interventionSites: 40,
     controlSites: 10,
-    baselineKWhYear: 2000000,
-    baselineCostYearIDR: 3000000000,
+    baselineKWhYear: 730000,
+    baselineCostYearIDR: 1095000000,
     capexIDR: 450000000,
     opexYearIDR: 60000000,
     scenarios: [
       {
-        name: "Konservatif (5% Efisiensi)",
+        name: "Hemat 5% - asumsi",
         efficiencyPct: 5,
-        savedKWhYear: 100000,
-        grossSavingIDR: 150000000,
-        netBenefitYearIDR: 90000000,
-        paybackYears: 5.0,
-        npv5YearsIDR: -109000000,
-        emissionsReducedTon: 87.0,
-        status: "EVALUASI_BELUM_LAYAK"
+        savedKWhYear: 36500,
+        grossSavingIDR: 54750000,
+        netBenefitYearIDR: -5250000,
+        paybackYears: null,
+        npv5YearsIDR: -493600000,
+        emissionsReducedTon: 0,
+        status: "SENSITIVITAS_BELUM_TERVERIFIKASI"
       },
       {
-        name: "Dasar / Baseline (10% Efisiensi)",
-        efficiencyPct: 10,
-        savedKWhYear: 200000,
-        grossSavingIDR: 300000000,
-        netBenefitYearIDR: 240000000,
-        paybackYears: 1.875,
-        npv5YearsIDR: 460000000,
-        emissionsReducedTon: 174.0,
-        status: "TARGET_TERPILIH_LAYAK"
+        name: "Hemat 8% - asumsi",
+        efficiencyPct: 8,
+        savedKWhYear: 58400,
+        grossSavingIDR: 87600000,
+        netBenefitYearIDR: 27600000,
+        paybackYears: null,
+        npv5YearsIDR: -391500000,
+        emissionsReducedTon: 0,
+        status: "SENSITIVITAS_BELUM_TERVERIFIKASI"
       },
       {
-        name: "Optimistis (15% Efisiensi)",
-        efficiencyPct: 15,
-        savedKWhYear: 300000,
-        grossSavingIDR: 450000000,
-        netBenefitYearIDR: 390000000,
-        paybackYears: 1.154,
-        npv5YearsIDR: 1028000000,
-        emissionsReducedTon: 261.0,
-        status: "SANGAT_LAYAK"
+        name: "Hemat 12% - asumsi",
+        efficiencyPct: 12,
+        savedKWhYear: 87600,
+        grossSavingIDR: 131400000,
+        netBenefitYearIDR: 71400000,
+        paybackYears: null,
+        npv5YearsIDR: -255300000,
+        emissionsReducedTon: 0,
+        status: "SENSITIVITAS_BELUM_TERVERIFIKASI"
       }
     ]
   },
   regional: {
-    name: "Jangka Menengah (2028–2029) - Standardisasi & Wilayah",
-    scope: "5.000 Lokasi Prioritas (Kluster Jamali & Area Biaya Tinggi)",
-    sitesCount: 5000,
-    capexIDR: 6500000000,
-    opexYearIDR: 1800000000,
-    netBenefitYearIDR: 4800000000,
-    paybackYears: 1.35,
-    savedGWhYear: 5.80,
-    emissionsReducedTon: 5046
+    name: "Ekspansi regional (bersyarat)",
+    scope: "Cakupan ditentukan setelah evaluasi pilot",
+    sitesCount: null,
+    capexIDR: null,
+    opexYearIDR: null,
+    netBenefitYearIDR: null,
+    paybackYears: null,
+    savedGWhYear: null,
+    emissionsReducedTon: null
   },
   national: {
-    name: "Jangka Panjang (2030–2031) - Perluasan Nasional",
-    scope: "10.000+ Lokasi Terpilih (Kesiapan Data & Kendali Aset)",
-    sitesCount: 10000,
-    capexIDR: 15000000000,
-    opexYearIDR: 7000000000,
-    netBenefitYearIDR: 14900000000,
-    npv5YearsIDR: 41480000000,
-    paybackYears: 1.00,
-    savedGWhYear: 14.60,
-    emissionsReducedTon: 12702
+    name: "Ekspansi nasional (hipotesis; belum dihitung)",
+    scope: "Skala ditentukan setelah bukti dan kelayakan pilot",
+    sitesCount: null,
+    capexIDR: null,
+    opexYearIDR: null,
+    netBenefitYearIDR: null,
+    npv5YearsIDR: null,
+    paybackYears: null,
+    savedGWhYear: null,
+    emissionsReducedTon: null
   }
 };
 

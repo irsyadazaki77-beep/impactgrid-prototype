@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Cpu, 
   Radio, 
@@ -265,19 +265,22 @@ export default function DigitalTwinTab({
 
   return (
     <div className="space-y-6">
+      <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950">
+        <strong>SIMULASI KONSEPTUAL.</strong> Profil lokasi, vendor, carrier, daya, suhu, baterai, dan angka penghematan di layar adalah data sintetis. Model ini tidak mewakili site Telkomsel, tidak diuji terhadap perangkat, dan tidak mengendalikan jaringan.
+      </div>
       {/* Header */}
       <div className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-xs font-bold text-cyan-800">
               <Cpu className="w-3.5 h-3.5 text-cyan-600" />
-              <span>Cyber-Physical BTS Digital Twin Engine</span>
+              <span>Model konseptual Digital Twin (demo)</span>
             </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">
-              Digital Twin Fisika BTS & Topologi Seluler Berbasis Carrier (O-RAN O1)
+              Visualisasi profil carrier, daya, dan pendingin (data sintetis)
             </h1>
             <p className="text-xs text-slate-600 max-w-3xl leading-relaxed mt-1">
-              Simulasi mikroskopik perangkat fisik BTS: mengorkestrasi <strong>dynamic carrier sleep</strong> (700MHz–2.3GHz), termodinamika pendingin shelter AC inverter, aliran daya 48V DC, hingga bauran Rooftop Solar PV & BESS tanpa memicu degradasi sinyal.
+              Kontrol pada layar hanya mengubah model lokal. Kelayakan carrier sleep, O-RAN, pendingin, aliran DC, Solar PV/BESS, dan dampak sinyal perlu diverifikasi per lokasi dan perangkat.
             </p>
           </div>
 
@@ -411,11 +414,11 @@ export default function DigitalTwinTab({
                         <span className="font-extrabold text-xs text-slate-900">{carrier.band}</span>
                         {carrier.locked && (
                           <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-bold">
-                            LOCKED GUARDBAND 112
+                            Contoh state terkunci (bukan jaminan 112)
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-500">{carrier.role}</p>
+                          <p className="text-[11px] text-slate-500">{carrier.role}</p>
                     </div>
 
                     <div className="flex items-center space-x-3 shrink-0">
@@ -441,7 +444,7 @@ export default function DigitalTwinTab({
             </div>
             
             <p className="text-[11px] text-slate-500 italic bg-slate-50 p-3 rounded-xl border border-slate-200">
-              💡 <strong>Safety Rule:</strong> Carrier 700 MHz & 900 MHz selalu terkunci <em>Full Active</em> untuk menjamin cakupan wilayah darurat 112 dan zero call drop. Hanya layer kapasitas 1800–2300 MHz yang diatur secara otonom saat trafik rendah.
+              💡 <strong>Asumsi skenario:</strong> State carrier dalam model tidak menjamin cakupan 112, QoS, atau zero call drop. Setiap aturan tidur/bangun harus dirancang, diuji, dan disetujui operator.
             </p>
           </div>
         </div>
@@ -464,7 +467,7 @@ export default function DigitalTwinTab({
                 </div>
               </div>
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                PUE: {pue}
+                PUE simulasi: {pue}
               </span>
             </div>
 
@@ -553,7 +556,7 @@ export default function DigitalTwinTab({
               </div>
 
               <div className="flex justify-between items-center text-xs pt-2 border-t border-slate-800">
-                <span className="text-slate-400">Potensi Hemat Tahunan (Per Site):</span>
+                <span className="text-slate-400">Nilai bruto simulasi/tahun:</span>
                 <span className="font-mono font-bold text-white">
                   Rp {(annualSavingsIDR / 1000000).toFixed(1)} Juta / Tahun
                 </span>
@@ -570,10 +573,10 @@ export default function DigitalTwinTab({
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Activity className="w-4 h-4 text-emerald-600" />
-              <span>Simulasi Kurva Beban Daya 24 Jam (Legacy vs ImpactGrid Autonomous)</span>
+                <span>Kurva daya ilustratif 24 jam (data sintetis)</span>
             </h2>
             <p className="text-xs text-slate-500">
-              Menunjukkan fenomena *Peak Shaving* saat malam hari dan bauran Solar PV saat siang hari
+              Bukan hasil pengukuran atau bukti penghematan di lokasi pilot.
             </p>
           </div>
           <div className="flex items-center space-x-3 text-xs font-semibold">
@@ -581,7 +584,7 @@ export default function DigitalTwinTab({
               <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Legacy Konvensional
             </span>
             <span className="flex items-center gap-1.5 text-emerald-700">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ImpactGrid AI Shaved
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Skenario model (ilustrasi)
             </span>
           </div>
         </div>

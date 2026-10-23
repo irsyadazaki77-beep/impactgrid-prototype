@@ -46,102 +46,14 @@ export default function GuidedPitchBar({
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
   const pitchSteps = [
-    {
-      step: 1,
-      timing: "0:00 - 1:00",
-      targetSeconds: 60,
-      title: "Paradoks Energi & Defisit 547k Ton CO2e",
-      tab: "overview",
-      targetAudience: "Direktur Utama & Dewan Direksi",
-      keyPill: "1,885 Miliar kWh Listrik (63,6% Emisi)",
-      cue: "Buka Executive Summary, sorot beban listrik nasional & defisit Scope 2 Telkomsel.",
-      script: "Bapak/Ibu Direksi yang terhormat, di balik kepemimpinan Telkomsel dengan 293.000 BTS, beban listrik RAN telah menembus 1,885 Miliar kWh (63,6% total emisi). Menuju target Net Zero 2030, Telkomsel menghadapi defisit dekarbonisasi 547.000 ton CO2e. ImpactGrid hadir memecahkan dilema efisiensi biaya vs dekarbonisasi tanpa mengorbankan SLA jaringan.",
-      presenterTips: "Tatap langsung Direktur Utama. Tekankan bahwa ini bukan sekadar software greenwashing, melainkan instrumen mitigasi risiko finansial dan regulasi OJK."
-    },
-    {
-      step: 2,
-      timing: "1:00 - 1:50",
-      targetSeconds: 110,
-      title: "Digital Twin Fisika BTS & Carrier Sleep",
-      tab: "digitaltwin",
-      targetAudience: "VP Network Ops & Chief Architect",
-      keyPill: "Massive MIMO Sleep • PUE 1.18",
-      cue: "Pindah ke Digital Twin BTS, tunjukkan carrier 700MHz terkunci aktif & 2.3GHz deep sleep.",
-      script: "Sistem kami memodelkan perangkat keras hingga level carrier radio dan termodinamika shelter. Carrier 700 & 900 MHz selalu dipertahankan aktif untuk panggilan darurat 112, sementara carrier kapasitas 1.8GHz hingga 2.3GHz Massive MIMO dapat ditidurkan otonom saat trafik sepi, menghemat daya hingga 58% dan menekan suhu shelter secara presisi.",
-      presenterTips: "Arahkan perhatian juri pada skema intervensi perangkat radio tanpa mematikan baseband utama."
-    },
-    {
-      step: 3,
-      timing: "1:50 - 2:40",
-      targetSeconds: 160,
-      title: "O-RAN Autonomous AI Multi-Agent Swarm",
-      tab: "agents",
-      targetAudience: "Direktur Network / CTO & R&D",
-      keyPill: "4 Agen AI • Konsensus Closed-Loop",
-      cue: "Buka AI Swarm Tab, perlihatkan Prophet-RAN, ThermoOptima, Sentinel-SLA, dan GreenLedger.",
-      script: "ImpactGrid digerakkan oleh 4 agen AI otonom: Prophet-RAN memprediksi deret waktu trafik 6 jam ke depan, ThermoOptima mengontrol pendinginan shelter AC, Sentinel-SLA menjamin interupsi darurat <120ms, dan GreenLedger mengunci audit hash. Mereka bernegosiasi tertutup tanpa intervensi manual manusia.",
-      presenterTips: "Sebutkan bahwa ini mematuhi standar O-RAN Alliance Non-RT RIC architecture."
-    },
-    {
-      step: 4,
-      timing: "2:40 - 3:30",
-      targetSeconds: 210,
-      title: "Telemetri Multi-Vendor & Validitas Smart Meter",
-      tab: "telemetry",
-      targetAudience: "Chief Architect & NOC",
-      keyPill: "Vendor-Agnostic + PLN Smart Meter",
-      cue: "Pindah ke Network Data Hub, perlihatkan integrasi Ericsson, Huawei, ZTE, Nokia.",
-      script: "Sistem kami menyelesaikan masalah silo teknologi melalui Network Data Hub yang mengintegrasikan data dari 4 vendor besar secara vendor-agnostic dan merekonsiliasikannya 100% dengan smart meter PLN secara transparan.",
-      presenterTips: "Tunjukkan tabel korelasi telemetri AMR dan toleransi rekonsiliasi nol deviasi."
-    },
-    {
-      step: 5,
-      timing: "3:30 - 4:20",
-      targetSeconds: 260,
-      title: "AI Prioritizer & CTO Safety Guardrail 112",
-      tab: "optimization",
-      targetAudience: "Direktur Network / CTO",
-      keyPill: "120ms Wake-up • 112 Guaranteed",
-      cue: "Tunjukkan tabel portofolio investasi & klik tombol Simulasi Darurat (Emergency Drill).",
-      script: "Kekuatan utama Modul 3 adalah optimasi portofolio dengan kendali keselamatan berlapis. Keamanan jaringan adalah prioritas mutlak. Dengan jaminan wake-up latency 120 milidetik dan prioritas panggilan darurat 112, transmisi otomatis kembali ke daya penuh saat terjadi anomali beban tanpa interupsi.",
-      presenterTips: "Tunjukkan tombol Stress Drill jika juri meragukan aspek availability SLA 99,99%."
-    },
-    {
-      step: 6,
-      timing: "4:20 - 5:20",
-      targetSeconds: 320,
-      title: "Mekanisme Swadana & Monte Carlo 1.000 Run",
-      tab: "financial",
-      targetAudience: "Direktur Keuangan / CFO",
-      keyPill: "NPV Rp41,48 Miliar • P10 Rp34,2 M",
-      cue: "Buka Financial Model Tab, perlihatkan grafik distribusi Monte Carlo & reinvestasi mandiri.",
-      script: "Dari kacamata finansial, ImpactGrid tidak membebani kas korporat dengan anggaran berulang. Penghematan OpEx pilot mendanai fase regional, lalu mendanai ekspansi 10.000+ BTS nasional secara mandiri. Simulasi Monte Carlo 1.000 iterasi membuktikan 99,8% kepastian NPV positif dengan ekspansi EBITDA marjin +0,38%.",
-      presenterTips: "Arahkan pandangan ke Direktur Keuangan. Tekankan bahwa Payback Period hanya 1,78 tahun."
-    },
-    {
-      step: 7,
-      timing: "5:20 - 6:15",
-      targetSeconds: 375,
-      title: "MRV Anti-Greenwashing (ITU-T L.1331 & SHA-256)",
-      tab: "esg",
-      targetAudience: "Komite ESG & Investor",
-      keyPill: "Audit-Ready • Standar Internasional",
-      cue: "Buka ESG Tab, tunjukkan log transaksi SHA-256 & sertifikat kepatuhan POJK 51.",
-      script: "Seluruh klaim reduksi karbon dihitung berdasarkan metodologi standar internasional ITU-T L.1331 yang memisahkan pengaruh fluktuasi cuaca dan payload trafik. Log audit kami terenkripsi SHA-256, menjadikan laporan keberlanjutan Telkomsel bebas dari tuduhan greenwashing dan audit-ready untuk BEI & OJK.",
-      presenterTips: "Tekankan sertifikasi siap audit BPK / auditor eksternal Big 4."
-    },
-    {
-      step: 8,
-      timing: "6:15 - 7:00",
-      targetSeconds: 420,
-      title: "Executive Memo & Kesiapan Pertahanan BoD",
-      tab: "overview",
-      targetAudience: "Dewan Penguji & BoD",
-      keyPill: "Siap Dieksekusi Q1 2027",
-      cue: "Buka Executive Memo (P) atau BoD Defense (Q) untuk sesi tanya jawab juri.",
-      script: "Kesimpulannya, ImpactGrid adalah solusi end-to-end yang realistis, tervalidasi secara teknis, dan menguntungkan secara finansial. Kami siap menjawab pertanyaan mendalam dari dewan juri terkait mitigasi risiko, integrasi arsitektur, maupun reliabilitas jangka panjang. Terima kasih!",
-      presenterTips: "Tutup dengan senyum percaya diri dan siap membuka modal Tanya Jawab BoD (Hotkey Q)."
-    }
+    { step: 1, timing: '0:00 - 1:00', targetSeconds: 60, title: 'Konteks energi dan emisi perusahaan', tab: 'overview', targetAudience: 'Dewan juri', keyPill: 'Data korporat 2025', cue: 'Tunjukkan angka perusahaan dan jelaskan batas konteksnya.', script: 'Laporan 2025 mencatat konsumsi listrik Telkomsel sekitar 1,885 miliar kWh dan emisi Scope 2 sekitar 1,722 juta ton CO2e. Angka ini memberi konteks skala perusahaan, tetapi bukan baseline untuk setiap lokasi dan tidak membuktikan dampak ImpactGrid.', presenterTips: 'Sebutkan sumber dan tahun data; jangan menurunkan angka site dari data agregat.' },
+    { step: 2, timing: '1:00 - 1:50', targetSeconds: 110, title: 'Masalah data dan keputusan investasi', tab: 'overview', targetAudience: 'Dewan juri', keyPill: 'Baseline site belum tersedia', cue: 'Jelaskan kesenjangan data dan mengapa audit didahulukan.', script: 'Model sebelumnya memakai dua satuan baseline yang belum terverifikasi. Karena satuan itu menghasilkan kesimpulan finansial berbeda, kami mengusulkan audit meter, tagihan, kontrak, dan biaya sebelum meminta keputusan investasi.', presenterTips: 'Tunjukkan ketidakpastian secara terbuka.' },
+    { step: 3, timing: '1:50 - 2:40', targetSeconds: 160, title: 'Konsep ImpactGrid', tab: 'architecture', targetAudience: 'Dewan juri', keyPill: 'Sistem pendukung keputusan', cue: 'Tunjukkan alur dari data sampai keputusan manusia.', script: 'ImpactGrid dirancang untuk menggabungkan data energi, trafik, biaya, mutu layanan, dan metrik ESG yang disetujui. Sistem menghasilkan analisis dan rekomendasi untuk ditinjau tim jaringan, Finance, dan ESG; prototype ini tidak mengendalikan perangkat.', presenterTips: 'Jelaskan ini sebagai rancangan, bukan sistem produksi.' },
+    { step: 4, timing: '2:40 - 3:30', targetSeconds: 210, title: 'Rancangan integrasi data', tab: 'telemetry', targetAudience: 'Dewan juri', keyPill: 'Perlu akses dan rekonsiliasi', cue: 'Jelaskan data yang dibutuhkan dan pemiliknya.', script: 'Integrasi vendor dan meter PLN masih perlu dibuktikan bersama pemilik sistem dan kontrak. Tabel pada website memakai data contoh, bukan telemetri aktual. Pilot hanya dimulai setelah akses, keamanan, dan rekonsiliasi datanya disetujui.', presenterTips: 'Hindari mengklaim koneksi atau kompatibilitas yang belum diuji.' },
+    { step: 5, timing: '3:30 - 4:20', targetSeconds: 260, title: 'Keselamatan dan kendali operasi', tab: 'optimization', targetAudience: 'Dewan juri', keyPill: 'Guardrail harus diuji', cue: 'Tunjukkan simulasi sebagai konsep, lalu tekankan persetujuan operator.', script: 'Penghematan tidak boleh menurunkan mutu layanan. Ambang QoS, mekanisme rollback, dan interaksi dengan layanan darurat harus ditetapkan dan diuji di lingkungan yang disetujui. Simulasi pada website tidak menguji latency atau jaringan nyata.', presenterTips: 'Jangan menjanjikan 120 milidetik atau zero outage.' },
+    { step: 6, timing: '4:20 - 5:20', targetSeconds: 320, title: 'Sensitivitas finansial dan audit', tab: 'financial', targetAudience: 'Dewan juri', keyPill: 'NPV berubah mengikuti baseline', cue: 'Buka model sensitivitas dan jelaskan asumsi.', script: 'Pada asumsi hemat 8 persen, Rp1.500 per kWh, CapEx Rp450 juta, OpEx Rp60 juta per tahun, dan diskonto 10 persen, NPV indikatif berkisar minus Rp391,5 juta hingga plus Rp82,3 juta tergantung baseline yang dipakai. Hasil ini bukan forecast; audit awal maksimal Rp95 juta menjadi langkah berikutnya.', presenterTips: 'Jelaskan komponen arus kas dan ketidakpastian.' },
+    { step: 7, timing: '5:20 - 6:15', targetSeconds: 375, title: 'Pengukuran ESG yang dapat dipertanggungjawabkan', tab: 'esg', targetAudience: 'Dewan juri', keyPill: 'Belum ada klaim reduksi emisi', cue: 'Tunjukkan checklist validasi dan sumber resmi.', script: 'Pengurangan energi perlu diukur terhadap baseline dan pembanding yang sesuai. Klaim emisi menunggu faktor emisi resmi per lokasi dan periode serta persetujuan fungsi ESG. SHA-256 hanya mendeteksi perubahan pada berkas; hash tidak membuktikan data sumber benar.', presenterTips: 'Pisahkan standar metodologis dari hasil assurance.' },
+    { step: 8, timing: '6:15 - 7:00', targetSeconds: 420, title: 'Permintaan keputusan bertahap', tab: 'overview', targetAudience: 'Dewan juri', keyPill: 'Audit dahulu; pilot bersyarat', cue: 'Tutup dengan tahapan dan gerbang keputusan.', script: 'Kami mengusulkan audit dua bulan dengan plafon Rp95 juta, lalu keputusan terpisah untuk pilot setelah baseline, kelayakan finansial, izin aset, dan guardrail QoS disepakati. Ekspansi regional atau nasional baru dinilai setelah bukti pilot tersedia. Terima kasih.', presenterTips: 'Tutup dengan kebutuhan validasi dan keputusan yang diminta.' }
   ];
 
   // Live Timer Effect

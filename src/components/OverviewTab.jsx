@@ -55,25 +55,7 @@ export default function OverviewTab({
   const [showGisMap, setShowGisMap] = useState(false); // Collapsible: clean by default!
   const [isBodSigned, setIsBodSigned] = useState(false);
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
-  const [telemetryPulse, setTelemetryPulse] = useState({
-    activeBtsPower: 384.2,
-    trafficThroughput: 84.6,
-    co2AvoidedToday: 478.5,
-    lastUpdate: 'Baru saja'
-  });
-
-  // Live Telemetry Simulation Effect (Every 4s)
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setTelemetryPulse({
-        activeBtsPower: +(384 + (Math.random() * 4 - 2)).toFixed(1),
-        trafficThroughput: +(84.5 + (Math.random() * 2.5 - 1.2)).toFixed(1),
-        co2AvoidedToday: +(478.5 + (Math.random() * 0.8)).toFixed(1),
-        lastUpdate: new Date().toLocaleTimeString('id-ID', { hour12: false })
-      });
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+  // Static illustrative values only; this prototype has no operational telemetry connection.
 
   // Dynamic 24-hour load curve responding to emergency state and global simulation conditions
   const dynamicHourlyData = HOURLY_PILOT_PROFILE.map(item => {
@@ -108,40 +90,40 @@ export default function OverviewTab({
   // Data dinamis sesuai skala terpilih tanpa clutter
   const scaleData = {
     pilot: {
-      scopeTitle: "Tahap Uji Coba (2027) • 40 Lokasi Uji & 10 Pembanding",
+      scopeTitle: "Desain pilot usulan (2027) • 40 intervensi + 10 pembanding",
       sitesText: "40 + 10 Sites",
-      savingKwYear: "200.000 kWh",
-      grossSaving: "Rp 300 Juta",
-      netBenefit: "Rp 240 Juta",
-      npvText: "+Rp 460 Juta",
-      npvSub: "WACC 10% (5 Tahun)",
-      pbpText: "1,9 Tahun",
-      emissionsText: "174 Ton CO2e",
-      capexText: "Rp 450 Juta"
+      savingKwYear: "Belum terukur",
+      grossSaving: "Sensitivitas saja",
+      netBenefit: "Belum divalidasi",
+      npvText: "−Rp 391,5 jt s.d. +Rp 82,3 jt",
+      npvSub: "Skenario 2027–2031; asumsi 8%",
+      pbpText: "Belum dapat dihitung",
+      emissionsText: "Belum dihitung",
+      capexText: "Asumsi Rp 450 Juta"
     },
     regional: {
-      scopeTitle: "Fase Ekspansi Regional (2028–2029) • 5.000 Menara Jamali",
-      sitesText: "5.000 BTS",
-      savingKwYear: "5,80 GWh",
-      grossSaving: "Rp 6,6 Miliar",
-      netBenefit: "Rp 4,8 Miliar",
-      npvText: "+Rp 11,7 Miliar",
-      npvSub: "WACC 10% (5 Tahun)",
-      pbpText: "1,35 Tahun",
-      emissionsText: "5.046 Ton CO2e",
-      capexText: "Rp 6,5 Miliar"
+      scopeTitle: "Ekspansi regional (bersyarat; belum dihitung)",
+      sitesText: "Jumlah lokasi ditentukan setelah pilot",
+      savingKwYear: "Belum diestimasi",
+      grossSaving: "Belum diestimasi",
+      netBenefit: "Belum diestimasi",
+      npvText: "Belum dihitung",
+      npvSub: "Menunggu hasil pilot dan biaya aktual",
+      pbpText: "Belum dapat dihitung",
+      emissionsText: "Belum dihitung",
+      capexText: "Belum diestimasi"
     },
     national: {
-      scopeTitle: "Fase Perluasan Nasional (2030–2031) • 10.000+ Menara Makro",
-      sitesText: "10.000+ BTS",
-      savingKwYear: "14,60 GWh",
-      grossSaving: "Rp 21,9 Miliar",
-      netBenefit: "Rp 14,9 Miliar",
-      npvText: "+Rp 41,48 Miliar",
-      npvSub: "WACC 10% (5 Tahun)",
-      pbpText: "1,00 Tahun",
-      emissionsText: "12.702 Ton CO2e",
-      capexText: "Rp 15,0 Miliar"
+      scopeTitle: "Perluasan nasional (hipotesis; belum dihitung)",
+      sitesText: "Skala ditentukan setelah validasi",
+      savingKwYear: "Belum diestimasi",
+      grossSaving: "Belum diestimasi",
+      netBenefit: "Belum diestimasi",
+      npvText: "Belum dihitung",
+      npvSub: "Tidak tersedia sebagai forecast",
+      pbpText: "Belum dapat dihitung",
+      emissionsText: "Belum dihitung",
+      capexText: "Belum diestimasi"
     }
   }[selectedScale];
 
@@ -153,9 +135,9 @@ export default function OverviewTab({
           <div className="flex items-center space-x-3">
             <Flame className="w-5 h-5 text-amber-200 animate-pulse" />
             <div>
-              <span className="font-extrabold text-xs block">CTO EMERGENCY STRESS DRILL AKTIF (TRAFIK +300%)</span>
+              <span className="font-extrabold text-xs block">SIMULASI LONJAKAN TRAFIK AKTIF</span>
               <p className="text-[11px] text-red-100">
-                AI otomatis mematikan mode hemat dalam 120 ms. Seluruh kapasitas BTS disiagakan untuk panggilan darurat 112.
+                Skenario visual untuk membahas fail-safe; tidak menguji jaringan, latency, atau layanan darurat.
               </p>
             </div>
           </div>
@@ -163,33 +145,33 @@ export default function OverviewTab({
             onClick={onOpenEmergencyModal}
             className="px-3 py-1.5 rounded-xl bg-white text-red-700 font-bold text-xs hover:bg-red-50 transition cursor-pointer shrink-0"
           >
-            Cek Respon SLA
+            Lihat simulasi
           </button>
         </div>
       )}
 
       {/* 1. Clean Executive Header with Scope Indicator */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1.5 max-w-2xl">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="space-y-1.5 flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-bold">
               {scaleData.scopeTitle}
             </span>
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span>LIVE OSS & AMR: {telemetryPulse.activeBtsPower} kW</span>
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-semibold text-amber-800">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span>DATA CONTOH • bukan telemetri live</span>
             </div>
-            <span className="text-[11px] text-slate-400">• Beban Listrik: 1,885 Miliar kWh/thn</span>
+            <span className="text-[11px] text-slate-400">• Listrik korporat 2025: 1.885,4 GWh</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             ImpactGrid: Platform Keputusan Investasi Efisiensi Jaringan & ESG
           </h1>
           <p className="text-xs text-slate-500 leading-relaxed font-normal">
-            Memecahkan dilema dekarbonisasi dan biaya energi RAN Telkomsel melalui optimasi portofolio investasi yang memaksimalkan <strong>Net Present Value (NPV)</strong> sambil menggaransi <strong>QoS SLA &gt; 99,95%</strong>.
+            Mendemonstrasikan rancangan DSS untuk membandingkan opsi efisiensi energi. Baseline, manfaat, batas mutu layanan, dan kelayakan investasi masih harus divalidasi oleh pemilik data dan operasi.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button 
             onClick={() => setActiveTab('scenariolab')}
             className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
@@ -208,7 +190,7 @@ export default function OverviewTab({
       </div>
 
       {/* EXECUTIVE SUMMARY CONTEXT & ROOT CAUSE CALLOUT */}
-      <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-md border border-slate-700 space-y-3">
+      <div className="p-5 rounded-2xl bg-white text-slate-900 shadow-sm border border-slate-200 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-2.5">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-4 h-4 text-amber-400" />
@@ -226,7 +208,7 @@ export default function OverviewTab({
             <span className="text-[10px] text-amber-400 uppercase font-bold block">1. Skala Beban Energi Korporat</span>
             <div className="text-xl font-black text-white">1,885 Miliar kWh</div>
             <p className="text-[11px] text-slate-300">
-              Total konsumsi listrik tahunan Telkomsel dengan estimasi tagihan PLN ~<strong>Rp 3,2 Triliun/tahun</strong>.
+              Total konsumsi listrik Telkomsel pada 2025; nilai tagihan tidak dihitung di sini.
             </p>
           </div>
 
@@ -242,13 +224,13 @@ export default function OverviewTab({
             <span className="text-[10px] text-red-400 uppercase font-bold block">3. Kesenjangan Integrasi (Data Silo)</span>
             <div className="text-sm font-bold text-white">IoT Envion vs PLN vs NOC</div>
             <p className="text-[11px] text-slate-300">
-              Pemantauan energi eksisting terpisah dari penagihan keuangan & QoS SLA. ImpactGrid menyatukan ketiganya dalam 1 DSS.
+              Kondisi integrasi sistem internal belum diverifikasi. ImpactGrid mengusulkan satu alur analisis untuk data yang diizinkan.
             </p>
           </div>
         </div>
 
         <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300">
-          <span>💡 <em>"Pembeda ImpactGrid adalah optimasi portofolio antarlokasi dan pembuktian manfaat kausal DiD."</em></span>
+          <span>💡 <em>"ImpactGrid mengusulkan prioritisasi portofolio; bukti manfaat kausal baru dapat dibuat setelah pilot."</em></span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('architecture')}
@@ -276,7 +258,7 @@ export default function OverviewTab({
           <div>
             <div className="text-3xl font-black text-emerald-700 tracking-tight">{scaleData.npvText}</div>
             <p className="text-xs text-slate-600 font-semibold mt-0.5">
-              Net Present Value ({scaleData.npvSub})
+              NPV indikatif ({scaleData.npvSub})
             </p>
           </div>
           <div className="pt-2.5 border-t border-slate-100 flex justify-between text-[11px] text-slate-500 font-medium">
@@ -298,7 +280,7 @@ export default function OverviewTab({
           <div>
             <div className="text-3xl font-black text-slate-900 tracking-tight">{scaleData.emissionsText}</div>
             <p className="text-xs text-slate-600 font-semibold mt-0.5">
-              Reduksi Emisi Scope 2 / Tahun Terhindar
+              Dampak emisi belum dihitung
             </p>
           </div>
           <div className="pt-2.5 border-t border-slate-100 flex justify-between text-[11px] text-slate-500 font-medium">
@@ -318,14 +300,14 @@ export default function OverviewTab({
             </div>
           </div>
           <div>
-            <div className="text-3xl font-black text-blue-700 tracking-tight">99,98%</div>
+            <div className="text-3xl font-black text-blue-700 tracking-tight">Belum diuji</div>
             <p className="text-xs text-slate-600 font-semibold mt-0.5">
-              SLA Availability Terjaga (Zero Penalty)
+              QoS wajib menjadi batas keputusan pilot
             </p>
           </div>
           <div className="pt-2.5 border-t border-slate-100 flex justify-between text-[11px] text-slate-500 font-medium">
-            <span>Fast-Wakeup: <strong className="text-slate-800">&lt; 120 ms</strong></span>
-            <span>Kanal Darurat: <strong className="text-blue-700">112 Locked 100%</strong></span>
+            <span>Latency: <strong className="text-slate-800">perlu uji</strong></span>
+            <span>Kanal darurat: <strong className="text-blue-700">perlu validasi operator</strong></span>
           </div>
         </div>
       </div>
@@ -342,13 +324,13 @@ export default function OverviewTab({
             </div>
             <div>
               <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                <span>Peta Geografis Sebaran 50 Lokasi Uji Coba Pilot (Jamali & Outer Islands)</span>
+                <span>Peta contoh sebaran lokasi (data sintetis)</span>
                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
                   {showGisMap ? 'Klik untuk Ciutkan' : 'Klik untuk Buka Peta Interaktif'}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                40 Site Intervensi + 10 Site Kontrol dengan penanda status telemetri O-RAN
+                Penanda dan nama lokasi hanya untuk demonstrasi; bukan daftar site Telkomsel.
               </p>
             </div>
           </div>
@@ -398,16 +380,16 @@ export default function OverviewTab({
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Profil Konsumsi Daya Dinamis 24 Jam (Tahap Pilot 40 Lokasi)
+                Profil daya 24 jam (data sintetis untuk demonstrasi)
               </span>
               {emergencyState.active && (
                 <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold animate-pulse">
-                  DRILL AKTIF: 100% KAPASITAS
+                  SKENARIO DEMO AKTIF
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Perbandingan konsumsi listrik sebelum intervensi (Baseline) vs hasil optimasi closed-loop O-RAN.
+              Kurva ilustratif; bukan pengukuran sebelum/sesudah intervensi atau keluaran sistem O-RAN.
             </p>
           </div>
 
@@ -528,7 +510,7 @@ export default function OverviewTab({
             }`}
           >
             <FileCheck className="w-3.5 h-3.5" />
-            <span>{isBodSigned ? '✓ Disahkan BoD Telkomsel' : 'Simulasikan Pengesahan BoD'}</span>
+            <span>{isBodSigned ? '✓ Pratinjau dibuka' : 'Buka kerangka keputusan'}</span>
           </button>
         </div>
 
@@ -540,10 +522,10 @@ export default function OverviewTab({
               </div>
               <div>
                 <span className="font-black text-sm block text-emerald-900">
-                  STATUS: DISETUJUI RESMI OLEH BOD UNTUK EKSPANSI REGIONAL (5.000 MENARA JAMALI)
+                  STATUS DEMO: TIDAK MEREPRESENTASIKAN PERSETUJUAN TELKOMSEL
                 </span>
                 <span className="text-[11px] text-emerald-700 font-medium">
-                  Seluruh 4 ambang batas terpenuhi: Integritas Data 98,4%, Efisiensi Positif DiD, NPV +Rp460 Juta, dan SLA 99,98%.
+                  Data dan hasil pada layar dibuat untuk demonstrasi; audit, persetujuan, dan hasil pilot belum tersedia.
                 </span>
               </div>
             </div>
@@ -553,7 +535,7 @@ export default function OverviewTab({
                 className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs transition"
               >
                 <Award className="w-3.5 h-3.5 text-amber-300" />
-                <span>Buka Sertifikat Kelulusan</span>
+                <span>Lihat Preview Dokumen Demo</span>
               </button>
             </div>
           </div>
@@ -569,7 +551,7 @@ export default function OverviewTab({
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-slate-400 font-mono">{gate.unit}</span>
                   <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    {gate.status}
+                    BELUM DIUJI
                   </span>
                 </div>
                 <h3 className="font-extrabold text-slate-900 text-xs mb-1">{gate.title}</h3>
@@ -577,9 +559,9 @@ export default function OverviewTab({
               </div>
 
               <div className="pt-2 border-t border-slate-200/60">
-                <div className="text-[10px] text-slate-400">Pencapaian Riil:</div>
-                <div className="text-sm font-black text-emerald-700">{gate.currentValue}</div>
-                <p className="text-[10px] text-slate-500 mt-1 leading-tight">{gate.evidence}</p>
+                <div className="text-[10px] text-slate-400">Hasil pilot:</div>
+                <div className="text-sm font-black text-amber-800">Belum tersedia</div>
+                <p className="text-[10px] text-slate-500 mt-1 leading-tight">Ambang dan bukti harus ditetapkan serta disetujui sebelum pilot.</p>
               </div>
             </div>
           ))}
@@ -600,15 +582,15 @@ export default function OverviewTab({
             <span className="font-bold text-slate-900 block">Fase 1: Uji Coba 9 Bulan (2027)</span>
             <p className="text-slate-600 font-medium">40 Lokasi Intervensi + 10 Kontrol</p>
             <p className="text-slate-500 text-[11px] leading-relaxed">
-              CapEx Rp 450 Jt • Hemat 200 MWh/thn • Net Rp 240 Jt/thn • <strong>NPV +Rp 460 Jt (PBP 1,9 thn)</strong>.
+              Plafon awal yang diusulkan Rp95 juta untuk audit; baseline dan NPV belum dapat dipastikan sebelum data lokasi dan kontrak diperiksa.
             </p>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
             <span className="font-bold text-slate-900 block">Fase 2: Regional Jamali (2028–2029)</span>
-            <p className="text-slate-600 font-medium">5.000 Menara Biaya Listrik Tinggi</p>
+            <p className="text-slate-600 font-medium">Cakupan ditentukan setelah hasil pilot</p>
             <p className="text-slate-500 text-[11px] leading-relaxed">
-              CapEx Rp 6,5 M (Swadana) • Hemat 5,8 GWh/thn • Net Rp 4,8 M/thn • <strong>NPV +Rp 11,7 Miliar</strong>.
+              Replikasi 100–200 lokasi hanya dipertimbangkan setelah pilot lolos gerbang dan biaya marginal tervalidasi.
             </p>
           </div>
 
@@ -616,7 +598,7 @@ export default function OverviewTab({
             <span className="font-bold text-slate-900 block">Fase 3: Skala Nasional (2030–2031)</span>
             <p className="text-slate-600 font-medium">10.000+ Menara Makro Terpilih</p>
             <p className="text-slate-500 text-[11px] leading-relaxed">
-              CapEx Rp 15 M • Hemat 14,6 GWh/thn • Net Rp 14,9 M/thn • <strong>NPV +Rp 41,48 Miliar (PBP 1,0 thn)</strong>.
+              Skenario 10.000 lokasi bersifat hipotetis; belum menjadi target, proyeksi, atau sumber pendanaan.
             </p>
           </div>
         </div>
@@ -630,3 +612,4 @@ export default function OverviewTab({
     </div>
   );
 }
+

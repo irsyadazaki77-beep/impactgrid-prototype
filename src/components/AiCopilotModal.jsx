@@ -25,17 +25,17 @@ import {
 
 const PRESET_QUESTIONS = [
   {
-    q: "Optimalkan efisiensi energi shelter sekarang dengan rekomendasi AI!",
-    category: "⚡ Action",
+    q: "Lihat simulasi efisiensi energi shelter dengan asumsi yang tersedia.",
+    category: "Simulasi",
     action: {
       type: 'APPLY_OPTIMIZATION',
-      label: 'Terapkan Rekomendasi AI',
+      label: 'Lihat simulasi lokal',
       payload: { carrierSleepActive: true, tempC: 26, plnTariffIDR: 1500 }
     }
   },
   {
-    q: "Simulasikan skenario Blackout PLN Grid Sumatera untuk melihat resiliensi sistem!",
-    category: "⚡ Action",
+    q: "Lihat skenario ilustratif gangguan listrik.",
+    category: "Simulasi",
     action: {
       type: 'SWITCH_SCENARIO',
       label: 'Simulasi Blackout Sumatera',
@@ -76,78 +76,55 @@ const PRESET_QUESTIONS = [
 
 const LOCAL_KNOWLEDGE_BASE = {
   vendor: {
-    title: "Orkestrasi Vendor-Agnostic vs Silo Vendor (O-RAN O1)",
-    answer: `**Perbedaan Mendasar:**
-• **Fitur Vendor Bawaan (Huawei iMaster MAE, Ericsson ENM, ZTE NetNumen, Nokia NetAct):** Bekerja secara terisolasi (*vendor silo*). Tiap vendor hanya mengoptimalkan radionya sendiri, tidak tahu telemetri smart meter PLN, tidak ada rekonsiliasi beban shelter HVAC, dan tidak saling bicara jika satu cluster terdiri dari vendor campuran.
-• **ImpactGrid (Cross-Domain SMO / Non-RT RIC):** Bekerja di lapisan atas menggunakan standar antarmuka **O-RAN O1 (Netconf/YANG)**. Mengorkestrasi kebijakan penghematan seragam di 293.000 BTS, menggabungkan data cuaca BMKG real-time, rekonsiliasi tagihan PLN AMR, dan mengeliminasi ketergantungan *vendor lock-in*.`,
-    suggestedTab: 'telemetry',
-    suggestedTabLabel: 'Buka Tab Telemetri (Modul 1)'
+    title: "Integrasi vendor: konsep yang perlu dikaji",
+    answer: "ImpactGrid adalah rancangan sistem pendukung keputusan. Prototype ini belum terhubung ke sistem vendor atau antarmuka O-RAN. Ketersediaan API, hak akses, lisensi, keamanan, dan kewenangan aset perlu dikaji bersama operator dan vendor sebelum integrasi dirancang.",
+    suggestedTab: "telemetry",
+    suggestedTabLabel: "Buka rancangan konsolidasi data"
   },
   phantom: {
-    title: "Deteksi Phantom Load & Inefisiensi Rectifier Shelter",
-    answer: `**Mekanisme Deteksi Anomali Daya:**
-• ImpactGrid membandingkan telemetri daya dari Smart Meter PLN (AMR/AMI) dengan daya riil yang dikonsumsi sub-sistem Radio (RU/DU).
-• **Kondisi Normal:** Saat radio masuk sleep-mode, konsumsi daya total shelter harus turun proporsional.
-• **Indikasi Phantom Load:** Jika radio sleep namun kWh PLN tetap tinggi (>100 Watt di atas baseline), algoritma menandai *⚠️ Phantom Load Anomaly*.
-• **Akar Masalah Terdeteksi:** Penurunan efisiensi konversi rectifier (<88%), kompresor AC inverter bocor refrigerant, atau indikasi penyalahgunaan listrik cadangan genset di shelter remote.`,
-    suggestedTab: 'telemetry',
-    suggestedTabLabel: 'Lihat Deteksi Anomali di Tab Telemetri'
+    title: "Deteksi anomali: kebutuhan data dan validasi",
+    answer: "Prototype menampilkan contoh alur deteksi, bukan temuan lapangan. Deteksi memerlukan data meter dan sub-meter yang sinkron, baseline yang disetujui, aturan kualitas data, serta pemeriksaan teknisi. Penyebab anomali tidak dapat disimpulkan dari contoh sintetis.",
+    suggestedTab: "telemetry",
+    suggestedTabLabel: "Lihat rancangan konsolidasi data"
   },
   sla: {
-    title: "Multi-Layer Safety Guardrail & Panggilan Darurat 112",
-    answer: `**Jaminan Keandalan Telekomunikasi (Zero QoS Degradation):**
-• **Hard-Locked Emergency Channels:** Kanal darurat nasional 112 dan carrier VIP prioritas dikunci 100% aktif (non-sleepable permanent).
-• **Fast-Wakeup O-RAN (<120ms):** Jika terjadi lonjakan beban trafik mendadak >15% atau pemicu sinyal gempa/bencana BMKG, seluruh power amplifier yang tidur dibangunkan kembali dalam waktu kurang dari 120 milidetik.
-• **Strict QoS Threshold:** Batas probabilitas *Drop Call Rate* dijaga ketat di bawah 0,001% (SLA availability 99,98%). Jika threshold terlampaui, sistem otomatis *rollback* ke daya penuh.`,
-    suggestedTab: 'overview',
-    suggestedTabLabel: 'Uji Respon di CTO Stress-Test (Hotkey S)'
+    title: "Keselamatan jaringan dan layanan darurat",
+    answer: "Prototype tidak terhubung ke jaringan dan tidak menguji QoS, latency, rollback, cakupan, atau layanan darurat 112. Sebelum pilot, operator harus menetapkan batas keselamatan dan prosedur rollback, lalu meninjau serta menguji semuanya dalam lingkungan yang disetujui. Tidak ada jaminan kinerja pada tahap ini.",
+    suggestedTab: "overview",
+    suggestedTabLabel: "Lihat daftar validasi yang diperlukan"
   },
   financial: {
-    title: "Self-Funding Reinvestment Loop (Bebas Beban Kas Korporat)",
-    answer: `**Struktur Finansial Mandiri (Tanpa Bakar Uang):**
-• **Fase 1 Pilot (40 BTS, CapEx Rp450 Juta):** Menghemat listrik 201.500 kWh/tahun = OpEx turun Rp240 Juta/tahun. Periode *Payback* hanya 1,9 tahun.
-• **Mekanisme Reinvestment Loop:** 50% dari penghematan kas operasional ditahan ke dalam *Green Reinvestment Pool* untuk mendanai CapEx Fase 2 (5.000 BTS, Rp6,5 M) dan Fase 3 (10.000 BTS, Rp15 M).
-• **Nilai Finansial 5 Tahun:** Menghasilkan Net Present Value (NPV) kumulatif **+Rp41,48 Miliar** dan Internal Rate of Return (IRR) **42,3%** pada WACC 9,5%.`,
-    suggestedTab: 'financial',
-    suggestedTabLabel: 'Buka Model Finansial & Proyeksi 5 Tahun'
+    title: "Kelayakan finansial: hasil masih berupa sensitivitas",
+    answer: "CapEx Rp450 juta dan OpEx Rp60 juta per tahun adalah asumsi proposal, bukan penawaran atau biaya aktual. Dengan asumsi hemat 8%, biaya energi yang dihindari Rp1.500/kWh, diskonto 10%, serta jadwal arus kas model, NPV indikatif sekitar minus Rp391,5 juta untuk baseline 50 kWh/lokasi/hari dan plus Rp82,3 juta untuk baseline 50 MWh/lokasi/tahun. Kedua baseline belum diverifikasi; angka ini bukan forecast atau bukti proyek layak. Periksa meter, tagihan, kontrak, biaya, dan pembagian manfaat terlebih dahulu.",
+    suggestedTab: "financial",
+    suggestedTabLabel: "Buka model sensitivitas"
   },
   esg: {
-    title: "Metodologi Difference-in-Differences (DiD) ITU-T L.1331",
-    answer: `**Verifikasi Ilmiah Penurunan Emisi Tanpa Bias:**
-• **Tantangan Verifikasi Konvensional:** Penurunan daya sering diklaim karena sleep-mode, padahal bisa jadi karena trafik turun atau cuaca sedang dingin.
-• **Solusi DiD ImpactGrid:** Menguji **40 site intervensi** terhadap **10 site kontrol** dengan profil iklim dan demografi identik di periode pra-uji vs pasca-uji.
-• **Hasil Bersih:** Membuktikan penghematan riil sebesar **201.500 kWh/tahun** dan penurunan emisi **175,3 ton CO2e/tahun**, diakui penuh untuk pelaporan POJK 51, IFRS S1/S2, dan IDX ESG. Seluruh log transaksi ditandatangani secara kriptografis dengan SHA-256 tamper-proof.`,
-    suggestedTab: 'esg',
-    suggestedTabLabel: 'Buka Tab ESG & Log Verifikasi SHA-256'
+    title: "Rancangan pengukuran energi dan emisi",
+    answer: "Pengukuran sebelum/sesudah dengan lokasi pembanding dapat dikaji sebagai rancangan evaluasi, dengan penyesuaian trafik, cuaca, dan karakter lokasi. Proposal mengusulkan merujuk ITU-T L.1331 untuk indikator konsumsi energi jaringan. Belum ada hasil DiD atau reduksi emisi pilot. Faktor emisi harus dipilih dari sumber resmi yang sesuai periode dan batas inventaris; kesesuaian pengungkapan perlu ditelaah tim ESG. Hash hanya membantu memeriksa integritas berkas, bukan membuktikan kebenaran sumber datanya.",
+    suggestedTab: "esg",
+    suggestedTabLabel: "Buka kerangka validasi ESG"
   },
   knapsack: {
-    title: "Multi-Objective Knapsack DSS: Penyeimbang CFO, CTO & ESG",
-    answer: `**Algoritma Optimasi Alokasi CapEx:**
-• **Formulasi Masalah:** Telkomsel memiliki ribuan BTS kandidat namun anggaran modal (CapEx) terbatas.
-• **Scoring Multi-Dimensi:** Algoritma menghitung:
-  1. *CFO Score:* Efisiensi penghematan biaya listrik (Rp/kWh & payback).
-  2. *ESG Score:* Reduksi karbon riil (tCO2e per Rp CapEx).
-  3. *CTO Score:* Margin keamanan QoS dan stabilitas trafik historis.
-• **Human-in-the-Loop:** Pimpinan teknik dapat melakukan *override* ('Force In' untuk site strategis VIP atau 'Exclude' untuk site kritis) sebelum jadwal retrofit dieksekusi.`,
-    suggestedTab: 'optimization',
-    suggestedTabLabel: 'Buka Modul 3: Prioritasi Investasi'
+    title: "Prioritisasi: rancangan metode, belum rekomendasi",
+    answer: "Prototype memperagakan pemeringkatan portofolio dengan data sintetis. Metode nyata memerlukan data lokasi, biaya, manfaat, kelayakan teknis, dan batas layanan yang disahkan pemilik data. Bobot, batas, dan persetujuan manusia harus ditetapkan sebelum penggunaan; prototype tidak mengirim konfigurasi atau keputusan ke jaringan.",
+    suggestedTab: "optimization",
+    suggestedTabLabel: "Buka simulasi prioritisasi"
   }
 };
 
-const SYSTEM_PROMPT = `Anda adalah ImpactGrid AI Copilot, asisten kecerdasan buatan tingkat eksekutif untuk sistem Telkomsel ImpactGrid (dikembangkan oleh Tim AWAKENING Reborn untuk TDC Summit Fest / TSF 2026 bersama PT Telekomunikasi Selular).
-
-Karakter Anda:
-- Sangat memahami telekomunikasi seluler Indonesia, arsitektur RAN (Ericsson, Huawei, ZTE, Nokia), standar O-RAN O1 (Netconf/YANG), efisiensi energi BTS (ITU-T L.1331), regulasi POJK 51, IFRS S1/S2, dan model finansial korporat Telkomsel.
-- Bersikap profesional, tajam, berbasis data numerik valid, percaya diri di hadapan Dewan Direksi (CEO, CTO, CFO, Direktur Network, Head of ESG).
-- Singkat, padat, terstruktur dengan bullet point jika diperlukan.
-- Selalu tegaskan bahwa ImpactGrid adalah AI Decision Support System (DSS) dan Cyber-Physical Energy System, BUKAN pemutus daya sembarangan. Keandalan QoS dan kanal darurat 112 selalu terproteksi mutlak (<120ms fast wakeup).
-
-Data Kunci Proposal:
-- Total BTS Telkomsel: 293.000 sites nasional dengan beban listrik korporat ~Rp 3,2 Triliun/tahun.
-- Distribusi daya per tower: Radio 65%, Pendingin/HVAC 25%, Rectifier & Aux 10%.
-- Fase Pilot: 50 sites (40 intervensi + 10 kontrol) dengan CapEx Rp 450 Juta, menghasilkan penghematan Rp 240 Juta/tahun (payback 1,9 tahun).
-- DiD ITU-T L.1331: Menghasilkan reduksi bersih 201.500 kWh/tahun dan 175,3 ton CO2e/tahun.
-- Model 5 Tahun: Reinvestment Pool 50% mendanai ekspansi 5.000 hingga 10.000 BTS, menghasilkan NPV kumulatif +Rp 41,48 Miliar.`;
+const SYSTEM_PROMPT = "Anda adalah asisten untuk prototype proposal ImpactGrid oleh Tim AWAKENING Reborn. Jawab ringkas, profesional, dan dalam bahasa Indonesia.\\n\\n" +
+  "ATURAN FAKTA:\\n" +
+  "- Prototype ini adalah demonstrasi lokal dengan data site sintetis. Prototype tidak terhubung ke sistem, jaringan, meter, vendor, BMKG, PLN, atau data operasional Telkomsel. Tidak ada pilot yang telah dibuktikan oleh aplikasi.\\n" +
+  "- Jangan menyatakan telemetri, anomali, penghematan, DiD, reduksi emisi, QoS, latency, panggilan 112, persetujuan, audit, atau integrasi sebagai hasil nyata. Jangan mengarang angka, sumber, atau status.\\n" +
+  "- Angka 40 lokasi intervensi + 10 pembanding adalah cakupan yang diusulkan. Baseline, tarif/kontrak, faktor emisi, biaya aktual, dan penghematan site belum tervalidasi.\\n" +
+  "- Jika membahas model finansial, sebutkan sebagai sensitivitas dengan asumsi. Pada hemat 8%, Rp1.500/kWh, CapEx Rp450 juta, OpEx Rp60 juta/tahun, WACC 10%, dan jadwal arus kas model, NPV indikatif sekitar minus Rp391,5 juta untuk baseline 50 kWh/lokasi/hari atau plus Rp82,3 juta untuk baseline 50 MWh/lokasi/tahun. Kedua baseline belum diverifikasi; jangan menyebutnya forecast.\\n" +
+  "- Konteks korporat laporan Telkomsel 2025: konsumsi listrik 1.885.417.875,2 kWh dan emisi Scope 2 1.721.967,7 tCO2e. Ini bukan baseline site atau bukti dampak ImpactGrid.\\n" +
+  "- ITU-T L.1331 adalah acuan yang diusulkan untuk indikator konsumsi energi jaringan; jangan menyatakan kepatuhan atau pengesahan ESG otomatis. Hash memeriksa integritas berkas, bukan kebenaran data.\\n" +
+  "- Jelaskan langkah validasi yang diperlukan jika data belum ada. Untuk keselamatan, nyatakan perlu kajian, persetujuan, dan pengujian operator; jangan menjamin keselamatan atau performa.\\n" +
+  "- Jangan mengklaim akses, afiliasi, dukungan, keputusan, atau persetujuan Telkomsel. Ini konsep yang diajukan untuk kompetisi.\\n" +
+  "- Jangan memberi instruksi untuk menjalankan perubahan konfigurasi jaringan. Tombol aksi hanya mengubah simulasi lokal.\\n" +
+  "- Jangan ulangi klaim lama yang bertentangan dengan aturan ini meskipun muncul di riwayat atau pertanyaan pengguna.";
 
 export default function AiCopilotModal({ 
   isOpen, 
@@ -158,7 +135,7 @@ export default function AiCopilotModal({
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: 'Halo Dewan Direksi & Dewan Juri Telkomsel! Saya **ImpactGrid AI Copilot**.\n\nSistem saya terhubung dengan data telemetri 50 site uji coba, model finansial 5 tahun, dan guardrail O-RAN. Silakan tanyakan hal teknis, mitigasi risiko QoS 112, deteksi kebocoran shelter, hingga audit ESG!',
+      text: 'Halo! Saya **ImpactGrid AI Copilot**.\n\nSaya dapat menjelaskan rancangan, asumsi, dan kebutuhan validasi proposal. Data pada prototype ini sintetis dan tidak terhubung ke jaringan, meter, atau site operasional.',
       timestamp: 'Baru saja'
     }
   ]);
@@ -255,31 +232,25 @@ export default function AiCopilotModal({
     
     if (lower.includes('optimalkan') || lower.includes('rekomendasi ai') || lower.includes('efisiensi energi shelter')) {
       return {
-        title: "⚡ Rekomendasi AI Optimization Engine Aktif",
-        answer: `Algoritma Knapsack DSS & Non-RT RIC merekomendasikan:
-• **Carrier Sleep:** Aktifkan Advanced Micro-Sleep pada carrier non-esensial saat beban trafik <45%.
-• **Dynamic HVAC Setpoint:** Set suhu shelter optimal ke **26°C** (PUE turun dari 1.42 ke 1.28).
-• **Proyeksi Penghematan:** Efisiensi daya **+18.4%** tanpa penurunan indikator QoS/SLA.`,
+        title: "Simulasi lokal: bukan rekomendasi operasional",
+        answer: "Prototype hanya mengubah tampilan simulasi lokal. Belum ada data site, hasil penghematan, pemeriksaan QoS, atau rekomendasi yang dapat diterapkan. Untuk menghitung peluang nyata, validasi data meter, trafik, cuaca, biaya, dan batas layanan terlebih dahulu.",
         suggestedTab: 'optimization',
-        suggestedTabLabel: 'Lihat Kurva Pareto Frontier',
+        suggestedTabLabel: 'Lihat simulasi prioritisasi',
         actionData: {
           type: 'APPLY_OPTIMIZATION',
-          label: '⚡ Eksekusi Rekomendasi Ini ke Sistem',
+          label: 'Lihat simulasi lokal',
           payload: { carrierSleepActive: true, tempC: 26, plnTariffIDR: 1500 }
         }
       };
     } else if (lower.includes('blackout') || lower.includes('sumatera') || lower.includes('grid collapse')) {
       return {
-        title: "⚠️ Resiliensi Bencana: Protokol Blackout Grid PLN Sumatera",
-        answer: `Saat grid PLN terputus (blackout regional):
-• **Microgrid Islanding:** Shelter memutus jalur PLN seketika untuk mencegah *backfeed surge*.
-• **Hybrid Power Switch:** Beralih ke bank baterai LiFePO4 dan solar PV atap secara *bumpless*.
-• **Traffic Prioritization:** Carrier 1800/2100MHz masuk sleep-mode, mengunci kanal 900MHz & darurat 112 aktif 100%.`,
+        title: "Skenario gangguan listrik ilustratif",
+        answer: "Skenario ini hanya mengubah parameter tampilan prototype. Ia tidak memodelkan ketahanan sistem secara tervalidasi, tidak berkomunikasi dengan PLN atau operator, dan tidak membuktikan kontinuitas layanan maupun panggilan darurat.",
         suggestedTab: 'scenariolab',
-        suggestedTabLabel: 'Buka Scenario Lab Digital Twin',
+        suggestedTabLabel: 'Buka Scenario Lab',
         actionData: {
           type: 'SWITCH_SCENARIO',
-          label: '⚠️ Terapkan Mode Blackout Sumatera Sekarang',
+          label: 'Lihat skenario lokal',
           scenarioKey: 'blackout_sumatera'
         }
       };
@@ -443,7 +414,7 @@ export default function AiCopilotModal({
                 )}
               </div>
               <p className="text-[11px] text-slate-300 flex items-center gap-2">
-                <span>O-RAN O1 • Guardrail QoS 112 • Financial Model 5Y</span>
+                <span>Data sintetis • QoS belum diuji • model sensitivitas</span>
               </p>
             </div>
           </div>
@@ -662,7 +633,7 @@ export default function AiCopilotModal({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Tanyakan hal teknis O-RAN, proteksi 112, DiD ESG, atau kelayakan finansial..."
+              placeholder="Tanyakan tentang rancangan, asumsi, atau data yang perlu divalidasi..."
               className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#ED0226] font-medium"
             />
             <button

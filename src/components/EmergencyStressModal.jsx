@@ -31,14 +31,14 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold tracking-tight">
-                  CTO Multi-Layer Emergency Stress-Test & 112 Guardrail
+                  Simulasi skenario lonjakan trafik
                 </h2>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
                   Demo Direktur Network
                 </span>
               </div>
               <p className="text-xs text-white/80">
-                Uji ketahanan instan: mensimulasikan lonjakan beban trafik 300% (Event Konser, Bencana, Mudik RAFI).
+                Skenario visual lokal; bukan uji ketahanan, layanan 112, atau jaringan Telkomsel.
               </p>
             </div>
           </div>
@@ -67,13 +67,13 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
             <div className="space-y-1">
               <span className="font-bold text-sm block">
                 {emergencyState.active 
-                  ? 'KONDISI DARURAT AKTIF: Full Throttle 100% Kapasitas BTS Dinyalakan' 
-                  : 'KONDISI NORMAL: AI Energy Saving Mode (Micro-Sleep & PUE) Beroperasi'}
+                  ? 'SKENARIO DEMO AKTIF: input lonjakan trafik dipilih' 
+                  : 'SKENARIO DEMO NORMAL: tidak ada sistem operasi yang berjalan'}
               </span>
               <p className="text-slate-600 leading-relaxed text-[11px]">
                 {emergencyState.active
-                  ? 'Seluruh modul sleep mode 3GPP otomatis dibatalkan dalam 120 milidetik. Bandwidth dialokasikan penuh untuk menjamin panggilan 112, BMKG alert, dan siaga evakuasi darurat tanpa jeda latency.'
-                  : 'AI secara dinamis mematikan power amplifier saat trafik rendah (<30% beban) dan menghemat listrik hingga 14,8 MW secara real-time.'}
+                  ? 'Perubahan hanya memengaruhi visualisasi lokal. Tidak ada mode sleep yang dibatalkan dan tidak ada tindakan atau pengukuran jaringan.'
+                  : 'Prototype tidak memantau atau mengendalikan power amplifier; seluruh nilai merupakan data contoh.'}
               </p>
             </div>
           </div>
@@ -81,31 +81,28 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
           {/* Real-time Telemetry Comparison in Drill */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Beban Trafik</span>
+              <span className="text-[10px] text-slate-500 font-semibold uppercase block">Skenario input</span>
               <span className={`text-base font-extrabold ${emergencyState.active ? 'text-red-600 animate-pulse' : 'text-slate-900'}`}>
-                {emergencyState.active ? '98,7% (LONJAKAN)' : '34,2% (OFF-PEAK)'}
+                {emergencyState.active ? 'Lonjakan (ilustrasi)' : 'Normal (ilustrasi)'}
               </span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 font-semibold uppercase block">Panggilan 112 SLA</span>
-              <span className="text-base font-extrabold text-emerald-600 flex items-center gap-1">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                100,0%
-              </span>
+              <span className="text-base font-extrabold text-amber-700">Belum diuji</span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 font-semibold uppercase block">Wake-up Latency</span>
               <span className="text-base font-extrabold text-indigo-600">
-                120 ms
+                Belum diukur
               </span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 font-semibold uppercase block">Drop Call Probability</span>
               <span className="text-base font-extrabold text-teal-600">
-                0,001% (SLA Aman)
+                Belum diukur
               </span>
             </div>
           </div>
@@ -114,20 +111,20 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
           <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5" />
-              <span>Arsitektur Proteksi 3 Lapis (Multi-Layer Fail-Safe)</span>
+              <span>Persyaratan desain yang perlu ditinjau dan diuji</span>
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-slate-300">
               <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
                 <strong className="text-white block mb-0.5">Lapis 1: Traffic Gradient</strong>
-                Deteksi lonjakan dalam jendela 15 detik. Jika dTraffic/dt &gt; +20%, sleep mode di-override otomatis.
+                Ambang deteksi dan respons harus ditentukan berdasarkan data serta uji operasi.
               </div>
               <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
                 <strong className="text-white block mb-0.5">Lapis 2: 112 Priority Preemption</strong>
-                Kanal darurat nasional (112, SAR, Kepolisian) memiliki hak interupsi langsung pada level physical layer RAN.
+                Interaksi layanan darurat harus dirancang bersama operator dan pemilik layanan; belum diuji di prototype.
               </div>
               <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
                 <strong className="text-white block mb-0.5">Lapis 3: Heartbeat Watchdog</strong>
-                Bila koneksi AI server terputus &gt;5 detik, BTS otomatis kembali ke konfigurasi pabrik tanpa downtime.
+                Perilaku saat koneksi terputus dan prosedur rollback perlu didefinisikan serta diuji sebelum pilot.
               </div>
             </div>
           </div>
@@ -136,7 +133,7 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
         {/* Action Buttons */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span className="text-[11px] text-slate-500">
-            *Fitur ini membuktikan di depan Direktur Network bahwa efisiensi energi tidak pernah mengorbankan keandalan.
+            Simulasi ini tidak membuktikan keamanan, latency, availability, atau dampak pada pengalaman pelanggan.
           </span>
 
           <div className="flex items-center space-x-2 shrink-0">
@@ -161,7 +158,7 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
               }`}
             >
               <PhoneCall className="w-3.5 h-3.5 animate-bounce" />
-              <span>{emergencyState.active ? '⚡ KONDISI DARURAT AKTIF' : 'Picu Lonjakan Trafik Ekstrem (Surge Drill)'}</span>
+              <span>{emergencyState.active ? '⚡ SKENARIO DEMO AKTIF' : 'Pilih skenario lonjakan (demo)'}</span>
             </button>
           </div>
         </div>

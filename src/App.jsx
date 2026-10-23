@@ -24,6 +24,7 @@ import GlobalSimulationBar from './components/GlobalSimulationBar';
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [viewMode, setViewMode] = useState('executive'); // 'executive' | 'engineering' (Instruction #2)
+  const [theme, setTheme] = useState(() => localStorage.getItem('impactgrid-theme') || 'light');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isDirectorTourOpen, setIsDirectorTourOpen] = useState(false);
   const [isPitchWalkthroughActive, setIsPitchWalkthroughActive] = useState(false);
@@ -34,7 +35,7 @@ export default function App() {
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
   const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
-  const [isAutonomous, setIsAutonomous] = useState(true);
+  const [isAutonomous, setIsAutonomous] = useState(false);
 
   // Live Executive Simulation Console State
   const [isSimBarOpen, setIsSimBarOpen] = useState(false);
@@ -82,7 +83,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-[#ED0226] selection:text-white">
+    <div className="impactgrid-app min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-[#ED0226] selection:text-white" data-theme={theme}>
       {/* Top Streamlined Executive Navbar with Presentation View Switcher & Consolidated Toolkit */}
       <Navbar 
         onOpenReportModal={() => setIsReportModalOpen(true)}
@@ -105,9 +106,16 @@ export default function App() {
         simState={simState}
         viewMode={viewMode}
         setViewMode={setViewMode}
+        theme={theme}
+        onToggleTheme={() => setTheme(current => {
+          const next = current === 'light' ? 'dark' : 'light';
+          localStorage.setItem('impactgrid-theme', next);
+          return next;
+        })}
       />
 
-      {/* Live Global Simulation Console Dropdown Bar */}
+      <div className="sticky top-0 z-40 border-b border-amber-300 bg-amber-50 px-4 py-2 text-center text-xs font-semibold text-amber-950 shadow-sm">PROTOTIPE DEMO — seluruh data lokasi, meter, trafik, QoS, emisi, dan hasil finansial di layar adalah data contoh atau simulasi; aplikasi ini tidak terhubung ke sistem Telkomsel dan tidak mengirim perintah ke jaringan.</div>
+      {/* Simulation Controls (local demo only) */}
       <GlobalSimulationBar
         simState={simState}
         setSimState={setSimState}
@@ -130,10 +138,7 @@ export default function App() {
           isPitchWalkthroughActive ? 'pb-28 md:pb-32' : ''
         }`}>
           {/* Standardized Reusable KPI Stat Banner across all Tabs (Instruction #3) */}
-          <KpiStatRow 
-            simState={simState} 
-            selectedScale={selectedScale}
-          />
+          {activeTab === 'overview' && <KpiStatRow simState={simState} selectedScale={selectedScale} />}
 
           {/* Active Tab View */}
           {activeTab === 'overview' && (
@@ -272,3 +277,5 @@ export default function App() {
     </div>
   );
 }
+
+

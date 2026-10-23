@@ -44,58 +44,58 @@ export default function ArchitectureTab() {
       name: '1. Physical RAN Layer (BTS Hardware)',
       protocol: 'CPRI / eCPRI, Bias Control DC',
       standard: '3GPP Rel-17/18 TS 38.104',
-      description: 'Menara BTS makro, Baseband Unit (BBU), Remote Radio Unit (RRU), dan Power Amplifier (PA) multi-vendor (Ericsson, Huawei, ZTE, Nokia) serta shelter pendingin AC.',
-      integrationKey: 'Mendukung dynamic symbol shutdown, shallow sleep, dan deep sleep tanpa pemutusan sirkuit kasar.'
+      description: 'Gambaran komponen jaringan dan shelter yang perlu dipetakan per lokasi dan vendor.',
+      integrationKey: 'Kapabilitas penghematan energi harus dikonfirmasi untuk perangkat dan kontrak yang dipilih.'
     },
     {
       id: 'o1',
       name: '2. O1 & Netconf/YANG Interface Layer',
       protocol: 'Netconf over SSH, YANG Models',
       standard: 'O-RAN.WG10.O1-Interface.0-v08.00',
-      description: 'Protokol manajemen & telemetri standar O-RAN yang menjembatani OSS Telkomsel dengan sistem manajemen elemen (EMS/NMS) multi-vendor tanpa melanggar garansi pabrikan.',
-      integrationKey: 'Menarik telemetri kinerja energi (3GPP TS 28.552) dan memvalidasi health status tiap 15 menit.'
+      description: 'Antarmuka yang mungkin dipertimbangkan untuk integrasi; akses dan dukungan vendor belum diverifikasi.',
+      integrationKey: 'Kebutuhan data, interval, hak akses, keamanan, dan dampak garansi harus ditinjau.'
     },
     {
       id: 'datahub',
       name: '3. Data Orchestration & Smart Meter Gateway',
       protocol: 'Apache Kafka, DLMS/COSEM, TimescaleDB',
       standard: 'IEC 62056 (DLMS/COSEM Smart Meter)',
-      description: 'Pipeline data real-time berlatensi rendah yang mengumpulkan ribuan stream konsumsi daya smart meter AMR/AMI PLN dan parameter beban payload (TB) harian.',
-      integrationKey: '100% rekonsiliasi data konsumsi listrik aktual terhadap faktur tagihan listrik PLN.'
+      description: 'Rancangan alur untuk mengelola telemetri, meter, tagihan, trafik, dan metadata sumber.',
+      integrationKey: 'Tidak ada pipeline atau rekonsiliasi aktual pada prototype.'
     },
     {
       id: 'ric',
       name: '4. Non-RT RIC & AI Energy Optimization rApp',
       protocol: 'O-RAN A1 Interface, REST/JSON, Policy API',
       standard: 'O-RAN.WG2.Non-RT-RIC-ARCH-v03.00',
-      description: 'Inti kecerdasan buatan ImpactGrid yang menjalankan model prediksi trafik, optimasi kurva Pareto (efisiensi vs latensi), dan pengaturan setpoint thermostat shelter AC dinamis.',
-      integrationKey: 'Mengirimkan rekomendasi kebijakan (A1-P) ke RAN dalam interval >1 detik tanpa mengganggu real-time scheduling.'
+      description: 'Usulan modul analitik untuk membandingkan skenario dan memprioritaskan rekomendasi.',
+      integrationKey: 'Tidak menjalankan model prediksi atau mengirim kebijakan ke RAN.'
     },
     {
       id: 'guardrail',
       name: '5. Multi-Layer SLA & Emergency Guardrail',
-      protocol: 'Fast-Interrupt Watchdog, 112 Priority Hook',
+      protocol: 'Persyaratan keselamatan (belum diimplementasikan)',
       standard: 'ITU-T E.106 (Emergency Telecom Services)',
-      description: 'Lapisan pengaman independen yang memantau lonjakan trafik lokal. Jika gradien trafik melonjak tajam atau ada panggilan 112, seluruh sleep mode di-bypass instan.',
-      integrationKey: 'Wake-up latency 120 ms dengan garansi zero drop call dan zero penalty SLA.'
+      description: 'Kebutuhan guardrail harus dirancang dan diuji bersama operator jaringan.',
+      integrationKey: 'Tidak ada jaminan latency, call drop, atau SLA pada prototype.'
     }
   ];
 
   const diagrams = [
     {
       id: 'issue_tree',
-      title: 'Gambar 1: Analisis Akar Masalah (Issue Tree)',
+      title: 'Gambar 1: Kerangka analisis masalah (Issue Tree)',
       subtitle: 'Pembedahan Paradoks Dekarbonisasi: 1,885 Miliar kWh & 1,722 Juta ton CO2e',
       image: '/assets/gambar1_issue_tree.png',
-      caption: 'Memetakan akar masalah mengapa emisi Scope 2 Telkomsel mencapai 63,6% (Laporan Keberlanjutan Telkom 2025): Ketiadaan Decision Support System terintegrasi multi-vendor, data silo antara Keuangan & NOC, serta ketiadaan verifikasi kausal DiD.',
+      caption: 'Data perusahaan 2025 memberi konteks emisi Scope 2. Hambatan integrasi, sistem existing, dan kebutuhan analisis kausal perlu diverifikasi melalui wawancara serta data internal.',
       rubricMapping: 'Kriteria Pendahuluan & Identifikasi Masalah Mendalam (Bobot 10%)'
     },
     {
       id: 'roadmap',
       title: 'Gambar 2: Roadmap Implementasi 3 Jangka Waktu (2027–2031)',
-      subtitle: 'Tahap 1 Uji Coba (40 Sites), Tahap 2 Regional (5k Sites), Tahap 3 Nasional (10k+ Sites)',
+      subtitle: 'Audit awal, pilot bersyarat, lalu evaluasi ekspansi setelah bukti tersedia',
       image: '/assets/gambar2_roadmap.png',
-      caption: 'Peta jalan eksekusi 5 tahun berbasis mekanisme swadana (Self-Funding Reinvestment Loop), mencakup standardisasi O-RAN, adopsi AI agentik, dan sertifikasi dekarbonisasi nasional.',
+      caption: 'Roadmap bersifat usulan. Ekspansi, anggaran, integrasi, dan klaim emisi menunggu hasil audit/pilot serta persetujuan pemilik fungsi.',
       rubricMapping: 'Kriteria Roadmap Implementasi & Keberlanjutan Bisnis (Bobot 20%)'
     },
     {
@@ -103,23 +103,23 @@ export default function ArchitectureTab() {
       title: 'Gambar 3: Arsitektur Ekosistem 4 Modul ImpactGrid',
       subtitle: 'Integrasi Multi-Vendor RAN, Digital Twin, AI Engine, dan Audit MRV',
       image: '/assets/gambar3_arsitektur.png',
-      caption: 'Menunjukkan interaksi antara lapisan fisik BTS (Ericsson, Huawei, ZTE, Nokia + Smart Meter PLN), lapisan orkestrasi data (Kafka + TimescaleDB), lapisan kecerdasan buatan (Scenario Lab + Knapsack Optimization), hingga antarmuka pengguna eksekutif.',
+      caption: 'Arsitektur konseptual yang masih memerlukan validasi terhadap sistem existing, protokol yang diizinkan, keamanan, kepemilikan data, dan biaya integrasi.',
       rubricMapping: 'Kriteria Solusi & Kelayakan Teknologi (Bobot 20%)'
     },
     {
       id: 'alur_optimasi',
       title: 'Gambar 4: Alur Pengambilan Keputusan Optimasi AI & Guardrail',
-      subtitle: 'Siklus Tertutup (Closed-Loop) Rekomendasi vs Pengamanan SLA',
+      subtitle: 'Alur usulan untuk analisis dan persetujuan manusia',
       image: '/assets/gambar4_alur_optimasi.png',
-      caption: 'Menguraikan alur deteksi anomali trafik, kalkulasi Pareto frontier, verifikasi panggilan darurat 112 / VIP, hingga eksekusi autonomous closed-loop dengan mekanisme fail-safe instan (<120ms).',
+      caption: 'Gambaran alur konseptual. Deteksi, guardrail, layanan darurat, waktu respons, dan eksekusi belum diimplementasikan atau diuji.',
       rubricMapping: 'Kriteria Analisis Risiko & Mitigasi Keandalan Jaringan (Bobot 15%)'
     },
     {
       id: 'logo_resmi',
-      title: 'Identitas Visual: Logo Resmi Telkomsel ImpactGrid',
+      title: 'Identitas visual konsep ImpactGrid',
       subtitle: 'AI-Powered Sustainable Network Intelligence (Sphere Connectivity & Green Leaf)',
       image: '/assets/logo_utama_impactgrid.png',
-      caption: 'Filosofi Logo: Jaringan bola nodus melambangkan konektivitas BTS nasional yang saling terhubung dan dioptimasi oleh AI, sedangkan siluet daun merah merepresentasikan komitmen dekarbonisasi hijau (Green Telco) yang selaras dengan warna korporat Telkomsel.',
+      caption: 'Logo konsep tim AWAKENING Reborn; bukan identitas atau produk resmi Telkomsel.',
       rubricMapping: 'Identitas Produk & Branding Korporat Telkomsel'
     }
   ];
@@ -137,7 +137,7 @@ export default function ArchitectureTab() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-xs font-bold text-red-700">
             <Layers className="w-3.5 h-3.5 text-red-600" />
-            <span>Dokumentasi Strategis Resmi • Tim AWAKENING Reborn</span>
+          <span>Rancangan strategis usulan • Tim AWAKENING Reborn</span>
           </div>
           <span className="text-[11px] font-semibold text-slate-500">
             Kasus Bisnis: PT Telekomunikasi Selular (TDC Summit Fest 2026)
@@ -148,7 +148,7 @@ export default function ArchitectureTab() {
           Blueprint Strategis, Diagram Solusi & Matriks Tata Kelola
         </h1>
         <p className="text-xs text-slate-600 max-w-4xl font-normal leading-relaxed">
-          Pusat integrasi dokumen dan pembuktian konsep resmi proposal semifinal: mencakup 4 diagram arsitektur utama, jawaban lengkap atas seluruh pertanyaan studi kasus Telkomsel (Tabel 1), pemetaan nilai tambah multi-stakeholder (Tabel 2), mitigasi 6 risiko utama (Tabel 3), dan matriks komparasi terhadap solusi eksisting (Tabel 9).
+          Kumpulan diagram dan kerangka proposal. Integrasi, nilai tambah, risiko, serta solusi existing perlu diverifikasi bersama pemilik sistem dan data; diagram bukan bukti implementasi atau persetujuan Telkomsel.
         </p>
 
         {/* Sub-View Navigation Bar */}
@@ -215,7 +215,7 @@ export default function ArchitectureTab() {
         </div>
       </div>
 
-      {/* SUB-VIEW 1: DIAGRAM RESMI & PETA JALAN */}
+      {/* SUB-VIEW 1: DIAGRAM KONSEPTUAL & PETA JALAN */}
       {activeSubView === 'diagrams' && (
         <div className="space-y-6">
           {/* Diagram Selector Tabs */}
@@ -299,7 +299,7 @@ export default function ArchitectureTab() {
               <div className="flex items-center space-x-2">
                 <Network className="w-4 h-4 text-cyan-600" />
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  O-RAN Technical Protocol Inspector (Spesifikasi Antarmuka Terbuka Multi-Vendor)
+                  Rujukan antarmuka dan asumsi integrasi
                 </h3>
               </div>
               <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-800 border border-cyan-200">
@@ -308,7 +308,7 @@ export default function ArchitectureTab() {
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Membuktikan bahwa ImpactGrid tidak terkunci pada vendor proprietary (*Vendor Lock-in*), melainkan mengadopsi standar arsitektur terbuka <strong>O-RAN Alliance</strong> dan antarmuka <strong>3GPP Rel-18</strong> yang kompatibel dengan seluruh armada RAN Telkomsel (Ericsson, Huawei, ZTE, Nokia).
+              Penyebutan standar tidak membuktikan dukungan atau kompatibilitas vendor. Protokol dan hak akses harus dikonfirmasi bersama Telkomsel, vendor, pemilik aset, dan tim keamanan.
             </p>
 
             {/* Layer Selector Tabs */}
@@ -361,7 +361,7 @@ export default function ArchitectureTab() {
                       <p className="text-slate-300 leading-relaxed font-normal">{activeOran.description}</p>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[11px] font-bold text-cyan-300 uppercase">Kunci Integrasi Tanpa Risiko Garansi:</span>
+                      <span className="text-[11px] font-bold text-cyan-300 uppercase">Status integrasi / validasi yang dibutuhkan:</span>
                       <p className="text-cyan-100 leading-relaxed font-normal">{activeOran.integrationKey}</p>
                     </div>
                   </div>
@@ -382,7 +382,7 @@ export default function ArchitectureTab() {
                 Matriks Respon Lengkap Key Question & Sub-Questions Case Study Telkomsel
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Membuktikan keselarasan 100% antara fitur ImpactGrid dengan persoalan resmi yang diujikan oleh dewan juri.
+                Jawaban ini merupakan posisi usulan tim dan perlu didukung bukti serta sumber yang sesuai.
               </p>
             </div>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">
@@ -450,7 +450,7 @@ export default function ArchitectureTab() {
                 Pemetaan Nilai Tambah Solusi bagi Multi-Stakeholder Telkomsel
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Memastikan bahwa setiap pihak berkepentingan memperoleh nilai tambah terukur tanpa ada yang dirugikan.
+                Memetakan manfaat yang diharapkan; dampak aktual perlu diukur dan dibahas dengan tiap pemangku kepentingan.
               </p>
             </div>
             <div className="p-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">

@@ -33,38 +33,38 @@ export default function AgentOrchestratorTab() {
     {
       id: 'prophet',
       name: 'Agent 1: Prophet-RAN',
-      role: 'Traffic & Mobility Predictive Forecaster',
-      tech: 'Spatio-Temporal Graph Neural Network (ST-GNN) & GRU',
+      role: 'Rancangan analisis trafik',
+      tech: 'Model prediksi belum diimplementasikan/kalibrasi',
       avatarColor: 'bg-indigo-600',
       badge: 'Non-RT RIC rApp',
-      description: 'Menganalisis deret waktu trafik seluler 6 jam ke depan dengan akurasi 96,4% untuk mengidentifikasi celah off-peak.'
+      description: 'Konsep analisis untuk membandingkan trafik; akurasi belum diuji karena prototype tidak memakai data trafik.'
     },
     {
       id: 'thermo',
       name: 'Agent 2: ThermoOptima',
-      role: 'Shelter Physics & HVAC Reinforcement Learning',
-      tech: 'Deep Deterministic Policy Gradient (DDPG) & Inverter PID',
+      role: 'Rancangan analisis energi pendingin',
+      tech: 'Model konseptual; belum diuji dengan data perangkat',
       avatarColor: 'bg-cyan-600',
       badge: 'Edge Node Agent',
-      description: 'Menyeimbangkan disipasi panas perangkat radio vs efisiensi pendingin AC secara tertutup tanpa melewati suhu aman 28°C.'
+      description: 'Konsep untuk menilai beban pendingin; tidak mengontrol AC dan belum menetapkan batas operasi aman.'
     },
     {
       id: 'sentinel',
       name: 'Agent 3: Sentinel-SLA',
-      role: 'Sub-120ms Fast Interrupt & Emergency Guardrail',
-      tech: 'Kernel eBPF Fast-Path Watchdog & 3GPP Hook',
+      role: 'Rancangan batas keselamatan operasi',
+      tech: 'Belum terhubung ke kontrol jaringan',
       avatarColor: 'bg-rose-600',
       badge: 'Zero-Tolerance Safety',
-      description: 'Memantau trafik real-time secara terisolasi. Jika terdeteksi spike darurat atau call 112, seluruh sleep mode di-bypass instan.'
+      description: 'Persyaratan keselamatan dan rollback harus ditetapkan serta diuji operator; simulasi ini tidak memantau trafik atau panggilan darurat.'
     },
     {
       id: 'ledger',
       name: 'Agent 4: GreenLedger',
-      role: 'Cryptographic MRV & Carbon Accounting Auditor',
-      tech: 'ITU-T L.1331 DiD Engine & SHA-256 Merkle Audit Trail',
+      role: 'Rancangan pelacakan data dan asumsi ESG',
+      tech: 'Metode perlu persetujuan; hash bukan assurance',
       avatarColor: 'bg-emerald-600',
       badge: 'Anti-Greenwash',
-      description: 'Menghitung dekarbonisasi murni terkoreksi cuaca terhadap 10 lokasi kontrol dan mengunci sertifikat reduksi emisi.'
+      description: 'Perhitungan emisi belum tersedia sampai baseline dan faktor emisi disahkan; tidak membuat sertifikat.'
     }
   ];
 
@@ -77,12 +77,12 @@ export default function AgentOrchestratorTab() {
       weather: '24°C Malam Normal',
       emergency: 'NORMAL',
       icon: Clock,
-      targetAction: 'Autonomous Sleep Mode pada Carrier 1.8GHz, 2.1GHz, 2.3GHz + Shelter AC Set 26°C',
+      targetAction: 'Contoh rekomendasi konseptual untuk ditinjau manusia; tidak dijalankan pada perangkat.',
       logs: [
-        { time: '02:30:00.104', agent: 'Prophet-RAN', type: 'info', text: 'Trafik sektor Alpha/Beta/Gamma diproyeksikan stagnan <10% hingga pukul 05:00 WIB (Confidence 97.8%). Mengusulkan DEEP_SLEEP carrier 2300MHz & MICRO_SLEEP 1800MHz.' },
-        { time: '02:30:00.128', agent: 'ThermoOptima', type: 'info', text: 'Disipasi panas internal akan turun dari 1.250W ke 420W. Menyetel thermostat shelter ke 26.5°C dan menurunkan kompresor inverter ke 32 Hz. Estimasi hemat pendingin: 41%.' },
-        { time: '02:30:00.142', agent: 'Sentinel-SLA', type: 'success', text: 'Evaluasi Guardrail: Kanal darurat 112 terisolasi di band 900MHz (Full Active). Latensi wake-up benchmark: 94 ms (<120 ms threshold). KELAYAKAN SLA: 100% DISETUJUI.' },
-        { time: '02:30:00.160', agent: 'GreenLedger', type: 'success', text: 'Penghematan daya 2.140 Watt dieksekusi. Dihitung terhadap baseline DiD: 0,0018 ton CO2e/jam. Hash blok di-sign: 0x7fa9c21b4...' }
+        { time: 'DEMO 1', agent: 'Prophet-RAN', type: 'info', text: 'Contoh langkah: bandingkan profil trafik dengan baseline yang disahkan. Nilai trafik di sini hanya ilustrasi.' },
+        { time: 'DEMO 2', agent: 'ThermoOptima', type: 'info', text: 'Contoh langkah: tinjau kebutuhan pendingin dan batas perangkat. Tidak ada setpoint yang dikirim.' },
+        { time: 'DEMO 3', agent: 'Sentinel-SLA', type: 'warning', text: 'Status keselamatan: belum diuji. Tidak ada hasil latency, QoS, atau layanan darurat.' },
+        { time: 'DEMO 4', agent: 'GreenLedger', type: 'info', text: 'Belum menghitung reduksi emisi. Hash data contoh tidak memverifikasi sumber atau kebenaran data.' }
       ]
     },
     concert: {
@@ -92,12 +92,12 @@ export default function AgentOrchestratorTab() {
       weather: '29°C Lembab',
       emergency: 'CAPACITY_SPIKE',
       icon: Activity,
-      targetAction: 'Instant Wake-Up 120ms: Aktifkan 100% Seluruh Carrier Massive MIMO + AC Full Cooling',
+      targetAction: 'Contoh respons lonjakan beban untuk dibahas; batas dan tindakan harus ditentukan operator.',
       logs: [
-        { time: '19:45:00.012', agent: 'Sentinel-SLA', type: 'warning', text: 'DETEKSI INTERRUPT: Lonjakan payload tiba-tiba +320% pada sektor Alpha (Stadion GBK). eBPF bypass trigger langsung diaktifkan!' },
-        { time: '19:45:00.098', agent: 'Sentinel-SLA', type: 'success', text: 'Carrier 2.3GHz Massive MIMO 64T64R berhasil bangun dalam 98 ms (Benchmark <120 ms terpenuhi). ZERO CALL DROP tercapai.' },
-        { time: '19:45:00.114', agent: 'ThermoOptima', type: 'warning', text: 'Daya radio melonjak ke 3.800W. Kompresor AC dinaikkan ke 68 Hz untuk mencegah penumpukan panas junction di atas 30°C.' },
-        { time: '19:45:00.130', agent: 'GreenLedger', type: 'info', text: 'Mode hemat ditangguhkan sementara demi prioritas QoS & keselamatan konektivitas pengguna sesuai O-RAN WG2 policy.' }
+        { time: 'DEMO 1', agent: 'Sentinel-SLA', type: 'warning', text: 'Skenario ilustratif: kenaikan beban memicu peninjauan guardrail; tidak ada deteksi jaringan nyata.' },
+        { time: 'DEMO 2', agent: 'Sentinel-SLA', type: 'warning', text: 'Latency dan call drop tidak diukur oleh prototype ini.' },
+        { time: 'DEMO 3', agent: 'ThermoOptima', type: 'info', text: 'Tinjau batas termal dan kapasitas sebelum mengubah kebijakan.' },
+        { time: 'DEMO 4', agent: 'GreenLedger', type: 'info', text: 'Catat skenario sebagai asumsi, bukan hasil operasi.' }
       ]
     },
     disaster: {
@@ -107,12 +107,12 @@ export default function AgentOrchestratorTab() {
       weather: 'Anomali Bencana',
       emergency: 'DISASTER_112_OVERRIDE',
       icon: ShieldAlert,
-      targetAction: 'Emergency Override: Seluruh Algoritma Efisiensi Dibekukan, Daya Baterai Disedot Maksimal',
+      targetAction: 'Contoh respons keselamatan; tidak ada perintah atau layanan darurat yang diuji.',
       logs: [
-        { time: '14:12:00.005', agent: 'Sentinel-SLA', type: 'danger', text: 'KRITIS: Panggilan darurat 112 & broadcast BMKG aktif! Protokol penyelamatan jiwa diaktifkan. Freeze seluruh modul sleep.' },
-        { time: '14:12:00.024', agent: 'Prophet-RAN', type: 'info', text: 'Membatalkan prediksi model reguler. Mengalokasikan 100% resource block untuk jalur prioritas telekomunikasi kebencanaan (ITU-T E.106).' },
-        { time: '14:12:00.040', agent: 'ThermoOptima', type: 'info', text: 'Mengaktifkan redundansi pendingin Fan B (Dual fail-safe mode). Baterai LiFePO4 siaga penuh.' },
-        { time: '14:12:00.062', agent: 'GreenLedger', type: 'info', text: 'Audit trail mencatat pengecualian resmi (Disaster Exemption Log SHA-256). Kepatuhan regulasi 100% terjaga.' }
+        { time: 'DEMO 1', agent: 'Sentinel-SLA', type: 'danger', text: 'Skenario darurat dipilih. Tidak ada panggilan atau broadcast nyata diterima.' },
+        { time: 'DEMO 2', agent: 'Prophet-RAN', type: 'info', text: 'Prosedur respons harus diselaraskan dengan kebijakan operator dan pemilik layanan.' },
+        { time: 'DEMO 3', agent: 'ThermoOptima', type: 'info', text: 'Cadangan daya dan pendingin perlu diverifikasi per lokasi.' },
+        { time: 'DEMO 4', agent: 'GreenLedger', type: 'info', text: 'Pengecualian dan bukti dicatat hanya setelah proses nyata disetujui.' }
       ]
     },
     heatwave: {
@@ -122,12 +122,12 @@ export default function AgentOrchestratorTab() {
       weather: '35,4°C Panas Terik',
       emergency: 'THERMAL_STRESS',
       icon: Flame,
-      targetAction: 'Solar Maximum Yield Absorption + Dynamic Free-Air Shifting + Smart Modulation',
+      targetAction: 'Contoh pertanyaan what-if; hasil cuaca, solar, dan suhu perlu data lokasi.',
       logs: [
-        { time: '12:15:00.045', agent: 'ThermoOptima', type: 'warning', text: 'Suhu lingkungan ambien 35.4°C. Pemanfaatan solar rooftop mencapai 4.1 kWp. Mengarahkan daya solar murni ke beban inverter pendingin.' },
-        { time: '12:15:00.082', agent: 'Prophet-RAN', type: 'info', text: 'Mengalihkan sebagian beban data ke band 1800MHz untuk menurunkan densitas panas pada modul Massive MIMO 2.3GHz.' },
-        { time: '12:15:00.110', agent: 'Sentinel-SLA', type: 'success', text: 'Suhu shelter stabil di 26.8°C. Tidak ada risiko thermal throttling radio. Latensi jaringan tetap prima (14.2 ms).' },
-        { time: '12:15:00.145', agent: 'GreenLedger', type: 'success', text: '100% energi pendingin disuplai dari energi terbarukan mandiri (Scope 2 Emisi = 0 gCO2e selama jam terik).' }
+        { time: 'DEMO 1', agent: 'ThermoOptima', type: 'info', text: 'Masukkan pengukuran ambien dan keluaran PV aktual bila tersedia; demo ini tidak membaca sensor.' },
+        { time: 'DEMO 2', agent: 'Prophet-RAN', type: 'info', text: 'Perubahan konfigurasi harus ditinjau operator dan vendor terkait.' },
+        { time: 'DEMO 3', agent: 'Sentinel-SLA', type: 'warning', text: 'Suhu dan latency tidak diukur; keselamatan belum dibuktikan.' },
+        { time: 'DEMO 4', agent: 'GreenLedger', type: 'info', text: 'Sumber energi dan emisi belum direkonsiliasi atau dihitung.' }
       ]
     }
   };
@@ -164,19 +164,19 @@ export default function AgentOrchestratorTab() {
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-bold text-indigo-800">
               <Bot className="w-3.5 h-3.5 text-indigo-600" />
-              <span>O-RAN Non-RT RIC Multi-Agent Swarm</span>
+              <span>Rancangan alur analitik (demo)</span>
             </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">
-              Orkestrasi Multi-Agent Otonom & Mekanisme Konsensus Real-Time
+              Simulasi alur agen untuk mendukung keputusan manusia
             </h1>
             <p className="text-xs text-slate-600 max-w-3xl leading-relaxed mt-1">
-              ImpactGrid tidak digerakkan oleh aturan statis, melainkan oleh <strong>4 Agen AI Spesialis</strong> yang berkolaborasi secara terus-menerus melalui arsitektur <em>Closed-Loop Non-RT RIC</em>. Setiap tindakan diverifikasi dengan pengamanan instan sub-120ms sebelum dikirim ke perangkat keras BTS.
+              Panel ini menggambarkan pembagian tugas secara konseptual. Agen, model, log, dan keluaran pada layar adalah contoh sintetis; tidak ada prediksi, verifikasi keselamatan, koneksi real-time, atau perintah yang dikirim ke BTS.
             </p>
           </div>
 
           <div className="flex items-center space-x-2 bg-slate-50 p-2 rounded-2xl border border-slate-200 shrink-0 text-xs">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-bold text-slate-700">Autonomous Closed-Loop: ACTIVE</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span className="font-bold text-slate-700">Mode: simulasi lokal saja</span>
           </div>
         </div>
       </div>
@@ -294,7 +294,7 @@ export default function AgentOrchestratorTab() {
               </div>
               <div className="flex items-center space-x-2 text-[10px] text-slate-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                <span>Sub-120ms Latency Loop</span>
+                <span>Log contoh; bukan latency jaringan</span>
               </div>
             </div>
 
@@ -331,8 +331,8 @@ export default function AgentOrchestratorTab() {
 
             {/* Terminal Status Footer */}
             <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400">
-              <span>Protokol: A1-P Policy REST / Netconf over SSH</span>
-              <span className="text-emerald-400 font-bold">Consensus Status: APPROVED & VERIFIED</span>
+              <span>Protokol: belum diimplementasikan</span>
+              <span className="text-amber-300 font-bold">Status: simulasi, belum diverifikasi</span>
             </div>
           </div>
         </div>

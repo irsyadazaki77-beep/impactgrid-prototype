@@ -221,14 +221,14 @@ export default function OptimizationTab({
                 <span>Modul 3: Investment Prioritizer (DSS Knapsack Engine)</span>
               </div>
               <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                💡 Inti Inovasi: Alokasi Modal Optimal Antarlokasi BTS dalam Batas Anggaran
+                💡 Demo algoritma: memilih profil contoh sesuai bobot dan pagu simulasi
               </span>
             </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">
-              Optimasi Portofolio Investasi Lintas Lokasi Berbasis Nilai NPV & ESG
+              Simulasi pemeringkatan profil lokasi (data sintetis)
             </h1>
             <p className="text-xs text-slate-600 max-w-3xl leading-relaxed mt-1">
-              Menjawab keterbatasan anggaran korporat Telkomsel dengan memecahkan <em>Knapsack Optimization Problem</em>: memilih kombinasi intervensi BTS antarlokasi yang menghasilkan <strong>NPV kumulatif dan reduksi emisi maksimal</strong> di bawah pagu CapEx, tanpa pernah melanggar batas SLA QoS (112 emergency protected).
+              Halaman ini memperagakan logika pemeringkatan dengan data contoh. Skor NPV, emisi, biaya, lokasi, dan QoS bukan hasil Telkomsel; algoritma tidak memeriksa batas keselamatan jaringan dan tidak boleh dipakai untuk keputusan investasi.
             </p>
           </div>
 
@@ -241,7 +241,7 @@ export default function OptimizationTab({
                   ? 'bg-amber-400 text-slate-950 animate-pulse border-2 border-red-500' 
                   : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
               }`}
-              title="Uji Lonjakan Beban 300% & Pembuktian SLA 112"
+              title="Simulasi visual; bukan uji jaringan atau bukti SLA"
             >
               <ShieldAlert className={`w-3.5 h-3.5 ${emergencyState.active ? 'text-red-700' : 'text-red-600'}`} />
               <span>{emergencyState.active ? '⚡ KONDISI DARURAT AKTIF' : 'Simulasi Lonjakan Trafik (CTO Drill)'}</span>
@@ -253,17 +253,17 @@ export default function OptimizationTab({
               className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
             >
               <FileCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Memo Alokasi Modal</span>
+              <span>Ringkasan simulasi portofolio</span>
             </button>
 
             {/* O-RAN O1 Netconf/YANG Dispatcher */}
             <button
               onClick={() => setIsNetconfModalOpen(true)}
               className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
-              title="Kirim rekomendasi alokasi ke 40 BTS via Netconf O-RAN O1"
+              title="Hanya preview lokal; tidak terhubung atau mengirim perintah"
             >
               <Code className="w-3.5 h-3.5 text-cyan-200" />
-              <span>Push O-RAN O1</span>
+              <span>Preview kebijakan (demo)</span>
             </button>
           </div>
         </div>
@@ -399,12 +399,12 @@ export default function OptimizationTab({
         {/* Real-Time Optimization Cockpit KPI Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2 text-xs">
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">BTS Terpilih</span>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Profil demo terpilih</span>
             <span className="text-xl font-black text-slate-900">
-              {portfolioResult.totalSelectedSites} <span className="text-xs font-semibold text-slate-400">/ 40 Lokasi</span>
+              {portfolioResult.totalSelectedSites} <span className="text-xs font-semibold text-slate-400">/ 40 profil contoh</span>
             </span>
             <span className="text-[10px] text-emerald-700 block font-semibold">
-              {((portfolioResult.totalSelectedSites / 40) * 100).toFixed(0)}% Kandidat Didanai
+              {((portfolioResult.totalSelectedSites / 40) * 100).toFixed(0)}% profil masuk simulasi
             </span>
           </div>
 
@@ -419,11 +419,11 @@ export default function OptimizationTab({
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">NPV 5 Tahun (10%)</span>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">NPV simulasi, bukan proyeksi</span>
             <span className="text-xl font-black text-emerald-700">
               +Rp {(portfolioResult.totalNpv5Years / 1000000).toFixed(0)} <span className="text-xs font-semibold">Jt</span>
             </span>
-            <span className="text-[10px] text-emerald-700 block font-semibold">Layak Finansial</span>
+            <span className="text-[10px] text-amber-800 block font-semibold">Belum divalidasi Finance</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
@@ -431,15 +431,13 @@ export default function OptimizationTab({
             <span className="text-xl font-black text-slate-900">
               Rp {(portfolioResult.totalNetBenefitYear / 1000000).toFixed(0)} <span className="text-xs font-semibold">Jt</span>
             </span>
-            <span className="text-[10px] text-slate-500 block">OpEx Rp60 Jt tercover</span>
+            <span className="text-[10px] text-slate-500 block">Hasil model dari input sintetis</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Reduksi Emisi</span>
-            <span className="text-xl font-black text-cyan-800">
-              {portfolioResult.totalCarbonReduced} <span className="text-xs font-semibold">Ton</span>
-            </span>
-            <span className="text-[10px] text-slate-500 block">CO2e Scope 2/thn</span>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Dampak emisi</span>
+            <span className="text-xl font-black text-amber-800">Belum dihitung</span>
+            <span className="text-[10px] text-slate-500 block">Menunggu faktor resmi dan data pilot</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
@@ -447,9 +445,7 @@ export default function OptimizationTab({
             <span className="text-xl font-black text-slate-900">
               {portfolioResult.avgPayback} <span className="text-xs font-semibold text-slate-400">Thn</span>
             </span>
-            <span className="text-[10px] text-emerald-700 block font-semibold">
-              ΔLatensi: +{portfolioResult.avgLatencyDelta}ms (Aman)
-            </span>
+            <span className="text-[10px] text-amber-800 block font-semibold">QoS dan latency belum diuji</span>
           </div>
         </div>
       </div>
@@ -460,10 +456,10 @@ export default function OptimizationTab({
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
-              <span>Kurva Trade-off Pareto Frontier Portofolio (NPV vs Reduksi Karbon tCO2e)</span>
+              <span>Kurva hasil optimasi contoh (NPV vs dampak emisi belum dihitung)</span>
             </h2>
             <p className="text-xs text-slate-500">
-              Titik hijau mewakili lokasi yang lolos seleksi optimasi Knapsack. Titik abu-abu berada di luar pagu anggaran atau ditunda.
+              Titik dan hasil seleksi berasal dari data sintetis; ini bukan daftar lokasi kandidat atau keputusan investasi.
             </p>
           </div>
           <div className="flex items-center gap-3 text-xs font-semibold">
@@ -683,7 +679,7 @@ export default function OptimizationTab({
                     </td>
 
                     <td className="p-3 text-right font-mono font-bold text-cyan-800">
-                      {site.emissionsReducedTon} t
+                      Belum dihitung
                     </td>
 
                     <td className="p-3 text-right font-mono text-slate-600">
@@ -831,29 +827,19 @@ export default function OptimizationTab({
             {/* Vendor API Command Preview */}
             <div className="p-4 rounded-2xl bg-slate-900 text-slate-200 text-xs font-mono space-y-2">
               <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-1.5">
-                <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                  <Code className="w-3.5 h-3.5" /> Outbound Vendor Command Payload (O-RAN O1 / NETCONF)
+                <span className="flex items-center gap-1.5 text-amber-300 font-bold">
+                  <Code className="w-3.5 h-3.5" /> Contoh struktur kebijakan (tidak dapat dikirim)
                 </span>
-                <span>Standar 3GPP Rel-18</span>
+                <span>JSON ilustratif</span>
               </div>
               <pre className="text-[11px] leading-relaxed overflow-x-auto text-emerald-300">
 {`{
-  "command": "APPLY_PORTFOLIO_POLICY",
-  "target_site_id": "${selectedExplainer.id}",
-  "site_name": "${selectedExplainer.name}",
-  "vendor_ems": "${selectedExplainer.vendor} NMS/EMS",
-  "policy": {
-    "intervention": "${selectedExplainer.intervensiUtama}",
-    "shelter_target_celsius": 26.0,
-    "wake_up_latency_limit_ms": 120,
-    "emergency_112_bypass": true,
-    "max_carrier_sleep_duration_hrs": 5.0
-  },
-  "dss_verification": {
-    "expected_saving_kwh": ${selectedExplainer.savedKWh},
-    "expected_co2_reduction_tons": ${selectedExplainer.emissionsReducedTon},
-    "audit_sha256": "4a9f73b18c5e921d0a33b4e6c7104f29a1b2c3d4..."
-  }
+  "mode": "illustrative_preview_only",
+  "send_to_network": false,
+  "source_data": "synthetic_demo",
+  "target_site_id": "SAMPLE_ONLY",
+  "policy": "requires operator design, approval, and safety testing",
+  "energy_or_emissions_claim": null
 }`}
               </pre>
             </div>
@@ -870,7 +856,7 @@ export default function OptimizationTab({
         </div>
       )}
 
-      {/* Official Capital Allocation Approval Memo Modal */}
+      {/* Simulated portfolio summary; not an approval memo */}
       {isAllocationMemoOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
           <div className="bg-white rounded-3xl max-w-3xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto text-slate-800">
@@ -879,9 +865,9 @@ export default function OptimizationTab({
                 <img src="/assets/logo_utama_impactgrid.png" alt="Logo" className="h-10 w-auto object-contain" />
                 <div>
                   <h3 className="text-base font-black text-slate-900">
-                    MEMORANDUM USULAN ALOKASI BELANJA MODAL (CAPEX)
+                    RINGKASAN SIMULASI ALOKASI BELANJA MODAL
                   </h3>
-                  <p className="text-xs text-slate-500">PT Telekomunikasi Selular • ImpactGrid Portfolio Prioritizer</p>
+                  <p className="text-xs text-slate-500">Data sintetis • bukan dokumen PT Telekomunikasi Selular</p>
                 </div>
               </div>
               <button 
@@ -900,49 +886,47 @@ export default function OptimizationTab({
                 <div>Perihal: <strong>Persetujuan Portofolio Uji Coba 40 Lokasi (Tabel 5 & 6)</strong></div>
               </div>
 
-              <p>
-                Berdasarkan hasil pemrosesan <em>Knapsack Multi-Objective Optimization</em> dengan batas pagu anggaran <strong>Rp {(budgetCapIDR).toLocaleString('id-ID')}</strong>, berikut adalah rekomendasi portofolio investasi yang siap dieksekusi:
-              </p>
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 font-bold text-amber-950">SIMULASI DATA CONTOH — bukan rekomendasi yang siap dieksekusi, persetujuan belanja, atau bukti kelayakan.</div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs py-1">
                 <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">BTS Terpilih</span>
+                <span className="text-[10px] text-slate-400 block font-bold">Profil contoh terpilih</span>
                   <span className="text-base font-black text-slate-900">{portfolioResult.totalSelectedSites} Lokasi</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">Total CapEx</span>
+                  <span className="text-[10px] text-slate-400 block font-bold">CapEx simulasi</span>
                   <span className="text-base font-black text-rose-600">Rp {(portfolioResult.totalCapExUsed / 1000000).toFixed(0)} Jt</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">Manfaat Bersih/Thn</span>
+                  <span className="text-[10px] text-slate-400 block font-bold">Manfaat model/tahun</span>
                   <span className="text-base font-black text-emerald-700">Rp {(portfolioResult.totalNetBenefitYear / 1000000).toFixed(0)} Jt</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">NPV 5 Tahun</span>
+                  <span className="text-[10px] text-slate-400 block font-bold">NPV model 5 tahun</span>
                   <span className="text-base font-black text-slate-900">+Rp {(portfolioResult.totalNpv5Years / 1000000).toFixed(0)} Jt</span>
                 </div>
               </div>
 
               <p className="text-[11px] text-slate-600">
-                <strong>Jaminan Keselamatan Jaringan (CTO Guardrail):</strong> Seluruh lokasi terpilih memenuhi margin non-inferiority dengan pertambahan latensi rata-rata hanya <strong>+{portfolioResult.avgLatencyDelta}ms</strong> dan bypass instan 120ms saat ada panggilan darurat 112.
+                Hasil ini tidak mengevaluasi QoS, latency, prosedur rollback, layanan darurat, atau keselamatan jaringan. Semua hal tersebut harus ditetapkan dan diuji oleh operator sebelum pilot.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-2 text-center text-xs">
               <div className="p-3 border-t border-slate-200">
-                <span className="text-slate-400 block text-[10px]">Disetujui Oleh,</span>
-                <span className="font-bold text-slate-900 block mt-6">Direktur Network / CTO</span>
-                <span className="text-[10px] text-slate-500">PT Telekomunikasi Selular</span>
+                <span className="text-slate-400 block text-[10px]">Tinjauan yang diperlukan</span>
+                <span className="font-bold text-slate-900 block mt-6">Tim Jaringan</span>
+                <span className="text-[10px] text-slate-500">Belum ditinjau</span>
               </div>
               <div className="p-3 border-t border-slate-200">
-                <span className="text-slate-400 block text-[10px]">Disetujui Oleh,</span>
-                <span className="font-bold text-slate-900 block mt-6">Direktur Keuangan / CFO</span>
-                <span className="text-[10px] text-slate-500">PT Telekomunikasi Selular</span>
+                <span className="text-slate-400 block text-[10px]">Tinjauan yang diperlukan</span>
+                <span className="font-bold text-slate-900 block mt-6">Finance</span>
+                <span className="text-[10px] text-slate-500">Belum ditinjau</span>
               </div>
             </div>
 
             <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-              <span className="text-[10px] text-slate-400 font-mono">Doc ID: TSEL-IG-CAPEX-2027-01</span>
+              <span className="text-[10px] text-slate-400 font-mono">Doc ID: DEMO-IG-PORTFOLIO</span>
               <div className="flex gap-2">
                 <button
                   onClick={() => window.print()}

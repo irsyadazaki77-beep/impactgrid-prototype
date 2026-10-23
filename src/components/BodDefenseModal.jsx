@@ -6,73 +6,73 @@ const DEFENSE_QUESTIONS = [
     id: 1,
     category: "CTO / Network Director",
     question: "Bukankah fitur sleep mode ini sudah ada di vendor RAN kami (Ericsson ENM / Huawei iMaster)? Kenapa harus buat ImpactGrid?",
-    shortAnswer: "Siloed Vendor vs Cross-Domain O-RAN Orchestration + Rekonsiliasi PLN",
-    fullExplanation: "Fitur vendor bersifat 'pulau terisolasi'. Ericsson hanya mengatur Ericsson, Huawei hanya mengatur Huawei. Masing-masing tidak tahu fluktuasi tarif/faktur PLN dan tidak saling sinkron. ImpactGrid bertindak sebagai Cross-Vendor Service Management and Orchestration (SMO / Non-RT RIC) berbasis O-RAN O1 yang menyatukan seluruh 293.000 BTS dalam satu kebijakan terpusat dan mengawinkannya dengan Smart Meter PLN.",
+    shortAnswer: "Nilai tambah lintas data masih perlu dibuktikan",
+    fullExplanation: "Jangan mengasumsikan fitur existing vendor terisolasi. Audit proses dan sistem Telkomsel terlebih dahulu, lalu tunjukkan gap yang belum terlayani. ImpactGrid adalah usulan decision-support lintas fungsi; kompatibilitas O-RAN, akses meter, dan manfaat tambahannya belum diuji.",
     targetTab: "architecture",
-    proofPoint: "Lihat Arsitektur Sistem & Blueprint O-RAN O1 (Tab 7)"
+    proofPoint: "Lihat arsitektur usulan dan daftar validasi"
   },
   {
     id: 2,
     category: "CTO / Network Director",
     question: "Bagaimana jika BTS sleep mode saat konser besar, mudik Lebaran, atau gempa bumi? Apakah panggilan darurat 112 aman?",
-    shortAnswer: "120ms Fast-Wakeup + Panggilan 112 Dikunci 100% Non-Sleepable",
-    fullExplanation: "ImpactGrid menerapkan Multi-Layer Safety Guardrail. Kanal darurat 112 dan carrier VIP tidak pernah diizinkan tidur. Ketika terjadi anomali beban trafik >15% atau pemicu gempa/bencana, seluruh cell dibangunkan dalam waktu <120 milidetik (Fast-Wakeup O-RAN). Probabilitas drop call dijaga di bawah 0,001% (SLA 99,98%).",
+    shortAnswer: "Belum ada jaminan; wajib desain dan uji keselamatan",
+    fullExplanation: "Prototype tidak terhubung ke jaringan dan tidak membuktikan 112, latency, atau QoS. Pilot memerlukan kajian keselamatan bersama tim operasi, batas non-inferiority, mekanisme rollback, uji aman, dan persetujuan pemilik jaringan sebelum perubahan apa pun.",
     targetTab: "optimization",
-    proofPoint: "Uji langsung tombol 'CTO Stress Drill' (Hotkey S)"
+    proofPoint: "Stress drill di website hanya simulasi visual"
   },
   {
     id: 3,
     category: "CFO / Finance Director",
     question: "Apakah proyek ini akan membebani CapEx Telkomsel di tengah efisiensi anggaran?",
-    shortAnswer: "Self-Funding Reinvestment Loop (CapEx Mandiri dari OpEx Savings)",
-    fullExplanation: "Fase 1 (Pilot 40 BTS) hanya butuh CapEx Rp450 Juta dan menghasilkan penghematan listrik Rp240 Juta/tahun (Payback 1,9 tahun). 50% dari penghematan ini dialokasikan ke 'Reinvestment Pool' untuk membiayai CapEx Fase 2 (5.000 BTS) dan Fase 3 secara mandiri tanpa suntikan dana kas baru. NPV 5 Tahun mencapai +Rp41,48 Miliar.",
+    shortAnswer: "Kelayakan belum dapat dipastikan",
+    fullExplanation: "CapEx Rp450 juta dan OpEx Rp60 juta per tahun adalah asumsi proposal. Pada penghematan 8%, NPV indikatif sekitar minus Rp391,5 juta untuk baseline 50 kWh/lokasi/hari dan plus Rp82,3 juta untuk baseline 50 MWh/lokasi/tahun. Audit kontrak, biaya, baseline, dan alokasi manfaat diperlukan; model swadana belum terbukti.",
     targetTab: "financial",
-    proofPoint: "Buka Model Finansial 5 Tahun (Tab 5) & Geser Tarif PLN"
+    proofPoint: "Buka sensitivitas finansial dan bandingkan dua baseline"
   },
   {
     id: 4,
     category: "CFO / Finance Director",
     question: "Bagaimana jika hasil uji coba meleset dan efisiensi hanya 5%?",
-    shortAnswer: "Transparansi Tabel 6 Proposal: Analisis Sensitivitas Jujur",
-    fullExplanation: "Proposal kami secara transparan menyatakan bahwa pada skenario konservatif 5%, NPV bernilai negatif (-Rp109 Jt) dan payback 5 tahun. Namun titik impas kelayakan tercapai di angka efisiensi 6,8%. Dengan intervensi terpadu (suhu shelter AC 26°C + 3GPP micro-sleep), pengujian menghasilkan efisiensi 10%–11,2% (Skenario Dasar), menghasilkan NPV positif +Rp460 Juta.",
+    shortAnswer: "Baseline dan biaya menentukan hasil",
+    fullExplanation: "Dengan baseline rendah 730.000 kWh/tahun untuk 40 lokasi, CapEx Rp450 juta, OpEx Rp60 juta/tahun, dan biaya energi Rp1.500/kWh, NPV ilustratif tetap sensitif terhadap tingkat hemat. Pada asumsi 8%, NPV sekitar minus Rp391,5 juta. Baseline alternatif belum diverifikasi dan memberi hasil berbeda; tidak ada tingkat efisiensi yang telah diuji.",
     targetTab: "scenariolab",
-    proofPoint: "Lihat Skenario Lab (Tab 3) & Tabel 6 Proposal"
+    proofPoint: "Lihat What-if; seluruh input ditandai sebagai asumsi"
   },
   {
     id: 5,
     category: "ESG / Sustainability Director",
     question: "Bagaimana menjamin klaim penurunan emisi ini tidak dituduh Greenwashing oleh OJK dan Bursa Efek?",
-    shortAnswer: "Metodologi ITU-T L.1331 + 10 Lokasi Pembanding + SHA-256 Hash",
-    fullExplanation: "Kami menggunakan desain kuasi-eksperimen: 40 lokasi intervensi dibandingkan langsung dengan 10 lokasi kontrol berkarakteristik identik. Formula kami memisahkan efek cuaca dan lonjakan trafik data. Setiap log telemetri dan sertifikat MRV disegel dengan enkripsi SHA-256 yang siap diaudit oleh akuntan publik dan memenuhi POJK No. 51/2017 & GRI 302/305.",
+    shortAnswer: "Metode diusulkan; belum ada klaim atau assurance",
+    fullExplanation: "ITU-T L.1331 dapat dirujuk untuk mengukur efisiensi energi jaringan. Desain pembanding, periode, faktor emisi, perhitungan, dan assurance harus disepakati ESG dan pemilik data. Hash SHA-256 hanya memeriksa perubahan payload, bukan membuktikan kebenaran atau kepatuhan laporan.",
     targetTab: "esg",
-    proofPoint: "Buka Tab ESG (Tab 6) & Modal Laporan Audit SHA-256"
+    proofPoint: "Buka rancangan ESG dan daftar validasi"
   },
   {
     id: 6,
     category: "CEO / President Director",
     question: "Berapa lama waktu yang dibutuhkan hingga sistem ini benar-benar bisa go-live di lapangan?",
-    shortAnswer: "9 Bulan Uji Coba Pilot (2027) ➡️ Full Rollout 2028-2031",
-    fullExplanation: "Karena mengusung arsitektur berbasis software (*Zero Heavy Hardware Replacement*), integrasi tahap awal hanya membutuhkan instalasi O-RAN data pipeline dan koneksi AMR PLN pada 40 lokasi pilot selama kuartal 1–3 2027. Begitu evaluasi 9 bulan membuktikan penghematan Rp240 Juta tercapai, sistem siap direplikasi ke 5.000 BTS Jamali di tahun 2028.",
+    shortAnswer: "Jadwal bersyarat pada audit, akses, dan persetujuan",
+    fullExplanation: "Proposal mengusulkan audit awal dua bulan, lalu keputusan terpisah mengenai pilot. Waktu go-live bergantung pada kelayakan data, integrasi, kontrak, izin aset, pengadaan, dan uji keselamatan; durasi dan ekspansi belum dapat dijanjikan.",
     targetTab: "overview",
-    proofPoint: "Buka Executive Control Tower (Tab 1) & Roadmap 3 Horizon"
+    proofPoint: "Buka roadmap bersyarat dan tahap audit"
   },
   {
     id: 7,
     category: "Asset / Towerco Mitra",
     question: "Bagaimana jika menara BTS adalah sewa milik TowerCo (Mitratel/lainnya) dan ada batasan izin shelter AC?",
-    shortAnswer: "Fokus Perangkat Aktif Telkomsel + SLA Suhu Formal Standar ASHRAE TC 9.9",
-    fullExplanation: "Intervensi software (3GPP RAN micro-sleep & symbol shutdown) dilakukan langsung pada Baseband Unit dan Radio milik Telkomsel tanpa menyentuh aset fisik menara. Untuk penyesuaian suhu shelter AC 26°C, Telkomsel memanfaatkan posisi sebagai anchor tenant utama untuk meratifikasi adopsi green shelter SLA standar ASHRAE TC 9.9, sehingga tidak melanggar kontrak sewa menara.",
+    shortAnswer: "Izin pemilik aset dan kontrak harus diperiksa",
+    fullExplanation: "Kepemilikan dan batas kendali perangkat, shelter, pendingin, serta jaringan akses berbeda menurut lokasi dan kontrak. Setiap lokasi memerlukan pemetaan aset, izin pemilik menara, persetujuan vendor, dan tinjauan hukum sebelum intervensi.",
     targetTab: "architecture",
-    proofPoint: "Buka Matriks Risiko (Tabel 3) Kategori Kendali Aset Menara"
+    proofPoint: "Buka daftar validasi aset dan risiko"
   },
   {
     id: 8,
     category: "AI Governance & Ethics",
     question: "Bagaimana jika rekomendasi AI merugikan masyarakat di area pelosok/3T demi mengejar target efisiensi energi?",
-    shortAnswer: "Human-in-the-Loop DSS + Exclusion Rule Area 3T / USO (SDG 9)",
-    fullExplanation: "ImpactGrid adalah Decision Support System (DSS), bukan sistem otonom buta. Setiap rekomendasi alokasi CapEx harus disetujui (sign-off) oleh pimpinan teknik & keuangan. Selain itu, terdapat aturan keras (hard constraint) yang secara permanen mengecualikan seluruh BTS di wilayah 3T/USO berkonektivitas terbatas dari sleep-mode radio, demi menjamin keadilan akses digital dan kepatuhan sosial SDG 9.",
+    shortAnswer: "Rancangan human-in-the-loop harus diuji",
+    fullExplanation: "Proposal menempatkan persetujuan manusia sebagai prinsip desain. Daftar area yang dikecualikan, perlindungan cakupan, proses eskalasi, dan pemilik persetujuan perlu ditetapkan bersama tim operasi dan ESG; prototype belum mengimplementasikan atau membuktikan aturan tersebut.",
     targetTab: "optimization",
-    proofPoint: "Buka Modul 3: Prioritasi Investasi & Filter Area 3T"
+    proofPoint: "Buka rancangan prioritisasi dan batas validasinya"
   }
 ];
 

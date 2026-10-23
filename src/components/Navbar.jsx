@@ -19,7 +19,9 @@ import {
   Activity,
   Presentation,
   Wrench,
-  Check
+  Check,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { SYSTEM_METADATA } from '../data/mockData';
 
@@ -43,30 +45,12 @@ export default function Navbar({
   isSimBarOpen,
   simState = { scenarioKey: 'normal', simTimeString: '14:00 WIB' },
   viewMode = 'executive', // 'executive' | 'engineering'
-  setViewMode
+  setViewMode,
+  theme = 'light',
+  onToggleTheme
 }) {
   const [isToolkitOpen, setIsToolkitOpen] = useState(false);
   const toolkitRef = useRef(null);
-
-  // Live simulation ticker numbers that subtly pulse
-  const [liveMetrics, setLiveMetrics] = useState({
-    shavedMW: 48.7,
-    savedTodayM: 1.42,
-    activeNodes: 293136,
-    heartbeatTime: '00:00:02'
-  });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setLiveMetrics(prev => ({
-        ...prev,
-        shavedMW: +(48.5 + Math.random() * 0.4).toFixed(1),
-        savedTodayM: +(1.41 + Math.random() * 0.03).toFixed(2),
-        heartbeatTime: new Date().toLocaleTimeString('id-ID')
-      }));
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Close toolkit dropdown when clicking outside
   useEffect(() => {
@@ -217,6 +201,9 @@ export default function Navbar({
 
         {/* Right Action Tools: Consolidated Executive Toolkit (Instruction #4) */}
         <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+          <button type="button" onClick={onToggleTheme} aria-label={`Aktifkan mode ${theme === 'light' ? 'gelap' : 'terang'}`} title={`Aktifkan mode ${theme === 'light' ? 'gelap' : 'terang'}`} className="theme-toggle inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-semibold cursor-pointer">
+            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}<span className="hidden xl:inline">{theme === 'light' ? 'Gelap' : 'Terang'}</span>
+          </button>
           {/* Live Global Simulation Bar Toggle */}
           <button
             onClick={onToggleSimBar}
@@ -255,6 +242,8 @@ export default function Navbar({
           <div className="relative shrink-0" ref={toolkitRef}>
             <button
               onClick={() => setIsToolkitOpen(prev => !prev)}
+              aria-expanded={isToolkitOpen}
+              aria-haspopup="menu"
               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer border ${
                 isToolkitOpen
                   ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-500/30 shadow-md'
@@ -417,31 +406,31 @@ export default function Navbar({
       </div>
 
       {/* Real-Time Live Telemetry Ticker (Mission Control Cockpit) */}
-      <div className="bg-slate-950 text-slate-400 px-3 sm:px-5 py-1 text-[11px] font-mono flex items-center justify-between overflow-x-auto border-t border-slate-800/80">
-        <div className="flex items-center space-x-4 shrink-0">
+      <div className="telemetry-ticker px-3 sm:px-5 py-2 text-xs font-mono flex items-center justify-between border-t">
+        <div className="telemetry-ticker-metrics flex items-center gap-x-4 gap-y-1">
           <div className="flex items-center space-x-1.5 text-emerald-400 font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span>TELEMETRI LIVE</span>
+            <span>DEMO LOKAL</span>
           </div>
           <span className="text-slate-400">
-            BTS Aktif: <strong className="text-white">{liveMetrics.activeNodes.toLocaleString('id-ID')} Menara</strong>
+            Data operasi: <strong className="text-amber-300">Belum terhubung</strong>
           </span>
           <span className="text-slate-400">
-            Beban Puncak Dipangkas: <strong className="text-cyan-400">{liveMetrics.shavedMW} MW</strong>
+            Hemat energi: <strong className="text-amber-300">Belum diukur</strong>
           </span>
           <span className="text-slate-400">
-            Estimasi Hemat Hari Ini: <strong className="text-emerald-400">Rp {liveMetrics.savedTodayM} Miliar</strong>
+            QoS & 112: <strong className="text-amber-300">Belum diuji</strong>
           </span>
           <span className="text-slate-400">
-            Kanal Darurat 112: <strong className="text-emerald-400">100.0% Terproteksi</strong>
+            Audit ledger: <strong className="text-amber-300">Belum aktif</strong>
           </span>
         </div>
 
-        <div className="hidden lg:flex items-center space-x-3 text-[10px] text-slate-400 shrink-0">
-          <span>O-RAN O1 Heartbeat: {liveMetrics.heartbeatTime}</span>
+        <div className="hidden lg:flex items-center space-x-3 text-xs text-slate-400 shrink-0">
+          <span>Integrasi O-RAN O1: belum tersedia</span>
           <span className="text-indigo-400 font-bold flex items-center gap-1">
             <Lock className="w-3 h-3 text-indigo-400" />
-            SHA-256 Merkle Ledger Valid
+            Data sumber perlu validasi
           </span>
         </div>
       </div>

@@ -23,68 +23,68 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
 
   const tourSteps = [
     {
-      title: "1. Paradoks Energi & Beban Emisi Scope 2 Telkomsel",
+      title: "1. Konteks energi dan emisi perusahaan",
       targetTab: "overview",
       targetDirector: "Direktur Utama & Dewan Direksi",
-      keyMetric: "1,885 Miliar kWh (63,6% Emisi)",
-      pitchScript: "Bapak/Ibu Direksi yang terhormat, di balik kepemimpinan Telkomsel dengan 293.000 BTS, terdapat tantangan beban listrik senilai triliunan rupiah dan defisit dekarbonisasi 547.000 ton CO2e menuju target Net Zero 2030. ImpactGrid diciptakan untuk memecahkan paradoks ini tanpa menurunkan mutu sinyal sedikit pun.",
-      actionPrompt: "Tunjukkan Overview Tab & Peta Geospasial Nusantara."
+      keyMetric: "Listrik 2025: 1.885,4 GWh",
+      pitchScript: "Data laporan keberlanjutan 2025 menunjukkan skala konsumsi listrik dan emisi Scope 2 perusahaan. Angka agregat tersebut adalah konteks, bukan baseline lokasi atau bukti dampak solusi.",
+      actionPrompt: "Tunjukkan konteks perusahaan dan jelaskan batas datanya."
     },
     {
-      title: "2. Digital Twin Fisika BTS & Carrier Sleep (700MHz–2.3GHz)",
+      title: "2. Model konseptual operasi jaringan",
       targetTab: "digitaltwin",
       targetDirector: "VP Network Ops & Chief Architect",
-      keyMetric: "Carrier Sleep Otonom • PUE 1.18",
-      pitchScript: "Lihat visualisasi Digital Twin mikroskopik BTS kami. Kami tidak memutus listrik sembarangan; carrier 700MHz & 900MHz tetap terkunci 100% aktif untuk panggilan darurat 112, sementara carrier 1.8GHz hingga 2.3GHz Massive MIMO dapat ditidurkan (micro/deep sleep) saat beban rendah, memangkas daya hingga 58% dan menekan suhu shelter secara presisi.",
-      actionPrompt: "Tunjukkan simulasi interaktif carrier sleep dan termodinamika shelter AC."
+      keyMetric: "Ilustrasi, bukan uji perangkat",
+      pitchScript: "Visualisasi Digital Twin ini adalah model konseptual dengan data contoh. Kapabilitas carrier sleep, batas suhu, dampak energi, dan keselamatan layanan harus dikonfirmasi per perangkat dan diuji oleh pemilik jaringan.",
+      actionPrompt: "Tunjukkan visualisasi sebagai konsep dan sebutkan kebutuhan uji teknis."
     },
     {
       title: "3. O-RAN Autonomous AI Multi-Agent Swarm",
       targetTab: "agents",
       targetDirector: "Direktur Network / CTO & R&D",
-      keyMetric: "4 Agen AI • Konsensus Sub-120ms",
-      pitchScript: "ImpactGrid digerakkan oleh 4 agen AI otonom: Prophet-RAN memprediksi trafik 6 jam ke depan, ThermoOptima mengontrol AC inverter, Sentinel-SLA menjamin interupsi darurat <120ms, dan GreenLedger mengunci audit hash. Mereka bernegosiasi secara closed-loop tanpa intervensi manual manusia.",
-      actionPrompt: "Uji coba skenario konser musik atau gempa bencana di terminal multi-agent."
+      keyMetric: "Alur agen konseptual",
+      pitchScript: "Panel agen menggambarkan kemungkinan pembagian analisis. Tidak ada agen yang terhubung, menjalankan prediksi terkalibrasi, mengendalikan perangkat, atau menjamin latensi dan layanan darurat.",
+      actionPrompt: "Tunjukkan alur simulasi dan ingatkan bahwa lognya data contoh."
     },
     {
       title: "4. Data Hub Multi-Vendor & Validitas Smart Meter",
       targetTab: "telemetry",
       targetDirector: "VP Network Architecture & Procurement",
-      keyMetric: "40 Lokasi Uji + 10 Pembanding",
-      pitchScript: "Sistem kami tidak terjebak vendor lock-in. Melalui Network Data Hub, ImpactGrid mengonsolidasikan data secara vendor-agnostic dari Ericsson ENM, Huawei iMaster, ZTE NetNumen, Nokia NetAct, dan merekonsiliasikannya 100% dengan smart meter PLN secara transparan.",
-      actionPrompt: "Buka Network Data Hub dan perlihatkan pencarian site BTS pilot."
+      keyMetric: "Desain usulan 40 + 10 lokasi",
+      pitchScript: "Network Data Hub adalah rancangan integrasi. Konektivitas vendor, hak akses, format data, meter, dan rekonsiliasi PLN belum dibuktikan. Nama serta angka pada tabel adalah data sintetis.",
+      actionPrompt: "Jelaskan sumber dan izin data yang perlu disiapkan untuk pilot."
     },
     {
-      title: "5. Simulasi Scenario Lab Terkoreksi Cuaca",
+      title: "5. Kalkulator sensitivitas energi",
       targetTab: "scenariolab",
       targetDirector: "Direktur Network / CTO",
-      keyMetric: "Hemat 10% - 15% Konsumsi Listrik",
-      pitchScript: "Sebelum intervensi dieksekusi, Scenario Lab Digital Twin menguji simulasi secara dinamis. Peningkatan suhu shelter AC ke 26°C menghemat hingga 3% beban pendingin per derajat, terbukti menurunkan 200 MWh pada tahap pilot tanpa risiko overheating perangkat.",
-      actionPrompt: "Uji coba slider suhu shelter AC dan pilih skenario 10% dasar."
+      keyMetric: "Baseline belum tervalidasi",
+      pitchScript: "Scenario Lab menghitung kisaran energi dan manfaat bruto dari baseline, persentase penghematan, dan biaya energi yang dimasukkan. Tidak ada pengukuran intervensi, dampak emisi, atau simulasi cuaca terkalibrasi di dalam prototype.",
+      actionPrompt: "Ubah asumsi dan tunjukkan bahwa hasil mengikuti input."
     },
     {
-      title: "6. CTO Guardrail & Alokasi Knapsack CapEx",
+      title: "6. Keselamatan dan alokasi investasi",
       targetTab: "optimization",
       targetDirector: "Direktur Network & Tim Keandalan",
-      keyMetric: "120 ms Wake-up Latency • 112 Guaranteed",
-      pitchScript: "Keamanan jaringan adalah harga mati. Dengan Multi-Layer Guardrail dan integrasi prioritas panggilan darurat 112, jika terjadi lonjakan mendadak, sistem otomatis menghentikan sleep mode dalam 120 milidetik. Zero drop call, zero komplain pelanggan.",
-      actionPrompt: "Tunjukkan tombol simulasi lonjakan darurat (Emergency Drill)."
+      keyMetric: "QoS dan rollback perlu diuji",
+      pitchScript: "Parameter QoS, prioritas layanan darurat, dan prosedur rollback harus disepakati tim operasi lalu diuji dalam lingkungan aman. Simulasi ini tidak membuktikan latency, zero outage, atau perlindungan layanan.",
+      actionPrompt: "Tunjukkan stress drill hanya sebagai skenario konseptual."
     },
     {
-      title: "7. Model Finansial Swadana & Monte Carlo 1.000 Run",
+      title: "7. Model finansial dan sensitivitas",
       targetTab: "financial",
       targetDirector: "Direktur Keuangan / CFO",
-      keyMetric: "NPV 5 Tahun +Rp41,48 M • P10 +Rp34,2 M",
-      pitchScript: "Bagi keuangan korporat, model ini mandiri finansial. Penghematan pilot mendanai tahap regional, lalu mendanai ekspansi nasional secara swadana tanpa utang baru. Simulasi Monte Carlo 1.000 iterasi membuktikan tingkat kepastian 99,8% NPV positif dengan ekspansi EBITDA marjin +0,38%.",
-      actionPrompt: "Tunjukkan grafik distribusi Monte Carlo dan analisis nilai pemegang saham."
+      keyMetric: "NPV berubah mengikuti baseline",
+      pitchScript: "Model memakai asumsi dan belum menunjukkan kelayakan aktual. Pada skenario hemat 8 persen, NPV indikatif berubah dari sekitar minus Rp391,5 juta ke plus Rp82,3 juta ketika baseline berubah. Audit data dan biaya diperlukan sebelum keputusan investasi.",
+      actionPrompt: "Buka Financial Model untuk melihat asumsi yang belum tervalidasi."
     },
     {
-      title: "8. Verifikasi ESG Anti-Greenwashing (ITU-T L.1331)",
+      title: "8. Metode ukur dampak ESG",
       targetTab: "esg",
       targetDirector: "Komite ESG & Dewan Komisaris",
-      keyMetric: "Standar ITU-T L.1331 • Hash SHA-256",
-      pitchScript: "Klaim dekarbonisasi kami lolos uji audit internasional. Metodologi ITU-T L.1331 memisahkan efek cuaca dan kenaikan payload data secara ilmiah, menghasilkan sertifikat verifikasi MRV yang siap dipakai untuk pelaporan POJK 51 dan BEI ESG.",
-      actionPrompt: "Klik tombol 'Generate Laporan Verifikasi MRV' untuk memperlihatkan sertifikat audit."
+      keyMetric: "Belum ada hasil verifikasi",
+      pitchScript: "ITU-T L.1331 dapat menjadi rujukan pengukuran efisiensi jaringan. Hasil, faktor emisi, proses assurance, dan kelayakan untuk pelaporan harus ditetapkan bersama pemilik data dan fungsi ESG. Hash hanya mengecek integritas payload, bukan kebenaran sumber.",
+      actionPrompt: "Buka daftar validasi dan rujukan resmi; jangan menyebutnya sertifikat audit."
     }
   ];
 

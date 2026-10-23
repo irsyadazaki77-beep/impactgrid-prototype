@@ -32,7 +32,7 @@ export const SIMULATION_SCENARIOS = {
     plnTariffIDR: 1500,
     emergencyActive: false,
     color: 'emerald',
-    description: 'Siklus operasi normal: off-peak jam 01-05 WIB memanfaatkan sleep mode, peak jam 19-21 WIB seluruh kapasitas aktif.'
+    description: 'Skenario normal untuk antarmuka demo; tidak mengubah operasi jaringan.'
   },
   heatwave: {
     id: 'heatwave',
@@ -44,7 +44,7 @@ export const SIMULATION_SCENARIOS = {
     plnTariffIDR: 1500,
     emergencyActive: false,
     color: 'amber',
-    description: 'Beban pendingin shelter naik +35%. AI mengaktifkan dynamic setpoint 26°C dan optimasi airflow untuk mencegah kompresor trip.'
+    description: 'Skenario cuaca ilustratif; suhu, beban, dan respons tidak berasal dari sensor atau model terkalibrasi.'
   },
   mudik: {
     id: 'mudik',
@@ -56,7 +56,7 @@ export const SIMULATION_SCENARIOS = {
     plnTariffIDR: 1500,
     emergencyActive: false,
     color: 'blue',
-    description: 'Koridor Trans-Jawa & Pantura mengalami lonjakan trafik masif. Seluruh sleep mode di-bypass otomatis demi menjamin zero drop call.'
+    description: 'Skenario kenaikan trafik lokal; tidak menguji tindakan fail-safe, latency, QoS, atau call drop.'
   },
   pln_peak: {
     id: 'pln_peak',
@@ -68,7 +68,7 @@ export const SIMULATION_SCENARIOS = {
     plnTariffIDR: 1950,
     emergencyActive: false,
     color: 'purple',
-    description: 'Jam 17:00 - 22:00 tarif listrik PLN naik 30%. Sistem memprioritaskan pemakaian baterai BESS dan penghematan agresif.'
+    description: 'Skenario perubahan biaya energi; tarif, BESS, dan kebijakan operasi aktual belum dihubungkan.'
   },
   blackout_sumatera: {
     id: 'blackout_sumatera',
@@ -80,11 +80,11 @@ export const SIMULATION_SCENARIOS = {
     plnTariffIDR: 0,
     emergencyActive: false,
     color: 'amber',
-    description: 'Grid PLN terputus total. Shelter otomatis isolasi (islanding), beralih ke baterai LiFePO4 & solar hybrid, membatasi beban radio non-esensial.'
+    description: 'Skenario gangguan listrik dalam demo; tidak memodelkan transisi islanding atau daya cadangan secara tervalidasi.'
   },
   emergency: {
     id: 'emergency',
-    name: 'Tanggap Darurat Bencana (Gempa / Panggilan 112)',
+    name: 'Skenario darurat (ilustrasi)',
     shortName: '🚨 Darurat 112 Drill',
     tempC: 27,
     trafficMultiplier: 3.0,
@@ -92,7 +92,7 @@ export const SIMULATION_SCENARIOS = {
     plnTariffIDR: 1500,
     emergencyActive: true,
     color: 'red',
-    description: 'Safety guardrail memicu Fast-Wakeup <120ms. Kanal darurat nasional 112 dan carrier VIP dikunci 100% aktif (non-sleepable).'
+    description: 'Skenario untuk membahas kebutuhan keselamatan; tidak memicu layanan 112 atau mengukur fast-wakeup.'
   }
 };
 
@@ -191,11 +191,11 @@ export default function GlobalSimulationBar({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-xs text-white uppercase tracking-wider">
-                  Live Executive Simulation Console (Kondisi Lapangan Nyata)
+                  Konsol Simulasi Eksekutif
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Active Simulation Engine
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  DATA SIMULASI
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
@@ -242,6 +242,7 @@ export default function GlobalSimulationBar({
 
             <button
               onClick={onClose}
+              aria-label="Tutup konsol simulasi"
               className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
             >
               <X className="w-4 h-4" />
@@ -324,8 +325,8 @@ export default function GlobalSimulationBar({
               </span>
             </div>
             <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-[9px] text-slate-400 uppercase block">SLA 112 Guardrail</span>
-              <span className="text-xs font-black text-emerald-400">100% LOCKED</span>
+              <span className="text-[9px] text-slate-400 uppercase block">Perlindungan layanan darurat</span>
+              <span className="text-xs font-black text-amber-300">Belum diuji</span>
             </div>
           </div>
         </div>
