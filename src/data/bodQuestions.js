@@ -100,16 +100,17 @@ export const BOD_DEFENSE_QUESTIONS = [
   },
   {
     id: 'ceo-brand-leadership',
-    role: 'Direktur Utama / CEO',
-    category: 'Market Leadership',
-    question: 'Apa keunggulan strategis ImpactGrid dibanding solusi internal yang ditawarkan langsung oleh vendor besar seperti Huawei atau Ericsson?',
-    shortAnswer: 'Netralitas vendor (Vendor-Agnostic): Solusi proprietary vendor hanya mengoptimasi peralatan mereka sendiri, sementara ImpactGrid mengorkestrasi seluruh ekosistem multi-vendor Telkomsel dalam satu kendali.',
+    role: 'Direktur Utama / CEO & CTO',
+    category: 'Market Leadership & Vendor Differentiation',
+    question: 'Apa keunggulan strategis ImpactGrid dibanding solusi internal yang ditawarkan langsung oleh vendor besar seperti Huawei PowerStar atau Ericsson Energy Control?',
+    shortAnswer: 'Netralitas vendor (Vendor-Agnostic): Solusi proprietary vendor hanya mengoptimasi peralatan mereka sendiri, sementara ImpactGrid mengorkestrasi seluruh ekosistem multi-vendor Telkomsel, tagihan PLN, dan model reinvestasi finansial dalam satu kendali terpadu.',
     tacticalPoints: [
-      '70%+ jaringan Telkomsel adalah multi-vendor di mana satu area BTS menggunakan vendor berbeda dengan area sekitarnya.',
-      'Solusi vendor proprietary tidak mengintegrasikan smart meter PLN dan sistem pendingin shelter AC dalam satu loop AI terpadu.',
-      'ImpactGrid memberikan kepemilikan data penuh (Data Sovereignty) bagi Telkomsel tanpa ketergantungan lisensi tahunan vendor asing.'
+      'Arbitrase Antar-Tower (Border Sites): Huawei & Ericsson saling buta data saat menara bersebelahan. ImpactGrid mengoordinasikan inter-cell sleep tanpa coverage hole (hemat 43%+).',
+      'Integrasi Tagihan PLN Riil: Vendor hanya pantau daya radio antena, sedangkan ImpactGrid mendeteksi Phantom Load, denda Cos Phi < 0.85, dan menghemat Rp2,15 Miliar/tahun dari restrukturisasi kontrak kVA PLN.',
+      'Audit ESG Lolos Akuntan Publik: Menggunakan standar kuasi-eksperimental ITU-T L.1331 (40 uji vs 10 kontrol) dengan hash SHA-256 yang kebal tuduhan greenwashing.',
+      'Kedaulatan Data & Beban Biaya: Memberikan Data Sovereignty penuh bagi Telkomsel tanpa terkunci lisensi tahunan mahal vendor asing.'
     ],
-    targetTab: 'overview',
-    targetSection: 'Peta Sebaran Telemetri Nasional'
+    targetTab: 'architecture',
+    targetSection: 'The Unfair Advantage Matrix & Arbitrase Lintas Vendor'
   }
 ];

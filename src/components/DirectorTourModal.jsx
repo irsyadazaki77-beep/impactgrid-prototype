@@ -11,7 +11,9 @@ import {
   X,
   Target,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  Bot
 } from 'lucide-react';
 
 export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
@@ -29,15 +31,31 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
       actionPrompt: "Tunjukkan Overview Tab & Peta Geospasial Nusantara."
     },
     {
-      title: "2. Data Hub Multi-Vendor & Validitas Smart Meter",
-      targetTab: "telemetry",
+      title: "2. Digital Twin Fisika BTS & Carrier Sleep (700MHz–2.3GHz)",
+      targetTab: "digitaltwin",
       targetDirector: "VP Network Ops & Chief Architect",
+      keyMetric: "Carrier Sleep Otonom • PUE 1.18",
+      pitchScript: "Lihat visualisasi Digital Twin mikroskopik BTS kami. Kami tidak memutus listrik sembarangan; carrier 700MHz & 900MHz tetap terkunci 100% aktif untuk panggilan darurat 112, sementara carrier 1.8GHz hingga 2.3GHz Massive MIMO dapat ditidurkan (micro/deep sleep) saat beban rendah, memangkas daya hingga 58% dan menekan suhu shelter secara presisi.",
+      actionPrompt: "Tunjukkan simulasi interaktif carrier sleep dan termodinamika shelter AC."
+    },
+    {
+      title: "3. O-RAN Autonomous AI Multi-Agent Swarm",
+      targetTab: "agents",
+      targetDirector: "Direktur Network / CTO & R&D",
+      keyMetric: "4 Agen AI • Konsensus Sub-120ms",
+      pitchScript: "ImpactGrid digerakkan oleh 4 agen AI otonom: Prophet-RAN memprediksi trafik 6 jam ke depan, ThermoOptima mengontrol AC inverter, Sentinel-SLA menjamin interupsi darurat <120ms, dan GreenLedger mengunci audit hash. Mereka bernegosiasi secara closed-loop tanpa intervensi manual manusia.",
+      actionPrompt: "Uji coba skenario konser musik atau gempa bencana di terminal multi-agent."
+    },
+    {
+      title: "4. Data Hub Multi-Vendor & Validitas Smart Meter",
+      targetTab: "telemetry",
+      targetDirector: "VP Network Architecture & Procurement",
       keyMetric: "40 Lokasi Uji + 10 Pembanding",
       pitchScript: "Sistem kami tidak terjebak vendor lock-in. Melalui Network Data Hub, ImpactGrid mengonsolidasikan data secara vendor-agnostic dari Ericsson ENM, Huawei iMaster, ZTE NetNumen, Nokia NetAct, dan merekonsiliasikannya 100% dengan smart meter PLN secara transparan.",
       actionPrompt: "Buka Network Data Hub dan perlihatkan pencarian site BTS pilot."
     },
     {
-      title: "3. Simulasi Digital Twin Terkoreksi Cuaca & Trafik",
+      title: "5. Simulasi Scenario Lab Terkoreksi Cuaca",
       targetTab: "scenariolab",
       targetDirector: "Direktur Network / CTO",
       keyMetric: "Hemat 10% - 15% Konsumsi Listrik",
@@ -45,7 +63,7 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
       actionPrompt: "Uji coba slider suhu shelter AC dan pilih skenario 10% dasar."
     },
     {
-      title: "4. CTO Guardrail & Prioritas Alokasi CapEx",
+      title: "6. CTO Guardrail & Alokasi Knapsack CapEx",
       targetTab: "optimization",
       targetDirector: "Direktur Network & Tim Keandalan",
       keyMetric: "120 ms Wake-up Latency • 112 Guaranteed",
@@ -53,15 +71,15 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
       actionPrompt: "Tunjukkan tombol simulasi lonjakan darurat (Emergency Drill)."
     },
     {
-      title: "5. Mekanisme Swadana (Self-Funding Reinvestment Loop)",
+      title: "7. Model Finansial Swadana & Monte Carlo 1.000 Run",
       targetTab: "financial",
       targetDirector: "Direktur Keuangan / CFO",
-      keyMetric: "NPV 5 Tahun Rp41,48 Miliar • PBP 1,02 Tahun",
-      pitchScript: "Bagi keuangan korporat, model ini tidak membutuhkan suntikan anggaran baru terus-menerus. Penghematan OpEx listrik Rp300 Juta di tahap pilot mendanai monitoring fase regional, dan penghematan regional Rp6,6 Miliar mendanai ekspansi skala nasional 10.000+ BTS secara swadana.",
-      actionPrompt: "Tunjukkan tabel perbandingan 3 horizon dan grafik reinvestasi mandiri."
+      keyMetric: "NPV 5 Tahun +Rp41,48 M • P10 +Rp34,2 M",
+      pitchScript: "Bagi keuangan korporat, model ini mandiri finansial. Penghematan pilot mendanai tahap regional, lalu mendanai ekspansi nasional secara swadana tanpa utang baru. Simulasi Monte Carlo 1.000 iterasi membuktikan tingkat kepastian 99,8% NPV positif dengan ekspansi EBITDA marjin +0,38%.",
+      actionPrompt: "Tunjukkan grafik distribusi Monte Carlo dan analisis nilai pemegang saham."
     },
     {
-      title: "6. Verifikasi ESG Anti-Greenwashing (ITU-T L.1331)",
+      title: "8. Verifikasi ESG Anti-Greenwashing (ITU-T L.1331)",
       targetTab: "esg",
       targetDirector: "Komite ESG & Dewan Komisaris",
       keyMetric: "Standar ITU-T L.1331 • Hash SHA-256",
@@ -100,64 +118,82 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-full max-w-lg animate-slide-up shadow-2xl">
-      <div className="rounded-2xl bg-white border border-slate-300 shadow-2xl overflow-hidden text-slate-900">
-        {/* Top Header */}
-        <div className="p-3.5 bg-gradient-to-r from-red-600 to-rose-700 text-white flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 rounded-lg bg-white/20">
-              <Sparkles className="w-4 h-4 text-white" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+        {/* Modal Top Header */}
+        <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-1.5 rounded-xl bg-red-600 text-white">
+              <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-red-200 block">
-                Executive Walkthrough Guide
-              </span>
-              <h3 className="text-xs font-black">Mode Presentasi Direksi (Langkah {currentStep + 1} dari {tourSteps.length})</h3>
+              <h2 className="text-sm font-black tracking-tight">
+                Mode Presentasi Eksekutif Direksi Telkomsel (7 Menit Pitch)
+              </h2>
+              <p className="text-[11px] text-slate-400">
+                Langkah {currentStep + 1} dari {tourSteps.length}: Narasi terarah untuk juri & direktur
+              </p>
             </div>
           </div>
 
           <button 
             onClick={onClose}
-            className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Body Content */}
-        <div className="p-4 space-y-3.5 text-xs">
-          {/* Target Persona Badge */}
-          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-            <span className="text-[11px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
-              Fokus: {current.targetDirector}
+        {/* Modal Content Body */}
+        <div className="p-5 sm:p-6 space-y-4 overflow-y-auto text-xs">
+          {/* Target Audience & Metric Pill */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Audiens Utama:</span>
+              <span className="font-extrabold text-xs text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">
+                {current.targetDirector}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-1.5 font-mono text-[11px] bg-slate-100 px-2.5 py-0.5 rounded-lg text-slate-700 font-bold">
+              <Target className="w-3.5 h-3.5 text-slate-500" />
+              <span>{current.keyMetric}</span>
+            </div>
+          </div>
+
+          {/* Step Title */}
+          <div>
+            <h3 className="text-base font-black text-slate-900">
+              {current.title}
+            </h3>
+          </div>
+
+          {/* Spoken Pitch Script (Teleprompter style) */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+              Naskah Ucapan Presenter:
             </span>
-            <span className="text-[10px] font-mono text-slate-500 font-bold">
-              Key Metric: {current.keyMetric}
-            </span>
+            <p className="text-slate-800 text-xs sm:text-[13px] leading-relaxed font-medium italic">
+              "{current.pitchScript}"
+            </p>
           </div>
 
-          <h4 className="text-sm font-extrabold text-slate-900">{current.title}</h4>
-
-          {/* Script Box */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 leading-relaxed italic text-[11px]">
-            "{current.pitchScript}"
+          {/* Action Prompt */}
+          <div className="flex items-center space-x-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold text-[11px]">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Tindakan di Layar: {current.actionPrompt}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-slate-500">
-            <Target className="w-3.5 h-3.5 text-red-600 shrink-0" />
-            <span><strong>Aksi Demo:</strong> {current.actionPrompt}</span>
-          </div>
-
-          {/* Stepper Dots */}
-          <div className="flex items-center justify-center space-x-1.5 pt-1">
+          {/* Step Indicator Progress Dots */}
+          <div className="flex items-center justify-center space-x-1.5 pt-2">
             {tourSteps.map((step, idx) => (
               <button
                 key={idx}
                 onClick={() => handleGoTo(idx)}
                 className={`h-2 rounded-full transition-all cursor-pointer ${
                   currentStep === idx 
-                    ? 'w-6 bg-red-600' 
-                    : 'w-2 bg-slate-300 hover:bg-slate-400'
+                    ? 'w-7 bg-red-600' 
+                    : 'w-2 bg-slate-200 hover:bg-slate-300'
                 }`}
                 title={step.title}
               />
@@ -165,33 +201,42 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
           </div>
         </div>
 
-        {/* Footer Navigation */}
-        <div className="p-3 bg-slate-100/80 border-t border-slate-200 flex items-center justify-between">
+        {/* Modal Footer Controls */}
+        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
           <button
             onClick={handlePrev}
             disabled={currentStep === 0}
-            className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+            className={`flex items-center space-x-1 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               currentStep === 0 
                 ? 'opacity-40 cursor-not-allowed text-slate-400' 
-                : 'text-slate-700 hover:bg-white hover:shadow-xs cursor-pointer'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
             }`}
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Sebelumnya</span>
           </button>
 
-          <button
-            onClick={handleNext}
-            disabled={currentStep === tourSteps.length - 1}
-            className={`flex items-center space-x-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer ${
-              currentStep === tourSteps.length - 1
-                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                : 'bg-red-600 hover:bg-red-500 text-white'
-            }`}
-          >
-            <span>Selanjutnya</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={onClose}
+              className="px-3 py-2 rounded-xl text-slate-500 hover:text-slate-800 text-xs font-semibold cursor-pointer"
+            >
+              Tutup
+            </button>
+
+            <button
+              onClick={handleNext}
+              disabled={currentStep === tourSteps.length - 1}
+              className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition cursor-pointer ${
+                currentStep === tourSteps.length - 1
+                  ? 'bg-emerald-600 hover:bg-emerald-700 shadow-xs'
+                  : 'bg-red-600 hover:bg-red-700 shadow-xs'
+              }`}
+            >
+              <span>{currentStep === tourSteps.length - 1 ? 'Selesai Tour' : 'Lanjut Tab Berikutnya'}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

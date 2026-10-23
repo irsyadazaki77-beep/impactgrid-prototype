@@ -6,7 +6,9 @@ import {
   Briefcase, 
   Leaf, 
   TrendingUp, 
-  Layers 
+  Layers,
+  Bot,
+  Zap
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
@@ -16,6 +18,18 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       label: 'Executive Summary',
       sublabel: 'Ringkasan & 3 Pilar Utama',
       icon: LayoutDashboard,
+    },
+    {
+      id: 'digitaltwin',
+      label: 'Digital Twin BTS 3D',
+      sublabel: 'Carrier Sleep & Termodinamika',
+      icon: Zap,
+    },
+    {
+      id: 'agents',
+      label: 'Autonomous AI Swarm',
+      sublabel: '4 Agen Konsensus Non-RT RIC',
+      icon: Bot,
     },
     {
       id: 'telemetry',
@@ -56,7 +70,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <aside className="w-full md:w-64 border-r border-slate-200/80 bg-white p-4 flex flex-col justify-between shrink-0">
+    <aside className="w-full md:w-64 border-r border-slate-200/80 bg-white p-4 flex flex-col justify-between shrink-0 md:sticky md:top-[60px] md:h-[calc(100vh-60px)] md:overflow-y-auto">
       <div className="space-y-4">
         <div className="px-3 pt-1">
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -98,7 +112,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Presenter Hotkeys</span>
           <div className="grid grid-cols-2 gap-1 text-[10px] font-mono text-slate-600">
-            <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200"><strong>1-7</strong> Tab</span>
+            <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200"><strong>1-9</strong> Tab</span>
             <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200"><strong>T</strong> Pitch</span>
             <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200"><strong>S</strong> Drill</span>
             <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200"><strong>P</strong> Memo</span>

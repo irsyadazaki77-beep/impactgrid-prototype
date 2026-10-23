@@ -10,7 +10,9 @@ import {
   Volume2, 
   Maximize2,
   ShieldAlert,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  Bot
 } from 'lucide-react';
 
 export default function GuidedPitchBar({ 
@@ -18,6 +20,7 @@ export default function GuidedPitchBar({
   onClose, 
   activeTab, 
   setActiveTab,
+  onNavigateTab,
   onOpenEmergencyModal,
   onOpenExecutiveMemo,
   onOpenBodDefense
@@ -27,7 +30,7 @@ export default function GuidedPitchBar({
   const pitchSteps = [
     {
       step: 1,
-      timing: "0:00 - 1:15",
+      timing: "0:00 - 1:00",
       title: "Paradoks Energi & Defisit 547k Ton CO2e",
       tab: "overview",
       targetAudience: "Direktur Utama & Dewan Direksi",
@@ -37,17 +40,37 @@ export default function GuidedPitchBar({
     },
     {
       step: 2,
-      timing: "1:15 - 2:30",
-      title: "Telemetri Multi-Vendor & Digital Twin",
-      tab: "telemetry",
-      targetAudience: "Chief Architect & VP Network Ops",
-      keyPill: "Vendor-Agnostic + PLN Smart Meter",
-      cue: "Pindah ke Telemetry, lalu simulasikan penyesuaian suhu shelter di Scenario Lab.",
-      script: "Sistem kami menyelesaikan masalah silo teknologi melalui Network Data Hub yang mengintegrasikan data dari 4 vendor besar (Ericsson, Huawei, Nokia, ZTE) dan tervalidasi langsung dengan smart meter PLN. Di Scenario Lab Digital Twin, kita buktikan penyesuaian suhu shelter AC ke 26°C menghemat 200 MWh di fase pilot secara aman."
+      timing: "1:00 - 1:50",
+      title: "Digital Twin Fisika BTS & Carrier Sleep",
+      tab: "digitaltwin",
+      targetAudience: "VP Network Ops & Chief Architect",
+      keyPill: "Massive MIMO Sleep • PUE 1.18",
+      cue: "Pindah ke Digital Twin BTS, tunjukkan carrier 700MHz terkunci aktif & 2.3GHz deep sleep.",
+      script: "Sistem kami memodelkan perangkat keras hingga level carrier radio dan termodinamika shelter. Carrier 700 & 900 MHz selalu dipertahankan aktif untuk panggilan darurat 112, sementara carrier kapasitas 1.8GHz hingga 2.3GHz Massive MIMO dapat ditidurkan otonom saat trafik sepi, menghemat daya hingga 58% dan menekan suhu shelter secara presisi."
     },
     {
       step: 3,
-      timing: "2:30 - 3:45",
+      timing: "1:50 - 2:40",
+      title: "O-RAN Autonomous AI Multi-Agent Swarm",
+      tab: "agents",
+      targetAudience: "Direktur Network / CTO & R&D",
+      keyPill: "4 Agen AI • Konsensus Closed-Loop",
+      cue: "Buka AI Swarm Tab, perlihatkan Prophet-RAN, ThermoOptima, Sentinel-SLA, dan GreenLedger.",
+      script: "ImpactGrid digerakkan oleh 4 agen AI otonom: Prophet-RAN memprediksi deret waktu trafik 6 jam ke depan, ThermoOptima mengontrol pendinginan shelter AC, Sentinel-SLA menjamin interupsi darurat <120ms, dan GreenLedger mengunci audit hash. Mereka bernegosiasi tertutup tanpa intervensi manual manusia."
+    },
+    {
+      step: 4,
+      timing: "2:40 - 3:30",
+      title: "Telemetri Multi-Vendor & Validitas Smart Meter",
+      tab: "telemetry",
+      targetAudience: "Chief Architect & NOC",
+      keyPill: "Vendor-Agnostic + PLN Smart Meter",
+      cue: "Pindah ke Network Data Hub, perlihatkan integrasi Ericsson, Huawei, ZTE, Nokia.",
+      script: "Sistem kami menyelesaikan masalah silo teknologi melalui Network Data Hub yang mengintegrasikan data dari 4 vendor besar secara vendor-agnostic dan merekonsiliasikannya 100% dengan smart meter PLN secara transparan."
+    },
+    {
+      step: 5,
+      timing: "3:30 - 4:20",
       title: "AI Prioritizer & CTO Safety Guardrail 112",
       tab: "optimization",
       targetAudience: "Direktur Network / CTO",
@@ -56,18 +79,18 @@ export default function GuidedPitchBar({
       script: "Kekuatan utama Modul 3 adalah optimasi portofolio dengan kendali keselamatan berlapis. Keamanan jaringan adalah prioritas mutlak. Dengan jaminan wake-up latency 120 milidetik dan prioritas panggilan darurat 112, transmisi otomatis kembali ke daya penuh saat terjadi anomali beban tanpa interupsi."
     },
     {
-      step: 4,
-      timing: "3:45 - 5:00",
-      title: "Mekanisme Swadana (Self-Funding Reinvestment)",
+      step: 6,
+      timing: "4:20 - 5:20",
+      title: "Mekanisme Swadana & Monte Carlo 1.000 Run",
       tab: "financial",
       targetAudience: "Direktur Keuangan / CFO",
-      keyPill: "NPV Rp41,48 Miliar • PBP 1,02 Tahun",
-      cue: "Buka Financial Model Tab, perlihatkan tabel 3 horizon & cashflow reinvestasi.",
-      script: "Dari kacamata finansial, ImpactGrid tidak membebani kas korporat dengan anggaran berulang. Kami merancang Reinvestment Loop: penghematan OpEx listrik Rp300 Juta di tahap pilot mendanai monitoring fase regional, dan akumulasi penghematan regional Rp6,6 Miliar mendanai ekspansi 10.000+ BTS nasional secara mandiri."
+      keyPill: "NPV Rp41,48 Miliar • P10 Rp34,2 M",
+      cue: "Buka Financial Model Tab, perlihatkan grafik distribusi Monte Carlo & reinvestasi mandiri.",
+      script: "Dari kacamata finansial, ImpactGrid tidak membebani kas korporat dengan anggaran berulang. Penghematan OpEx pilot mendanai fase regional, lalu mendanai ekspansi 10.000+ BTS nasional secara mandiri. Simulasi Monte Carlo 1.000 iterasi membuktikan 99,8% kepastian NPV positif dengan ekspansi EBITDA marjin +0,38%."
     },
     {
-      step: 5,
-      timing: "5:00 - 6:00",
+      step: 7,
+      timing: "5:20 - 6:15",
       title: "MRV Anti-Greenwashing (ITU-T L.1331 & SHA-256)",
       tab: "esg",
       targetAudience: "Komite ESG & Investor",
@@ -76,8 +99,8 @@ export default function GuidedPitchBar({
       script: "Seluruh klaim reduksi karbon dihitung berdasarkan metodologi standar internasional ITU-T L.1331 yang memisahkan pengaruh fluktuasi cuaca dan payload trafik. Log audit kami terenkripsi SHA-256, menjadikan laporan keberlanjutan Telkomsel bebas dari tuduhan greenwashing dan audit-ready untuk BEI & OJK."
     },
     {
-      step: 6,
-      timing: "6:00 - 7:00",
+      step: 8,
+      timing: "6:15 - 7:00",
       title: "Executive Memo & Kesiapan Pertahanan BoD",
       tab: "overview",
       targetAudience: "Dewan Penguji & BoD",
@@ -93,8 +116,11 @@ export default function GuidedPitchBar({
   const goToStep = (idx) => {
     if (idx >= 0 && idx < pitchSteps.length) {
       setCurrentStep(idx);
-      if (pitchSteps[idx].tab !== activeTab) {
-        setActiveTab(pitchSteps[idx].tab);
+      const target = pitchSteps[idx].tab;
+      if (onNavigateTab) {
+        onNavigateTab(target);
+      } else if (setActiveTab && target !== activeTab) {
+        setActiveTab(target);
       }
     }
   };
@@ -140,76 +166,57 @@ export default function GuidedPitchBar({
                 Audience: {current.targetAudience}
               </span>
             </div>
-            <h4 className="text-sm font-bold text-white line-clamp-1">
+            <h4 className="text-sm font-black text-white truncate max-w-xs sm:max-w-md">
               {current.title}
             </h4>
           </div>
         </div>
 
-        {/* Presenter Cue & Highlight */}
-        <div className="hidden lg:flex items-center gap-2 flex-1 max-w-xl bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="font-semibold text-amber-200 shrink-0">Cue:</span>
-          <span className="truncate">{current.cue}</span>
+        {/* Teleprompter Script */}
+        <div className="flex-1 max-w-2xl bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 hidden lg:block">
+          <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+            <span className="font-bold uppercase tracking-wider text-red-400 flex items-center gap-1">
+              <Volume2 className="w-3 h-3" /> Naskah Bicara
+            </span>
+            <span className="text-emerald-400 font-semibold">{current.cue}</span>
+          </div>
+          <p className="line-clamp-2 italic leading-relaxed text-slate-300 font-normal">
+            "{current.script}"
+          </p>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-          {/* Quick Trigger Buttons */}
-          {current.step === 3 && (
-            <button
-              onClick={onOpenEmergencyModal}
-              className="px-2.5 py-1.5 bg-red-600/90 hover:bg-red-600 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1 shadow-xs cursor-pointer animate-pulse"
-            >
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Trigger Drill</span>
-            </button>
-          )}
+        {/* Controls */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => goToStep(Math.max(0, currentStep - 1))}
+            disabled={currentStep === 0}
+            className={`p-1.5 rounded-lg border border-slate-700 transition cursor-pointer ${
+              currentStep === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-slate-800 text-slate-300'
+            }`}
+            title="Langkah Sebelumnya (Panah Kiri)"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
 
-          {current.step === 6 && (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={onOpenExecutiveMemo}
-                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1 cursor-pointer border border-slate-700"
-              >
-                <span>Memo (P)</span>
-              </button>
-              <button
-                onClick={onOpenBodDefense}
-                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
-              >
-                <span>Q&A (Q)</span>
-              </button>
-            </div>
-          )}
+          <span className="text-xs font-mono text-slate-400 px-1">
+            {currentStep + 1}/{pitchSteps.length}
+          </span>
 
-          {/* Stepper Buttons */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => goToStep(currentStep - 1)}
-              disabled={currentStep === 0}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 cursor-pointer"
-              title="Prev Step (Left Arrow)"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-xs font-mono font-bold text-slate-400 px-1">
-              {currentStep + 1}/{pitchSteps.length}
-            </span>
-            <button
-              onClick={() => goToStep(currentStep + 1)}
-              disabled={currentStep === pitchSteps.length - 1}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 cursor-pointer"
-              title="Next Step (Right Arrow / Space)"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => goToStep(Math.min(pitchSteps.length - 1, currentStep + 1))}
+            disabled={currentStep === pitchSteps.length - 1}
+            className={`p-1.5 rounded-lg border border-slate-700 transition cursor-pointer ${
+              currentStep === pitchSteps.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-slate-800 text-slate-300'
+            }`}
+            title="Langkah Selanjutnya (Panah Kanan / Spasi)"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition ml-1 cursor-pointer"
-            title="Tutup Walkthrough Mode (Esc)"
+            className="p-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer ml-2"
+            title="Tutup Walkthrough (Esc)"
           >
             <X className="w-4 h-4" />
           </button>

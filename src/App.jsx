@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import OverviewTab from './components/OverviewTab';
+import DigitalTwinTab from './components/DigitalTwinTab';
+import AgentOrchestratorTab from './components/AgentOrchestratorTab';
 import TelemetryTab from './components/TelemetryTab';
 import ScenarioLabTab from './components/ScenarioLabTab';
 import OptimizationTab from './components/OptimizationTab';
@@ -14,6 +16,8 @@ import EmergencyStressModal from './components/EmergencyStressModal';
 import ExecutiveMemoModal from './components/ExecutiveMemoModal';
 import BodDefenseModal from './components/BodDefenseModal';
 import GuidedPitchBar from './components/GuidedPitchBar';
+import AiCopilotModal from './components/AiCopilotModal';
+import GlobalSimulationBar from './components/GlobalSimulationBar';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -23,28 +27,46 @@ export default function App() {
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isExecutiveMemoOpen, setIsExecutiveMemoOpen] = useState(false);
   const [isBodDefenseOpen, setIsBodDefenseOpen] = useState(false);
+  const [isAiCopilotOpen, setIsAiCopilotOpen] = useState(false);
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
   const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
   const [isAutonomous, setIsAutonomous] = useState(true);
 
-  // Presenter Keyboard Shortcuts (T = Tour, S = Stress Test, P = Print Memo, Q = Q&A Defense, 1-7 = Tabs)
+  // Live Executive Simulation Console State
+  const [isSimBarOpen, setIsSimBarOpen] = useState(false);
+  const [simState, setSimState] = useState({
+    simHour: 14,
+    simTimeString: '14:00 WIB',
+    scenarioKey: 'normal',
+    tempC: 28,
+    trafficMultiplier: 1.0,
+    carrierSleepActive: true,
+    plnTariffIDR: 1500,
+    emergencyActive: false
+  });
+
+  // Presenter Keyboard Shortcuts (T = Tour, S = Stress Test, P = Print Memo, Q = Q&A Defense, E = Simulation Bar, 1-9 = Tabs)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
       if (e.key === '1') setActiveTab('overview');
-      if (e.key === '2') setActiveTab('telemetry');
-      if (e.key === '3') setActiveTab('scenariolab');
-      if (e.key === '4') setActiveTab('optimization');
-      if (e.key === '5') setActiveTab('financial');
-      if (e.key === '6') setActiveTab('esg');
-      if (e.key === '7') setActiveTab('architecture');
+      if (e.key === '2') setActiveTab('digitaltwin');
+      if (e.key === '3') setActiveTab('agents');
+      if (e.key === '4') setActiveTab('telemetry');
+      if (e.key === '5') setActiveTab('scenariolab');
+      if (e.key === '6') setActiveTab('optimization');
+      if (e.key === '7') setActiveTab('esg');
+      if (e.key === '8') setActiveTab('financial');
+      if (e.key === '9') setActiveTab('architecture');
       if (e.key.toLowerCase() === 'w') setIsPitchWalkthroughActive(prev => !prev);
       if (e.key.toLowerCase() === 't') setIsDirectorTourOpen(prev => !prev);
       if (e.key.toLowerCase() === 's') setIsEmergencyModalOpen(true);
       if (e.key.toLowerCase() === 'p') setIsExecutiveMemoOpen(true);
       if (e.key.toLowerCase() === 'q') setIsBodDefenseOpen(prev => !prev);
+      if (e.key.toLowerCase() === 'a') setIsAiCopilotOpen(prev => !prev);
+      if (e.key.toLowerCase() === 'e') setIsSimBarOpen(prev => !prev);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -66,6 +88,7 @@ export default function App() {
         onOpenEmergencyModal={() => setIsEmergencyModalOpen(true)}
         onOpenExecutiveMemo={() => setIsExecutiveMemoOpen(true)}
         onOpenBodDefense={() => setIsBodDefenseOpen(true)}
+        onOpenAiCopilot={() => setIsAiCopilotOpen(true)}
         emergencyState={emergencyState}
         selectedScale={selectedScale}
         setSelectedScale={setSelectedScale}
@@ -73,6 +96,18 @@ export default function App() {
         setActiveLens={setActiveLens}
         isAutonomous={isAutonomous}
         setIsAutonomous={setIsAutonomous}
+        onToggleSimBar={() => setIsSimBarOpen(prev => !prev)}
+        isSimBarOpen={isSimBarOpen}
+        simState={simState}
+      />
+
+      {/* Live Global Simulation Console Dropdown Bar */}
+      <GlobalSimulationBar
+        simState={simState}
+        setSimState={setSimState}
+        isOpen={isSimBarOpen}
+        onClose={() => setIsSimBarOpen(false)}
+        onTriggerEmergency={(isActive) => setEmergencyState({ active: isActive })}
       />
 
       {/* Main Layout: Sidebar + Main Content Area */}
@@ -81,15 +116,31 @@ export default function App() {
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Dynamic Content Viewport */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-6xl w-full mx-auto overflow-y-auto">
+        <main className={`flex-1 p-4 md:p-6 lg:p-8 max-w-6xl w-full mx-auto overflow-y-auto transition-all duration-300 ${
+          isPitchWalkthroughActive ? 'pb-28 md:pb-32' : ''
+        }`}>
           {activeTab === 'overview' && (
             <OverviewTab 
               setActiveTab={setActiveTab} 
               selectedScale={selectedScale}
+              setSelectedScale={setSelectedScale}
               activeLens={activeLens}
+              setActiveLens={setActiveLens}
               emergencyState={emergencyState}
               onOpenEmergencyModal={() => setIsEmergencyModalOpen(true)}
+              onTogglePitchWalkthrough={() => setIsPitchWalkthroughActive(prev => !prev)}
+              onOpenExecutiveMemo={() => setIsExecutiveMemoOpen(true)}
+              onOpenBodDefense={() => setIsBodDefenseOpen(true)}
+              simState={simState}
             />
+          )}
+
+          {activeTab === 'digitaltwin' && (
+            <DigitalTwinTab />
+          )}
+
+          {activeTab === 'agents' && (
+            <AgentOrchestratorTab />
           )}
 
           {activeTab === 'telemetry' && (
@@ -142,43 +193,53 @@ export default function App() {
         emergencyState={emergencyState}
       />
 
-      {/* 1-Click Executive Board Memo Modal (Print / PDF A4) */}
+      {/* Executive Board Memo Modal */}
       <ExecutiveMemoModal
         isOpen={isExecutiveMemoOpen}
         onClose={() => setIsExecutiveMemoOpen(false)}
       />
 
-      {/* BoD Q&A Defense Simulator Modal */}
+      {/* BoD Defense Q&A Cheat Sheet Modal */}
       <BodDefenseModal
         isOpen={isBodDefenseOpen}
         onClose={() => setIsBodDefenseOpen(false)}
-        onNavigateTab={(tabName) => setActiveTab(tabName)}
       />
 
-      {/* Guided 7-Minute Pitch Walkthrough Floating Bar */}
+      {/* AI Copilot Intelligence Assistant Modal */}
+      <AiCopilotModal
+        isOpen={isAiCopilotOpen}
+        onClose={() => setIsAiCopilotOpen(false)}
+        onNavigateTab={(tabName) => setActiveTab(tabName)}
+        onApplyAction={(action) => {
+          if (action.type === 'APPLY_OPTIMIZATION') {
+            setSimState(prev => ({
+              ...prev,
+              carrierSleepActive: true,
+              tempC: 26,
+              plnTariffIDR: 1500
+            }));
+            setIsSimBarOpen(true);
+          } else if (action.type === 'SWITCH_SCENARIO') {
+            setSimState(prev => ({
+              ...prev,
+              scenarioKey: action.scenarioKey || 'blackout_sumatera',
+              carrierSleepActive: true,
+              tempC: 31,
+              trafficMultiplier: 0.9,
+              plnTariffIDR: 0,
+              emergencyActive: false
+            }));
+            setIsSimBarOpen(true);
+          }
+        }}
+      />
+
+      {/* Live Presenter Pitch Walkthrough Teleprompter */}
       <GuidedPitchBar
         isActive={isPitchWalkthroughActive}
         onClose={() => setIsPitchWalkthroughActive(false)}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenEmergencyModal={() => setIsEmergencyModalOpen(true)}
-        onOpenExecutiveMemo={() => setIsExecutiveMemoOpen(true)}
-        onOpenBodDefense={() => setIsBodDefenseOpen(true)}
+        onNavigateTab={(tabName) => setActiveTab(tabName)}
       />
-
-      {/* Global Minimal Footer */}
-      <footer className="border-t border-slate-200 bg-white px-6 py-3.5 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xs">
-        <div className="flex items-center space-x-2">
-          <span className="font-bold text-slate-800">Telkomsel ImpactGrid</span>
-          <span>•</span>
-          <span>Decision Support System for Network Decarbonization</span>
-        </div>
-        <div className="flex items-center space-x-3 text-[11px]">
-          <span>Shortcut: <kbd className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[10px]">T</kbd> Pitch • <kbd className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[10px]">S</kbd> Stress Test</span>
-          <span>•</span>
-          <span>Tim: <strong className="text-slate-700">AWAKENING Reborn</strong></span>
-        </div>
-      </footer>
     </div>
   );
 }
