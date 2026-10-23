@@ -2,7 +2,7 @@
 
 **Audit date:** 23 October 2026  
 **Scope:** release candidate in this workspace; Chromium E2E against a production Vite build.  
-**Release artifact commit:** pending final commit; recorded in the release notes after commit.
+**Release artifact commit:** `6af683e959af9eefd4bcfd0a7812108c62fe1ec9`
 
 ## Decision
 
