@@ -1,7 +1,7 @@
 # ImpactGrid v1.0.0-rc1
 
 **Status:** Release candidate for limited public demo as a simulated proposal prototype.  
-**Release commit SHA:** `6af683e959af9eefd4bcfd0a7812108c62fe1ec9`
+**Release commit SHA:** `3d716a9bd7086f8524261609631c273825145e5d`
 
 ## Included
 
