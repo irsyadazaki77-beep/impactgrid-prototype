@@ -54,4 +54,104 @@ describe('ImpactGrid demo reliability boundaries', () => {
     expect(invalid.verified).toBe(false);
     expect(invalid.status).toBe('FAILED');
   });
+
+  describe('PARAMETRIC_SANDBOX What-If & Monte Carlo Engine', () => {
+    it('computes deterministic parametric metrics in PARAMETRIC_SANDBOX mode', () => {
+      const config = {
+        simulationMode: 'PARAMETRIC_SANDBOX',
+        targetEfficiencyPct: 8.5,
+        siteCount: 40,
+        avgSiteAnnualKWh: 42000,
+        tariffPerKWh: 1500,
+        discountRate: 0.10,
+        capexPerSiteIDR: 25000000,
+        annualOpexPerSiteIDR: 2500000,
+        scenarioKey: 'normal',
+      };
+      const metrics = deriveSimulationMetrics(config);
+
+      expect(metrics.simulationMode).toBe('PARAMETRIC_SANDBOX');
+      expect(metrics.dataClassification).toBe('PARAMETRIC_PROJECTION');
+      expect(metrics.annualBaselineKWh).toBe(1680000); // 40 * 42000
+      expect(metrics.projectedEnergySavingsKWh).toBe(142800); // 1680000 * 8.5%
+      expect(metrics.energySavedKWh).toBe(142800);
+      expect(metrics.projectedEmissionsReductionTons).toBeCloseTo(130.420, 2); // 142800 * 0.000913308
+      expect(metrics.grossAnnualSavingsIDR).toBe(214200000); // 142800 * 1500
+      expect(metrics.totalCapexIDR).toBe(1000000000); // 40 * 25 jt
+      expect(metrics.annualOpexIDR).toBe(100000000); // 40 * 2.5 jt
+      expect(metrics.netAnnualBenefitIDR).toBe(114200000); // 214.2 jt - 100 jt
+      expect(metrics.projectedNpv5YearsIDR).toBe(-567092151); // -1M + sum_{t=1..5}(114.2M / 1.1^t)
+      expect(metrics.paybackYears).toBe(8.76); // 1000M / 114.2M
+      expect(metrics.fiveYearProjection).toHaveLength(5);
+      expect(metrics.qosStatus).toBe('GUARDRAIL_ACTIVE_SLA_SAFE');
+    });
+
+    it('forces energy savings to 0% and protects QoS under emergency conditions', () => {
+      const normalResult = deriveSimulationMetrics({
+        simulationMode: 'PARAMETRIC_SANDBOX',
+        targetEfficiencyPct: 8.5,
+        emergencyActive: false,
+        scenarioKey: 'normal',
+      });
+      expect(normalResult.projectedEnergySavingsKWh).toBeGreaterThan(0);
+
+      const emergencyScenario = deriveSimulationMetrics({
+        simulationMode: 'PARAMETRIC_SANDBOX',
+        targetEfficiencyPct: 8.5,
+        emergencyActive: false,
+        scenarioKey: 'emergency',
+      });
+      expect(emergencyScenario.projectedEnergySavingsKWh).toBe(0);
+      expect(emergencyScenario.effectiveEfficiencyPct).toBe(0);
+      expect(emergencyScenario.qosStatus).toBe('EMERGENCY_OVERRIDE_MAX_POWER');
+
+      const emergencyActiveFlag = deriveSimulationMetrics({
+        simulationMode: 'PARAMETRIC_SANDBOX',
+        targetEfficiencyPct: 8.5,
+        emergencyActive: true,
+        scenarioKey: 'normal',
+      });
+      expect(emergencyActiveFlag.projectedEnergySavingsKWh).toBe(0);
+      expect(emergencyActiveFlag.effectiveEfficiencyPct).toBe(0);
+      expect(emergencyActiveFlag.qosStatus).toBe('EMERGENCY_OVERRIDE_MAX_POWER');
+    });
+
+    it('executes deterministic Monte Carlo simulation with Mulberry32 PRNG', () => {
+      const params = {
+        simulationMode: 'PARAMETRIC_SANDBOX',
+        iterations: 1000,
+        seed: 20260324,
+        siteCount: 40,
+        avgSiteAnnualKWh: 42000,
+        targetEfficiencyPct: 8.5,
+        tariffPerKWh: 1500,
+        discountRate: 0.10,
+        capexPerSiteIDR: 25000000,
+        annualOpexPerSiteIDR: 2500000,
+      };
+
+      const run1 = runMonteCarloSimulation(params);
+      const run2 = runMonteCarloSimulation(params);
+
+      expect(run1.status).toBe('SIMULATED_PARAMETRIC');
+      expect(run1.dataClassification).toBe('PARAMETRIC_PROJECTION');
+      expect(run1.iterations).toBe(1000);
+
+      // Deterministic reproducibility: run1 and run2 must match exactly
+      expect(run1.p5).toBe(run2.p5);
+      expect(run1.p50).toBe(run2.p50);
+      expect(run1.p95).toBe(run2.p95);
+      expect(run1.mean).toBe(run2.mean);
+      expect(run1.probabilityPositive).toBe(run2.probabilityPositive);
+
+      // Percentile monotonicity: p5 <= p50 <= p95
+      expect(run1.p5).toBeLessThanOrEqual(run1.p50);
+      expect(run1.p50).toBeLessThanOrEqual(run1.p95);
+
+      // Histogram bin count
+      expect(run1.histogram).toHaveLength(20);
+      const totalCount = run1.histogram.reduce((sum, b) => sum + b.count, 0);
+      expect(totalCount).toBe(1000);
+    });
+  });
 });

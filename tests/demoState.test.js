@@ -28,4 +28,14 @@ describe('demo state helpers', () => {
     expect(resolveTabForMode('financial', 'engineering')).toBe('financial');
     expect(resolveTabForMode('unknown', 'engineering')).toBe('overview');
   });
+
+  it('preserves verified corporate baseline constants in SYSTEM_METADATA', async () => {
+    const { SYSTEM_METADATA } = await import('../src/data/mockData.js');
+    expect(SYSTEM_METADATA.totalAnnualPowerTelkomselKWh).toBe(1885417875.2);
+    expect(SYSTEM_METADATA.totalScope2EmissionsTon).toBe(1721967.7);
+    expect(SYSTEM_METADATA.totalEmissionsOverallTon).toBe(2708749);
+    expect(SYSTEM_METADATA.scope2PortionPct).toBe(63.6);
+    expect(SYSTEM_METADATA.electricityTariff).toBe(1500);
+    expect(SYSTEM_METADATA.discountRatePct).toBe(10);
+  });
 });

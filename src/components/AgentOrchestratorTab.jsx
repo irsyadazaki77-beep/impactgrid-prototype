@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ExplainableAiModal from './ExplainableAiModal';
 import { 
   Bot, 
   Cpu, 
@@ -24,6 +25,7 @@ import {
 
 export default function AgentOrchestratorTab() {
   const [selectedScenario, setSelectedScenario] = useState('midnight');
+  const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [activeStep, setActiveStep] = useState(0); // Visual progress through local example logs
   const [terminalLogs, setTerminalLogs] = useState([]);
@@ -36,7 +38,7 @@ export default function AgentOrchestratorTab() {
       name: 'Agent 1: Prophet-RAN',
       role: 'Rancangan analisis trafik',
       tech: 'Model prediksi belum diimplementasikan/kalibrasi',
-      avatarColor: 'bg-indigo-600',
+      avatarColor: 'bg-sky-600',
       badge: 'Konsep analitik',
       description: 'Konsep analisis untuk membandingkan trafik; akurasi belum diuji karena prototype tidak memakai data trafik.'
     },
@@ -166,24 +168,32 @@ export default function AgentOrchestratorTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+      <div className="p-6 md:p-8 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 shadow-xs space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-bold text-indigo-800">
-              <Bot className="w-3.5 h-3.5 text-indigo-600" />
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200/80 dark:border-red-900/50 text-xs font-bold text-[#ED0226] dark:text-red-400">
+              <Bot className="w-3.5 h-3.5 text-[#ED0226] dark:text-red-400" />
               <span>Rancangan alur analitik (demo)</span>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">
+            <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight mt-2">
               Simulasi alur agen untuk mendukung keputusan manusia
             </h1>
-            <p className="text-xs text-slate-600 max-w-3xl leading-relaxed mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed mt-1">
               Panel ini menggambarkan pembagian tugas secara konseptual. Agen, model, log, dan keluaran pada layar adalah contoh sintetis; tidak ada prediksi, verifikasi keselamatan, koneksi real-time, atau perintah yang dikirim ke BTS.
             </p>
           </div>
 
-          <div className="flex items-center space-x-2 bg-slate-50 p-2 rounded-2xl border border-slate-200 shrink-0 text-xs">
+          <button
+              type="button"
+              onClick={() => setIsExplainModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Inspeksi Logika AI (XAI)</span>
+            </button>
+          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 text-xs">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span className="font-bold text-slate-700">Mode: simulasi lokal saja</span>
+            <span className="font-bold text-slate-700 dark:text-slate-300">Mode: simulasi lokal saja</span>
           </div>
         </div>
       </div>
@@ -195,32 +205,32 @@ export default function AgentOrchestratorTab() {
           return (
             <div 
               key={agent.id}
-              className={`p-5 rounded-2xl bg-white border transition-all space-y-3 relative overflow-hidden ${
+              className={`p-5 rounded-2xl bg-white dark:bg-slate-900/70 border transition-all space-y-3 relative overflow-hidden ${
                 isHighlighted 
-                  ? 'border-indigo-400 shadow-md ring-1 ring-indigo-300' 
-                  : 'border-slate-200/80 shadow-xs'
+                  ? 'border-[#ED0226] shadow-sm ring-1 ring-red-400/40 dark:border-red-500' 
+                  : 'border-slate-200/80 dark:border-slate-800/80 shadow-xs'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className={`p-2 rounded-xl text-white ${agent.avatarColor}`}>
                   <Bot className="w-5 h-5" />
                 </div>
-                <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                   {agent.badge}
                 </span>
               </div>
 
               <div>
-                <h2 className="font-extrabold text-xs text-slate-900">{agent.name}</h2>
+                <h2 className="font-extrabold text-xs text-slate-900 dark:text-slate-100">{agent.name}</h2>
                 <p className="text-[10px] text-slate-500 font-semibold">{agent.role}</p>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[10px] font-mono text-slate-600">
-                <span className="font-bold text-slate-800 block text-[9px] uppercase tracking-wider">Algoritma / Engine:</span>
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400">
+                <span className="font-bold text-slate-800 dark:text-slate-200 block text-[9px] uppercase tracking-wider">Algoritma / Engine:</span>
                 {agent.tech}
               </div>
 
-              <p className="text-[11px] text-slate-600 leading-relaxed font-normal">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
                 {agent.description}
               </p>
             </div>
@@ -233,13 +243,13 @@ export default function AgentOrchestratorTab() {
         
         {/* Left: Event Simulators (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
+          <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 shadow-xs space-y-4">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                 <span>Urutan contoh skenario</span>
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Pilih salah satu skenario konseptual. Pemilihan hanya mengganti teks dan log lokal:
               </p>
             </div>
@@ -255,25 +265,25 @@ export default function AgentOrchestratorTab() {
                     key={key}
                     onClick={() => handleRunSimulation(key)}
                     disabled={isSimulating}
-                    className={`w-full p-3.5 rounded-2xl text-left border transition-all cursor-pointer flex items-center justify-between ${
+                    className={`w-full p-3.5 rounded-xl text-left border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? 'bg-indigo-50/80 border-indigo-400 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        ? 'bg-red-50/80 dark:bg-red-950/30 border-red-300 dark:border-red-900/50 shadow-xs'
+                        : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-xl shrink-0 ${
-                        isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                        isSelected ? 'bg-[#ED0226] text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                       }`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="font-extrabold text-xs text-slate-900 block">{sc.title}</span>
+                        <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 block">{sc.title}</span>
                         <span className="text-[10px] text-slate-500">Data trafik: {sc.traffic} • Data cuaca: {sc.weather}</span>
                       </div>
                     </div>
 
-                    <ArrowRight className={`w-4 h-4 transition-transform ${isSelected ? 'text-indigo-600 translate-x-1' : 'text-slate-300'}`} />
+                    <ArrowRight className={`w-4 h-4 transition-transform ${isSelected ? 'text-[#ED0226] dark:text-red-400 translate-x-1' : 'text-slate-300 dark:text-slate-600'}`} />
                   </button>
                 );
               })}
@@ -281,7 +291,7 @@ export default function AgentOrchestratorTab() {
 
             {/* Target Action Callout */}
             <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-1.5 text-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">
                 Pertanyaan untuk tinjauan manusia:
               </span>
               <p className="font-medium leading-relaxed text-slate-200 text-[11px]">
@@ -293,7 +303,7 @@ export default function AgentOrchestratorTab() {
 
         {/* Right: Local example log sequence */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="p-6 rounded-3xl bg-slate-950 text-white border border-slate-800 shadow-xl space-y-4 font-mono text-xs">
+          <div className="p-6 rounded-2xl bg-slate-950 text-white border border-slate-800 shadow-lg space-y-4 font-mono text-xs">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2">
                 <Terminal className="w-4 h-4 text-emerald-400" />
@@ -330,7 +340,7 @@ export default function AgentOrchestratorTab() {
 
               {isSimulating && (
                 <div className="flex items-center space-x-2 text-[11px] text-slate-400 italic py-2 animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                  <span className="w-2 h-2 rounded-full bg-[#ED0226]"></span>
                   <span>Memutar urutan log demonstrasi...</span>
                 </div>
               )}
@@ -345,6 +355,11 @@ export default function AgentOrchestratorTab() {
         </div>
 
       </div>
+      {/* Explainable AI Modal */}
+      <ExplainableAiModal
+        isOpen={isExplainModalOpen}
+        onClose={() => setIsExplainModalOpen(false)}
+      />
     </div>
   );
 }

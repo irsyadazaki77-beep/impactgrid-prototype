@@ -20,8 +20,8 @@ const validations = [
 export default function ESGComplianceTab({ onOpenReportModal }) {
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-amber-300 bg-amber-50 p-6 md:p-8 space-y-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-white px-3 py-1 text-xs font-bold text-amber-900">
+      <section className="rounded-2xl border border-amber-300 bg-amber-50 p-6 md:p-8 space-y-4 shadow-xs">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 py-1 text-xs font-bold text-amber-900">
           <Leaf className="h-4 w-4" /> Rancangan pengukuran ESG
         </div>
         <h1 className="text-2xl font-black text-slate-900">Metodologi diusulkan; hasil pilot dan verifikasi belum tersedia</h1>
@@ -29,31 +29,31 @@ export default function ESGComplianceTab({ onOpenReportModal }) {
           Halaman ini memisahkan konteks resmi perusahaan dari rancangan pengukuran ImpactGrid. Angka perusahaan di bawah bersumber dari publikasi 2025; angka tersebut bukan baseline site dan tidak membuktikan reduksi emisi dari solusi ini.
         </p>
         {onOpenReportModal && (
-          <button onClick={onOpenReportModal} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800">
+          <button onClick={onOpenReportModal} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 px-4 py-2 text-xs font-bold text-white transition cursor-pointer shadow-2xs">
             <FileDown className="h-4 w-4" /> Lihat lembar kerja validasi
           </button>
         )}
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5">
+        <article className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 p-5 shadow-xs">
           <div className="text-xs font-bold uppercase text-slate-500">Listrik Telkomsel • 2025</div>
           <div className="mt-2 text-2xl font-black text-slate-900">1.885.417.875,2 kWh</div>
           <p className="mt-2 text-xs leading-relaxed text-slate-600">Konsumsi tingkat perusahaan dalam laporan; bukan data untuk 40 lokasi pilot.</p>
         </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5">
+        <article className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 p-5 shadow-xs">
           <div className="text-xs font-bold uppercase text-slate-500">Emisi Scope 2 • 2025</div>
           <div className="mt-2 text-2xl font-black text-slate-900">1.721.967,7 tCO₂e</div>
           <p className="mt-2 text-xs leading-relaxed text-slate-600">Angka laporan; nilai agregat ini tidak dipakai menghitung dampak pilot.</p>
         </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5">
+        <article className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 p-5 shadow-xs">
           <div className="text-xs font-bold uppercase text-slate-500">Bagian Scope 2 • 2025</div>
           <div className="mt-2 text-2xl font-black text-slate-900">63,6%</div>
           <p className="mt-2 text-xs leading-relaxed text-slate-600">Porsi terhadap total emisi Telkomsel yang dilaporkan sebesar 2.708.749 tCO₂e.</p>
         </article>
       </section>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 space-y-5">
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 p-6 md:p-8 space-y-5 shadow-xs">
         <div className="flex items-center gap-2"><Scale className="h-5 w-5 text-red-600" /><h2 className="text-lg font-extrabold text-slate-900">Daftar validasi sebelum klaim dampak</h2></div>
         <div className="grid gap-3 md:grid-cols-2">
           {validations.map(([title, description], index) => (
@@ -66,7 +66,7 @@ export default function ESGComplianceTab({ onOpenReportModal }) {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 space-y-4">
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 p-6 md:p-8 space-y-4 shadow-xs">
         <div className="flex items-center gap-2"><ClipboardCheck className="h-5 w-5 text-sky-700" /><h2 className="text-lg font-extrabold text-slate-900">Rujukan dan batas klaim</h2></div>
         <p className="text-sm leading-relaxed text-slate-600">PSPK 1 dan PSPK 2 berlaku mulai 1 Januari 2027. ITU-T L.1331 dapat dijadikan rujukan pengukuran efisiensi energi jaringan, tetapi rujukan standar tidak otomatis berarti metode atau hasil ImpactGrid telah diaudit atau disetujui.</p>
         <div className="flex flex-wrap gap-2">

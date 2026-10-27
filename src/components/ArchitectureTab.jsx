@@ -25,6 +25,7 @@ import {
   Check,
   Scale
 } from 'lucide-react';
+import NetconfDeploymentModal from './NetconfDeploymentModal';
 import { 
   CASE_STUDY_RESPONSES,
   STAKEHOLDER_VALUE_MAPPING,
@@ -37,6 +38,7 @@ export default function ArchitectureTab() {
   const [selectedDiagram, setSelectedDiagram] = useState('issue_tree');
   const [selectedLayer, setSelectedLayer] = useState('ric');
   const [selectedStakeholder, setSelectedStakeholder] = useState('all');
+  const [isNetconfModalOpen, setIsNetconfModalOpen] = useState(false);
 
   const oranLayers = [
     {
@@ -133,10 +135,10 @@ export default function ArchitectureTab() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* 1. Header Banner */}
-      <div className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3">
+      <div className="p-6 md:p-8 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-xs font-bold text-red-700">
-            <Layers className="w-3.5 h-3.5 text-red-600" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200/80 dark:border-red-900/50 text-xs font-bold text-[#ED0226] dark:text-red-400">
+            <Layers className="w-3.5 h-3.5 text-[#ED0226] dark:text-red-400" />
           <span>Rancangan strategis usulan • Tim AWAKENING Reborn</span>
           </div>
           <span className="text-[11px] font-semibold text-slate-500">
@@ -144,21 +146,21 @@ export default function ArchitectureTab() {
           </span>
         </div>
 
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
           Blueprint Strategis, Diagram Solusi & Matriks Tata Kelola
         </h1>
-        <p className="text-xs text-slate-600 max-w-4xl font-normal leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 max-w-4xl font-normal leading-relaxed">
           Kumpulan diagram dan kerangka proposal. Integrasi, nilai tambah, risiko, serta solusi existing perlu diverifikasi bersama pemilik sistem dan data; diagram bukan bukti implementasi atau persetujuan Telkomsel.
         </p>
 
         {/* Sub-View Navigation Bar */}
-        <div className="pt-3 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto text-xs no-scrollbar">
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-xs no-scrollbar">
           <button
             onClick={() => setActiveSubView('diagrams')}
             className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeSubView === 'diagrams'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <GitBranch className="w-3.5 h-3.5" />
@@ -169,8 +171,8 @@ export default function ArchitectureTab() {
             onClick={() => setActiveSubView('case_study')}
             className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeSubView === 'case_study'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
@@ -181,8 +183,8 @@ export default function ArchitectureTab() {
             onClick={() => setActiveSubView('stakeholders')}
             className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeSubView === 'stakeholders'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <Users className="w-3.5 h-3.5 text-blue-500" />
@@ -193,8 +195,8 @@ export default function ArchitectureTab() {
             onClick={() => setActiveSubView('risks')}
             className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeSubView === 'risks'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <ShieldAlert className="w-3.5 h-3.5 text-red-500" />
@@ -205,12 +207,19 @@ export default function ArchitectureTab() {
             onClick={() => setActiveSubView('comparison')}
             className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeSubView === 'comparison'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <Scale className="w-3.5 h-3.5 text-emerald-500" />
             <span>Komparasi vs Eksisting (Tabel 9)</span>
+          </button>
+          <button
+            onClick={() => setIsNetconfModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs hover:bg-slate-800"
+          >
+            <Cpu className="w-3.5 h-3.5 text-cyan-400 dark:text-cyan-600" />
+            <span>Simulasi Netconf / YANG</span>
           </button>
         </div>
       </div>
@@ -648,6 +657,11 @@ export default function ArchitectureTab() {
           </div>
         </div>
       )}
+      {/* Netconf Deployment Simulation Modal */}
+      <NetconfDeploymentModal
+        isOpen={isNetconfModalOpen}
+        onClose={() => setIsNetconfModalOpen(false)}
+      />
     </div>
   );
 }

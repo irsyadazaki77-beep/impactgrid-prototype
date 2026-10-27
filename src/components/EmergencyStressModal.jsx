@@ -13,7 +13,7 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-2xl rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden text-slate-900">
+      <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden text-slate-900 dark:text-slate-100">
         {/* Header with Alarm Style */}
         <div className={`p-5 flex items-center justify-between border-b ${
           emergencyState.active 
@@ -76,28 +76,28 @@ export default function EmergencyStressModal({ isOpen, onClose, onApplyEmergency
 
           {/* Status bukti keselamatan yang belum tersedia */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <span className="text-[10px] text-slate-500 font-semibold uppercase block">Pilihan tampilan</span>
               <span className={`text-base font-extrabold ${emergencyState.active ? 'text-red-600 animate-pulse' : 'text-slate-900'}`}>
                 {emergencyState.active ? 'Keselamatan (konsep)' : 'Belum dipilih'}
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <span className="text-[10px] text-slate-500 font-semibold uppercase block">Layanan darurat 112</span>
               <span className="text-base font-extrabold text-amber-700">Belum diuji</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <span className="text-[10px] text-slate-500 font-semibold uppercase block">Wake-up latency</span>
-              <span className="text-base font-extrabold text-indigo-600">
+              <span className="text-base font-extrabold text-sky-600 dark:text-sky-400">
                 Belum diukur
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
               <span className="text-[10px] text-slate-500 font-semibold uppercase block">Risiko drop call</span>
-              <span className="text-base font-extrabold text-teal-600">
+              <span className="text-base font-extrabold text-amber-700 dark:text-amber-400">
                 Belum diukur
               </span>
             </div>

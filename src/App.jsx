@@ -4,7 +4,11 @@ import Sidebar from './components/Sidebar';
 import AppErrorBoundary from './components/AppErrorBoundary';
 import GuidedPitchBar from './components/GuidedPitchBar';
 import GlobalSimulationBar, { SIMULATION_SCENARIOS } from './components/GlobalSimulationBar';
-import { createInitialSimulationState, isShortcutTargetEditable, resolveTabForMode } from './utils/demoState';
+import TabLoadingFallback from './components/TabLoadingFallback';
+import { resolveTabForMode } from './utils/demoState';
+import { useSimulationState } from './hooks/useSimulationState';
+import { useAuditTrail } from './hooks/useAuditTrail';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const KpiStatRow = memo(lazy(() => import('./components/KpiStatRow')));
 const OverviewTab = memo(lazy(() => import('./components/OverviewTab')));
@@ -23,6 +27,7 @@ const EmergencyStressModal = lazy(() => import('./components/EmergencyStressModa
 const ExecutiveMemoModal = lazy(() => import('./components/ExecutiveMemoModal'));
 const BodDefenseModal = lazy(() => import('./components/BodDefenseModal'));
 const AiCopilotModal = lazy(() => import('./components/AiCopilotModal'));
+const ShortcutsModal = lazy(() => import('./components/ShortcutsModal'));
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
 const PRESENTATION_PREFLIGHT_ITEMS = [
@@ -32,13 +37,6 @@ const PRESENTATION_PREFLIGHT_ITEMS = [
   'Pitch akan mengembalikan tab, skenario, skala, dan tema ke preset awal.'
 ];
 
-function ModuleLoadingState() {
-  return <div className="module-loading" role="status" aria-live="polite" aria-label="Memuat modul">
-    <span className="module-loading-bar" /><span className="module-loading-bar" /><span className="module-loading-bar" />
-    <span className="sr-only">Memuat modul…</span>
-  </div>;
-}
-
 function ModalLoadingState() {
   return <div className="modal-module-loading" role="status">Memuat fitur demo…</div>;
 }
@@ -47,7 +45,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [loadedTabs, setLoadedTabs] = useState(() => new Set(['overview']));
   const [resetVersion, setResetVersion] = useState(0);
-  const [viewMode, setViewMode] = useState('executive'); // 'executive' | 'engineering' (Instruction #2)
+  const [viewMode, setViewMode] = useState('executive'); // 'executive' | 'engineering'
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem('impactgrid-theme') || 'light'; } catch { return 'light'; }
   });
@@ -61,14 +59,25 @@ export default function App() {
   const [isExecutiveMemoOpen, setIsExecutiveMemoOpen] = useState(false);
   const [isBodDefenseOpen, setIsBodDefenseOpen] = useState(false);
   const [isAiCopilotOpen, setIsAiCopilotOpen] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
   const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
   const [isAutonomous, setIsAutonomous] = useState(false);
 
-  // Live Executive Simulation Console State
+  // Live Executive Simulation Console & Audit Trail Custom Hooks
   const [isSimBarOpen, setIsSimBarOpen] = useState(false);
-  const [simState, setSimState] = useState(createInitialSimulationState);
+  const {
+    simState,
+    setSimState,
+    autoSim,
+    toggleAutoSim,
+    simulationMode,
+    toggleSimulationMode,
+    resetSimulation
+  } = useSimulationState();
+  const { appendAuditLog, clearAuditLogs } = useAuditTrail();
+
   const [connectivityStatus, setConnectivityStatus] = useState(() => typeof navigator === 'undefined' || navigator.onLine ? 'checking' : 'offline');
 
   useEffect(() => {
@@ -130,7 +139,8 @@ export default function App() {
   }, [activeTab]);
 
   const resetDemo = useCallback(() => {
-    setSimState(createInitialSimulationState());
+    resetSimulation();
+    clearAuditLogs();
     setEmergencyState({ active: false });
     setSelectedScale('pilot');
     setActiveLens('all');
@@ -147,56 +157,30 @@ export default function App() {
     setIsExecutiveMemoOpen(false);
     setIsBodDefenseOpen(false);
     setIsAiCopilotOpen(false);
+    setIsShortcutsModalOpen(false);
     setIsReportModalOpen(false);
     setResetVersion((version) => version + 1);
-  }, []);
+  }, [clearAuditLogs, resetSimulation]);
 
   const startPresentation = useCallback(() => {
     resetDemo();
     setTheme('light');
-    try { localStorage.setItem('impactgrid-theme', 'light'); } catch { /* Keep the presentation light for this session. */ }
+    try { localStorage.setItem('impactgrid-theme', 'light'); } catch { /* Keep presentation light for session */ }
     setIsPitchWalkthroughActive(true);
-  }, [resetDemo]);
+    appendAuditLog({ action: 'START_PITCH', detail: 'Executive 7-min pitch initiated', category: 'PRESENTATION' });
+  }, [appendAuditLog, resetDemo]);
+
   const requestPresentationStart = useCallback(() => {
     setPreflightChecks(PRESENTATION_PREFLIGHT_ITEMS.map(() => false));
     setIsPreflightOpen(true);
   }, []);
+
   const togglePitchWalkthrough = useCallback(() => {
     if (isPitchWalkthroughActive) {
       setIsPitchWalkthroughActive(false);
       setPitchNotesExpanded(false);
     } else requestPresentationStart();
   }, [isPitchWalkthroughActive, requestPresentationStart]);
-
-  // Presenter Keyboard Shortcuts (T = Tour, S = Stress Test, P = Print Memo, Q = Q&A Defense, E = Simulation Bar, 1-9 = Tabs)
-  const hasBlockingModal = isPreflightOpen || isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen;
-  useEffect(() => {
-    if (hasBlockingModal) return undefined;
-    const handleKeyDown = (e) => {
-      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || isShortcutTargetEditable(e.target)) return;
-
-      if (e.key === '1') navigateToTab('overview');
-      if (e.key.toLowerCase() === 'v') navigateToTab('pilotvalidation');
-      if (e.key === '2') navigateToTab('digitaltwin');
-      if (e.key === '3') navigateToTab('agents');
-      if (e.key === '4') navigateToTab('telemetry');
-      if (e.key === '5') navigateToTab('scenariolab');
-      if (e.key === '6') navigateToTab('optimization');
-      if (e.key === '7') navigateToTab('esg');
-      if (e.key === '8') navigateToTab('financial');
-      if (e.key === '9') navigateToTab('architecture');
-      if (e.key.toLowerCase() === 'w') togglePitchWalkthrough();
-      if (e.key.toLowerCase() === 't') setIsDirectorTourOpen(prev => !prev);
-      if (e.key.toLowerCase() === 's') setIsEmergencyModalOpen(true);
-      if (e.key.toLowerCase() === 'p') setIsExecutiveMemoOpen(true);
-      if (e.key.toLowerCase() === 'q') setIsBodDefenseOpen(prev => !prev);
-      if (e.key.toLowerCase() === 'a') setIsAiCopilotOpen(prev => !prev);
-      if (e.key.toLowerCase() === 'e') setIsSimBarOpen(prev => !prev);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasBlockingModal, navigateToTab, togglePitchWalkthrough]);
 
   const handleApplyEmergency = useCallback((isActive) => {
     const active = Boolean(isActive);
@@ -207,13 +191,41 @@ export default function App() {
       scenarioKey: scenario.id,
       emergencyActive: active,
     }));
-  }, []);
+    appendAuditLog({
+      action: active ? 'EMERGENCY_TRIGGERED' : 'EMERGENCY_RESET',
+      detail: `Emergency state changed to ${active}`,
+      category: 'SAFETY',
+    });
+  }, [appendAuditLog, setSimState]);
+
   const openReportModal = useCallback(() => setIsReportModalOpen(true), []);
   const openEmergencyModal = useCallback(() => setIsEmergencyModalOpen(true), []);
   const openExecutiveMemo = useCallback(() => setIsExecutiveMemoOpen(true), []);
   const openBodDefense = useCallback(() => setIsBodDefenseOpen(true), []);
   const openAiCopilot = useCallback(() => setIsAiCopilotOpen(true), []);
   const toggleSimulationBar = useCallback(() => setIsSimBarOpen((value) => !value), []);
+
+  const hasBlockingModal = isPreflightOpen || isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen || isShortcutsModalOpen;
+
+  // Custom hook for all presenter & system keyboard shortcuts
+  useKeyboardShortcuts({
+    disabled: hasBlockingModal,
+    viewMode,
+    activeTab,
+    onNavigateTab: navigateToTab,
+    onChangeViewMode: changeViewMode,
+    onToggleAutoSim: toggleAutoSim,
+    onResetDemo: resetDemo,
+    onToggleSimBar: toggleSimulationBar,
+    onOpenShortcuts: () => setIsShortcutsModalOpen(true),
+    onOpenCopilot: () => setIsAiCopilotOpen(true),
+    onOpenExport: openReportModal,
+    onTogglePitch: togglePitchWalkthrough,
+    onOpenTour: () => setIsDirectorTourOpen(prev => !prev),
+    onOpenEmergency: openEmergencyModal,
+    onOpenMemo: openExecutiveMemo,
+    onOpenDefense: () => setIsBodDefenseOpen(prev => !prev),
+  });
 
   return (
     <div className={`impactgrid-app min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-[#ED0226] selection:text-white ${isPitchWalkthroughActive ? 'is-presenting' : ''} ${pitchNotesExpanded ? 'presenter-notes-open' : ''}`} data-theme={theme}>
@@ -243,12 +255,29 @@ export default function App() {
         theme={theme}
         onToggleTheme={() => setTheme(current => {
           const next = current === 'light' ? 'dark' : 'light';
-          try { localStorage.setItem('impactgrid-theme', next); } catch { /* Keep the in-memory theme if storage is unavailable. */ }
+          try { localStorage.setItem('impactgrid-theme', next); } catch { /* Keep in-memory theme if storage unavailable */ }
           return next;
         })}
       />
 
-      <div className={`demo-status-bar border-b px-4 py-2 text-center text-xs font-semibold shadow-sm ${connectivityStatus === 'reachable' ? 'border-amber-300 bg-amber-50 text-amber-950' : 'border-sky-300 bg-sky-50 text-sky-950'}`} role="status">{connectivityStatus === 'reachable' ? 'DEMO LOKAL • Semua data adalah contoh/simulasi • Tidak ada koneksi atau perintah ke jaringan' : connectivityStatus === 'checking' ? 'MEMERIKSA HOST DEMO • Simulasi berjalan secara lokal' : connectivityStatus === 'offline' ? 'OFFLINE • Simulasi lokal tetap tersedia; peta dasar dan tautan sumber memerlukan internet' : 'HOST DEMO TIDAK TERJANGKAU • Simulasi lokal tetap tersedia; peta dan tautan sumber mungkin tidak tersedia'}</div>
+      {/* Slim status & network banner */}
+      <div 
+        className={`demo-status-bar border-b px-3 py-1 text-center text-[11px] font-medium tracking-wide transition-colors ${
+          connectivityStatus === 'reachable' 
+            ? 'border-amber-200/60 bg-amber-50/80 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300' 
+            : 'border-sky-200/60 bg-sky-50/80 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-300'
+        }`} 
+        role="status"
+      >
+        {connectivityStatus === 'reachable' 
+          ? 'DEMO LOKAL • Semua data adalah contoh/simulasi • Tidak ada koneksi atau perintah ke jaringan' 
+          : connectivityStatus === 'checking' 
+            ? 'MEMERIKSA HOST DEMO • Simulasi berjalan secara lokal' 
+            : connectivityStatus === 'offline' 
+              ? 'OFFLINE • Simulasi lokal tetap tersedia; peta dasar dan tautan sumber memerlukan internet' 
+              : 'HOST DEMO TIDAK TERJANGKAU • Simulasi lokal tetap tersedia; peta dan tautan sumber mungkin tidak tersedia'}
+      </div>
+
       {/* Simulation Controls (local demo only) */}
       <GlobalSimulationBar
         key={resetVersion}
@@ -257,11 +286,16 @@ export default function App() {
         isOpen={isSimBarOpen}
         onClose={() => setIsSimBarOpen(false)}
         onTriggerEmergency={(isActive) => setEmergencyState({ active: isActive })}
+        isPlaying={autoSim}
+        onTogglePlay={toggleAutoSim}
+        onReset={resetSimulation}
+        simulationMode={simulationMode}
+        onToggleSimulationMode={toggleSimulationMode}
       />
 
       {/* Main Layout: Sidebar + Main Content Area */}
       <div className="flex-1 flex flex-col md:flex-row min-h-[calc(100vh-60px)]">
-        {/* Left Structured Sidebar (Instruction #1) */}
+        {/* Left Structured Sidebar */}
         <Sidebar 
           activeTab={activeTab} 
           setActiveTab={navigateToTab}
@@ -270,139 +304,224 @@ export default function App() {
 
         {/* Dynamic Content Viewport */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto overflow-y-auto transition-all duration-300">
-          {TAB_IDS.map((tabId) => loadedTabs.has(tabId) && <section className="tab-panel" key={`${tabId}-${resetVersion}`} hidden={activeTab !== tabId} aria-hidden={activeTab !== tabId}>
-            <AppErrorBoundary key={`boundary-${tabId}-${resetVersion}`}>
-            <Suspense fallback={<ModuleLoadingState />}>
-              {tabId === 'overview' && <><KpiStatRow simState={simState} selectedScale={selectedScale} /><OverviewTab setActiveTab={navigateToTab} selectedScale={selectedScale} setSelectedScale={setSelectedScale} activeLens={activeLens} setActiveLens={setActiveLens} emergencyState={emergencyState} onOpenEmergencyModal={openEmergencyModal} onTogglePitchWalkthrough={togglePitchWalkthrough} onOpenExecutiveMemo={openExecutiveMemo} onOpenBodDefense={openBodDefense} simState={simState} /></>}
-              {tabId === 'pilotvalidation' && <PilotValidationCenterTab onOpenReportModal={openReportModal} />}
-              {tabId === 'digitaltwin' && <DigitalTwinTab />}
-              {tabId === 'agents' && <AgentOrchestratorTab />}
-              {tabId === 'telemetry' && <TelemetryTab />}
-              {tabId === 'scenariolab' && <ScenarioLabTab isActive={activeTab === tabId} />}
-              {tabId === 'optimization' && <OptimizationTab />}
-              {tabId === 'esg' && <ESGComplianceTab onOpenReportModal={openReportModal} />}
-              {tabId === 'financial' && <FinancialModelTab />}
-              {tabId === 'architecture' && <ArchitectureTab />}
-            </Suspense>
-            </AppErrorBoundary>
-          </section>)}
+          {TAB_IDS.map((tabId) => loadedTabs.has(tabId) && (
+            <section className="tab-panel" key={`${tabId}-${resetVersion}`} hidden={activeTab !== tabId} aria-hidden={activeTab !== tabId}>
+              <AppErrorBoundary key={`boundary-${tabId}-${resetVersion}`}>
+                <Suspense fallback={<TabLoadingFallback />}>
+                  {tabId === 'overview' && (
+                    <>
+                      <KpiStatRow simState={simState} selectedScale={selectedScale} />
+                      <OverviewTab
+                        setActiveTab={navigateToTab}
+                        selectedScale={selectedScale}
+                        setSelectedScale={setSelectedScale}
+                        activeLens={activeLens}
+                        setActiveLens={setActiveLens}
+                        emergencyState={emergencyState}
+                        onOpenEmergencyModal={openEmergencyModal}
+                        onTogglePitchWalkthrough={togglePitchWalkthrough}
+                        onOpenExecutiveMemo={openExecutiveMemo}
+                        onOpenBodDefense={openBodDefense}
+                        simState={simState}
+                      />
+                    </>
+                  )}
+                  {tabId === 'pilotvalidation' && <PilotValidationCenterTab onOpenReportModal={openReportModal} />}
+                  {tabId === 'digitaltwin' && <DigitalTwinTab />}
+                  {tabId === 'agents' && <AgentOrchestratorTab />}
+                  {tabId === 'telemetry' && <TelemetryTab />}
+                  {tabId === 'scenariolab' && (
+                    <ScenarioLabTab
+                      isActive={activeTab === tabId}
+                      simulationMode={simulationMode}
+                      onToggleSimulationMode={toggleSimulationMode}
+                    />
+                  )}
+                  {tabId === 'optimization' && <OptimizationTab />}
+                  {tabId === 'esg' && <ESGComplianceTab onOpenReportModal={openReportModal} />}
+                  {tabId === 'financial' && (
+                    <FinancialModelTab
+                      simulationMode={simulationMode}
+                      onToggleSimulationMode={toggleSimulationMode}
+                    />
+                  )}
+                  {tabId === 'architecture' && <ArchitectureTab />}
+                </Suspense>
+              </AppErrorBoundary>
+            </section>
+          ))}
         </main>
       </div>
 
       {/* Planning assumptions worksheet modal */}
-      {isReportModalOpen && <AppErrorBoundary key={`report-${resetVersion}`}><Suspense fallback={<ModalLoadingState />}><ReportModal
-        isOpen={isReportModalOpen} 
-        onClose={() => setIsReportModalOpen(false)}
-        simState={simState}
-      /></Suspense></AppErrorBoundary>}
+      {isReportModalOpen && (
+        <AppErrorBoundary key={`report-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <ReportModal
+              isOpen={isReportModalOpen} 
+              onClose={() => setIsReportModalOpen(false)}
+              simState={simState}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
 
       {/* Director Presentation Tour Modal */}
-      {isDirectorTourOpen && <AppErrorBoundary key={`tour-${resetVersion}`}><Suspense fallback={<ModalLoadingState />}><DirectorTourModal
-        isOpen={isDirectorTourOpen}
-        onClose={() => setIsDirectorTourOpen(false)}
-        onNavigateTab={navigateToTab}
-      /></Suspense></AppErrorBoundary>}
+      {isDirectorTourOpen && (
+        <AppErrorBoundary key={`tour-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <DirectorTourModal
+              isOpen={isDirectorTourOpen}
+              onClose={() => setIsDirectorTourOpen(false)}
+              onNavigateTab={navigateToTab}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
 
       {/* CTO Emergency Stress-Test Modal */}
-      {isEmergencyModalOpen && <AppErrorBoundary key={`emergency-${resetVersion}`}><Suspense fallback={<ModalLoadingState />}><EmergencyStressModal
-        isOpen={isEmergencyModalOpen}
-        onClose={() => setIsEmergencyModalOpen(false)}
-        onApplyEmergency={handleApplyEmergency}
-        emergencyState={emergencyState}
-      /></Suspense></AppErrorBoundary>}
+      {isEmergencyModalOpen && (
+        <AppErrorBoundary key={`emergency-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <EmergencyStressModal
+              isOpen={isEmergencyModalOpen}
+              onClose={() => setIsEmergencyModalOpen(false)}
+              onApplyEmergency={handleApplyEmergency}
+              emergencyState={emergencyState}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
 
       {/* Executive Board Memo Modal */}
-      {isExecutiveMemoOpen && <AppErrorBoundary key={`memo-${resetVersion}`}><Suspense fallback={<ModalLoadingState />}><ExecutiveMemoModal
-        isOpen={isExecutiveMemoOpen}
-        onClose={() => setIsExecutiveMemoOpen(false)}
-      /></Suspense></AppErrorBoundary>}
+      {isExecutiveMemoOpen && (
+        <AppErrorBoundary key={`memo-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <ExecutiveMemoModal
+              isOpen={isExecutiveMemoOpen}
+              onClose={() => setIsExecutiveMemoOpen(false)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
 
       {/* BoD Defense Q&A Cheat Sheet Modal */}
-      {isBodDefenseOpen && <AppErrorBoundary key={`defense-${resetVersion}`}><Suspense fallback={<ModalLoadingState />}><BodDefenseModal
-        isOpen={isBodDefenseOpen}
-        onClose={() => setIsBodDefenseOpen(false)}
-      /></Suspense></AppErrorBoundary>}
+      {isBodDefenseOpen && (
+        <AppErrorBoundary key={`defense-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <BodDefenseModal
+              isOpen={isBodDefenseOpen}
+              onClose={() => setIsBodDefenseOpen(false)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
 
       {/* AI Copilot Intelligence Assistant Modal */}
-      {isAiCopilotOpen && <AppErrorBoundary key={`copilot-${resetVersion}`}><Suspense fallback={<ModalLoadingState />}><AiCopilotModal
-        isOpen={isAiCopilotOpen}
-        onClose={() => setIsAiCopilotOpen(false)}
-        onNavigateTab={navigateToTab}
-        onApplyAction={(action) => {
-          if (!action || typeof action !== 'object') return;
-          if (action.type === 'APPLY_OPTIMIZATION') {
-            setEmergencyState({ active: false });
-            setSimState(prev => ({
-              ...prev,
-              scenarioKey: 'normal',
-              emergencyActive: false,
-            }));
-            setIsSimBarOpen(true);
-          } else if (action.type === 'SWITCH_SCENARIO') {
-            setEmergencyState({ active: false });
-            setSimState(prev => ({
-              ...prev,
-              scenarioKey: action.scenarioKey || 'blackout_sumatera',
-              emergencyActive: false
-            }));
-            setIsSimBarOpen(true);
-          }
-        }}
-      /></Suspense></AppErrorBoundary>}
+      {isAiCopilotOpen && (
+        <AppErrorBoundary key={`copilot-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <AiCopilotModal
+              isOpen={isAiCopilotOpen}
+              onClose={() => setIsAiCopilotOpen(false)}
+              onNavigateTab={navigateToTab}
+              onApplyAction={(action) => {
+                if (!action || typeof action !== 'object') return;
+                if (action.type === 'APPLY_OPTIMIZATION') {
+                  setEmergencyState({ active: false });
+                  setSimState(prev => ({
+                    ...prev,
+                    scenarioKey: 'normal',
+                    emergencyActive: false,
+                  }));
+                  setIsSimBarOpen(true);
+                } else if (action.type === 'SWITCH_SCENARIO') {
+                  setEmergencyState({ active: false });
+                  setSimState(prev => ({
+                    ...prev,
+                    scenarioKey: action.scenarioKey || 'blackout_sumatera',
+                    emergencyActive: false
+                  }));
+                  setIsSimBarOpen(true);
+                }
+              }}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
 
-      {isPreflightOpen && <div
-        className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="presentation-preflight-title"
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            setIsPreflightOpen(false);
-            return;
-          }
-          if (event.key === 'Tab') {
-            const focusable = [...event.currentTarget.querySelectorAll('input:not(:disabled), button:not(:disabled)')];
-            const first = focusable[0];
-            const last = focusable.at(-1);
-            if (event.shiftKey && document.activeElement === first) {
-              event.preventDefault();
-              last?.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-              event.preventDefault();
-              first?.focus();
+      {/* Keyboard Shortcuts Guide Modal */}
+      {isShortcutsModalOpen && (
+        <AppErrorBoundary key={`shortcuts-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <ShortcutsModal
+              isOpen={isShortcutsModalOpen}
+              onClose={() => setIsShortcutsModalOpen(false)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Presentation Preflight Modal */}
+      {isPreflightOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="presentation-preflight-title"
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              setIsPreflightOpen(false);
+              return;
             }
-          }
-        }}
-      >
-        <section className="w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-2xl sm:p-7">
-          <p className="text-xs font-black uppercase tracking-wider text-red-700">Preflight demo · 7 menit</p>
-          <h2 id="presentation-preflight-title" className="mt-1 text-xl font-black">Periksa kesiapan presentasi</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">Konfirmasi batas demo sebelum pitch dimulai. Skenario akan direset ke preset lokal saat Anda melanjutkan.</p>
-          <ul className="mt-4 space-y-3">
-            {PRESENTATION_PREFLIGHT_ITEMS.map((item, index) => <li key={item}>
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm leading-relaxed hover:bg-slate-50">
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 shrink-0 accent-red-600"
-                  autoFocus={index === 0}
-                  checked={preflightChecks[index]}
-                  onChange={(event) => setPreflightChecks((checks) => checks.map((checked, checkIndex) => checkIndex === index ? event.target.checked : checked))}
-                />
-                <span>{item}</span>
-              </label>
-            </li>)}
-          </ul>
-          <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row">
-            <button type="button" onClick={() => setIsPreflightOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100">Batal</button>
-            <button
-              type="button"
-              disabled={!preflightChecks.every(Boolean)}
-              onClick={startPresentation}
-              className="rounded-xl bg-[#ED0226] px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-            >Mulai pitch dan reset demo</button>
-          </div>
-        </section>
-      </div>}
+            if (event.key === 'Tab') {
+              const focusable = [...event.currentTarget.querySelectorAll('input:not(:disabled), button:not(:disabled)')];
+              const first = focusable[0];
+              const last = focusable.at(-1);
+              if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last?.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first?.focus();
+              }
+            }
+          }}
+        >
+          <section className="w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-2xl sm:p-7">
+            <p className="text-xs font-black uppercase tracking-wider text-red-700">Preflight demo · 7 menit</p>
+            <h2 id="presentation-preflight-title" className="mt-1 text-xl font-black">Periksa kesiapan presentasi</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">Konfirmasi batas demo sebelum pitch dimulai. Skenario akan direset ke preset lokal saat Anda melanjutkan.</p>
+            <ul className="mt-4 space-y-3">
+              {PRESENTATION_PREFLIGHT_ITEMS.map((item, index) => (
+                <li key={item}>
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm leading-relaxed hover:bg-slate-50">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 shrink-0 accent-red-600"
+                      autoFocus={index === 0}
+                      checked={preflightChecks[index]}
+                      onChange={(event) => setPreflightChecks((checks) => checks.map((checked, checkIndex) => checkIndex === index ? event.target.checked : checked))}
+                    />
+                    <span>{item}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row">
+              <button type="button" onClick={() => setIsPreflightOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100">Batal</button>
+              <button
+                type="button"
+                disabled={!preflightChecks.every(Boolean)}
+                onClick={startPresentation}
+                className="rounded-xl bg-[#ED0226] px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                Mulai pitch dan reset demo
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* Live Presenter Pitch Walkthrough Teleprompter */}
       <GuidedPitchBar
@@ -420,5 +539,3 @@ export default function App() {
     </div>
   );
 }
-
-

@@ -83,7 +83,7 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-4xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-4xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
@@ -113,7 +113,7 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
         {/* Content Body: Split Left (Question List) & Right (Deep Answer & Live Proof) */}
         <div className="grid grid-cols-1 md:grid-cols-12 flex-1 overflow-hidden">
           {/* Left Questions List */}
-          <div className="md:col-span-5 border-r border-slate-200 overflow-y-auto p-4 space-y-2 bg-slate-50/50">
+          <div className="md:col-span-5 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-4 space-y-2 bg-slate-50/50 dark:bg-slate-950/40">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2 mb-1">
               Daftar 8 Pertanyaan Mematikan Direksi
             </span>
@@ -124,12 +124,12 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
                 className={`w-full text-left p-3 rounded-2xl border transition cursor-pointer flex flex-col gap-1 ${
                   selectedQuestion.id === item.id
                     ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-amber-300 text-slate-700'
+                    : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-amber-400 text-slate-700 dark:text-slate-200'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                    selectedQuestion.id === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                    selectedQuestion.id === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                   }`}>
                     {item.category}
                   </span>

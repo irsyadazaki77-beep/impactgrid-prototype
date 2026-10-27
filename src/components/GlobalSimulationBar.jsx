@@ -5,21 +5,12 @@ import {
   Pause, 
   RotateCcw, 
   Clock, 
-  Thermometer, 
-  Activity, 
-  Zap, 
-  Sun, 
-  CloudRain, 
-  Flame, 
-  Car, 
-  ShieldAlert, 
-  CheckCircle2, 
-  Radio, 
   Sliders, 
-  ChevronDown, 
-  ChevronUp,
   X,
-  Sparkles
+  Sparkles,
+  Calculator,
+  ShieldCheck,
+  CheckCircle2
 } from 'lucide-react';
 
 export const SIMULATION_SCENARIOS = {
@@ -84,15 +75,24 @@ export default function GlobalSimulationBar({
   setSimState, 
   isOpen, 
   onClose,
-  onTriggerEmergency 
+  onTriggerEmergency,
+  isPlaying: externalIsPlaying,
+  onTogglePlay: externalOnTogglePlay,
+  onReset: externalOnReset,
+  simulationMode = 'STRICT_AUDIT',
+  onToggleSimulationMode,
 }) {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [internalIsPlaying, setInternalIsPlaying] = useState(false);
   const [snapshotCopied, setSnapshotCopied] = useState(false);
 
-  // Play timeline simulation
+  const isControlled = typeof externalIsPlaying === 'boolean';
+  const isPlaying = isControlled ? externalIsPlaying : internalIsPlaying;
+  const togglePlay = externalOnTogglePlay || (() => setInternalIsPlaying(prev => !prev));
+
+  // Play timeline simulation only if not externally controlled
   useEffect(() => {
     let interval = null;
-    if (isPlaying) {
+    if (!isControlled && isPlaying) {
       interval = setInterval(() => {
         setSimState(prev => {
           const nextHour = (prev.simHour + 1) % 24;
@@ -105,7 +105,7 @@ export default function GlobalSimulationBar({
       }, 1400);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, setSimState]);
+  }, [isControlled, isPlaying, setSimState]);
 
   if (!isOpen) return null;
 
@@ -130,8 +130,12 @@ export default function GlobalSimulationBar({
   };
 
   const handleResetToBaseline = () => {
-    setSimState(createInitialSimulationState());
-    setIsPlaying(false);
+    if (externalOnReset) {
+      externalOnReset();
+    } else {
+      setSimState(createInitialSimulationState());
+      setInternalIsPlaying(false);
+    }
     setSnapshotCopied(false);
     if (onTriggerEmergency) onTriggerEmergency(false);
   };
@@ -181,13 +185,38 @@ export default function GlobalSimulationBar({
           </div>
 
           <div className="flex items-center gap-2">
+            {onToggleSimulationMode && (
+              <button
+                type="button"
+                onClick={onToggleSimulationMode}
+                className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 cursor-pointer ${
+                  simulationMode === 'PARAMETRIC_SANDBOX'
+                    ? 'bg-[#ED0226] hover:bg-red-700 text-white border-red-500 shadow-xs'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                }`}
+                title="Alihkan mode antara Audit Ketat (nilai terukur) dan Sandbox Parametrik (What-If)"
+              >
+                {simulationMode === 'PARAMETRIC_SANDBOX' ? (
+                  <>
+                    <Calculator className="w-3.5 h-3.5 text-cyan-300" />
+                    <span>Mode What-If Sandbox</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Mode Audit Ketat</span>
+                  </>
+                )}
+              </button>
+            )}
+
             <div className="flex items-center bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 text-xs font-mono text-cyan-400">
               <Clock className="w-3.5 h-3.5 mr-1.5 text-cyan-500" />
               <span>{simState.simTimeString}</span>
             </div>
 
             <button
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={togglePlay}
               className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
                 isPlaying 
                   ? 'bg-amber-500 text-slate-950 font-black' 
