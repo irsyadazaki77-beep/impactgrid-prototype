@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useState, useMemo } from 'react';
+import React, { lazy, Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { 
   Zap, 
   Leaf, 
@@ -121,6 +121,18 @@ export default function OverviewTab({
   const [incidentFilter, setIncidentFilter] = useState('all'); // 'all', 'critical', 'warning', 'info'
   const [incidents, setIncidents] = useState(INITIAL_INCIDENTS);
   const [showOpsCenter, setShowOpsCenter] = useState(false);
+  const [isOpsToolsOpen, setIsOpsToolsOpen] = useState(false);
+  const opsToolsMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (opsToolsMenuRef.current && !opsToolsMenuRef.current.contains(event.target)) {
+        setIsOpsToolsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsBrowserOnline(navigator.onLine);
@@ -238,95 +250,167 @@ export default function OverviewTab({
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-          {/* Primary Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+          {/* Primary Action Buttons (High-Impact Decision Block) */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* 1. Hero CTA: One-Pager Direksi */}
+            <button 
+              onClick={() => setIsOnePagerOpen(true)}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 hover:from-red-700 hover:to-red-600 text-white text-xs font-black transition cursor-pointer flex items-center space-x-1.5 shadow-sm hover:shadow-md btn-bounce ring-2 ring-red-500/20"
+              title="Buka Lembar Keputusan Resmi Dewan Direksi (Executive 1-Pager)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+              <span>One-Pager Direksi</span>
+            </button>
+
+            {/* 2. Key Scenario Simulation */}
             <button 
               onClick={() => setActiveTab('scenariolab')}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
             >
               <Sliders className="w-3.5 h-3.5 text-amber-400" />
               <span>Simulasi What-If</span>
             </button>
+
+            {/* 3. CapEx Allocation */}
             <button 
               onClick={() => setActiveTab('optimization')}
-              className="px-4 py-2 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+              className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
             >
               <span>Alokasi CapEx</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
             </button>
-            <button 
-              onClick={onOpenEmergencyModal}
-              className="px-3.5 py-2 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5"
-              title="Uji skenario darurat fail-safe 112"
-            >
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Drill Darurat</span>
-            </button>
+
+            {/* 4. Executive Dossier A4 */}
             {onOpenExecutiveMemo && (
               <button 
                 onClick={onOpenExecutiveMemo}
-                className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+                className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5"
                 title="Buka Executive Investment Dossier 1-Halaman (Siap Cetak / PDF)"
               >
                 <FileText className="w-3.5 h-3.5 text-[#ED0226]" />
                 <span>Executive Dossier A4</span>
               </button>
             )}
+
+            {/* 5. Drill Darurat */}
             <button 
-              onClick={() => setIsOnePagerOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 text-white hover:from-red-700 hover:to-red-600 text-xs font-black transition cursor-pointer flex items-center space-x-1.5 shadow-xs btn-bounce"
-              title="Buka Lembar Keputusan Resmi Dewan Direksi (Executive 1-Pager)"
+              onClick={onOpenEmergencyModal}
+              className="px-3.5 py-2 rounded-xl border border-rose-200/80 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5"
+              title="Uji skenario darurat fail-safe 112"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-              <span>One-Pager Direksi</span>
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+              <span>Drill Darurat</span>
             </button>
           </div>
 
-          {/* Secondary Tools & Enterprise Hub Shortcuts */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mr-1 hidden md:inline">Integrasi:</span>
-            <button 
-              onClick={() => setActiveTab('telemetry')}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1"
-              title="Buka Pusat Ingestion & Analisis Telemetri CSV BTS"
+          {/* Consolidated Secondary Tools & Enterprise Integrations Menu */}
+          <div className="relative shrink-0" ref={opsToolsMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsOpsToolsOpen(prev => !prev)}
+              aria-expanded={isOpsToolsOpen}
+              aria-haspopup="menu"
+              className="px-3 py-2 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5"
             >
-              <Upload className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
-              <span>Ingestion CSV BTS</span>
+              <Wrench className="w-3.5 h-3.5 text-[#ED0226]" />
+              <span>Alat & Integrasi Operasional</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${isOpsToolsOpen ? 'rotate-180' : ''}`} />
             </button>
-            <button 
-              onClick={() => setActiveTab('architecture')}
-              className="px-2.5 py-1.5 rounded-lg border border-indigo-200/80 dark:border-indigo-900/60 bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-indigo-950/30 dark:hover:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1"
-              title="Buka Pusat Kesiapan Integrasi IT, TM Forum API & K8s Telkomsel"
-            >
-              <ShieldCheck className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
-              <span>Kesiapan IT & TM Forum</span>
-            </button>
-            <button 
-              onClick={() => {
-                const el = document.getElementById('telkomsel-ops-guide');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="px-2.5 py-1.5 rounded-lg border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/50 hover:bg-amber-100/60 dark:bg-amber-950/30 dark:hover:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1"
-              title="Buka Panduan Edukasi & Simulator Operasional Telkomsel"
-            >
-              <Compass className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-              <span>Panduan Operasional</span>
-            </button>
-            <button 
-              onClick={() => {
-                setShowOpsCenter(true);
-                setTimeout(() => {
-                  const el = document.getElementById('noc-fop-operations-center');
-                  el?.scrollIntoView({ behavior: 'smooth' });
-                }, 80);
-              }}
-              className="px-2.5 py-1.5 rounded-lg border border-red-200/80 dark:border-red-900/60 bg-red-50/50 hover:bg-red-100/60 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-700 dark:text-red-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1"
-              title="Buka Pusat Operasional Lapangan (FOP), Tiket e-WO & Runbook NOC"
-            >
-              <Wrench className="w-3 h-3 text-red-600 dark:text-red-400" />
-              <span>Tiket e-WO & Runbook NOC</span>
-            </button>
+
+            {isOpsToolsOpen && (
+              <div 
+                role="menu"
+                aria-label="Alat dan Integrasi Operasional"
+                className="absolute right-0 mt-2 w-72 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-2xl z-40 p-2 animate-in fade-in slide-in-from-top-2 duration-150"
+              >
+                <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1">
+                  <p className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Alat & Integrasi Sistem</p>
+                  <p className="text-[10px] text-slate-500">Akses cepat modul telemetri, TM Forum, & operasional</p>
+                </div>
+
+                <div className="space-y-1">
+                  <button 
+                    role="menuitem"
+                    onClick={() => { setActiveTab('telemetry'); setIsOpsToolsOpen(false); }}
+                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400">
+                        <Upload className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">Ingestion CSV BTS</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Pipeline telemetri sensor RAN</p>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    role="menuitem"
+                    onClick={() => { setActiveTab('architecture'); setIsOpsToolsOpen(false); }}
+                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">Kesiapan IT & TM Forum</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Open API & arsitektur Kubernetes</p>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    role="menuitem"
+                    onClick={() => {
+                      setIsOpsToolsOpen(false);
+                      const el = document.getElementById('telkomsel-ops-guide');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                        <Compass className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">Panduan Operasional</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Simulasi & SOP teknisi lapangan</p>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    role="menuitem"
+                    onClick={() => {
+                      setIsOpsToolsOpen(false);
+                      setShowOpsCenter(true);
+                      setTimeout(() => {
+                        const el = document.getElementById('noc-fop-operations-center');
+                        el?.scrollIntoView({ behavior: 'smooth' });
+                      }, 80);
+                    }}
+                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+                        <Wrench className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">Tiket e-WO & Runbook NOC</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Work order otomatis FOP shelter</p>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
