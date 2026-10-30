@@ -33,6 +33,8 @@ const ShortcutsModal = lazy(() => import('./components/ShortcutsModal'));
 const QrShareModal = lazy(() => import('./components/QrShareModal'));
 const TelkomselSsoModal = lazy(() => import('./components/TelkomselSsoModal'));
 const OfficialBeritaAcaraModal = lazy(() => import('./components/OfficialBeritaAcaraModal'));
+const FieldTechnicianConsoleModal = lazy(() => import('./components/FieldTechnicianConsoleModal'));
+const SapAccountingVoucherModal = lazy(() => import('./components/SapAccountingVoucherModal'));
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
 const PRESENTATION_PREFLIGHT_ITEMS = [
@@ -68,6 +70,13 @@ export default function App() {
   const [isQrShareOpen, setIsQrShareOpen] = useState(false);
   const [isSsoModalOpen, setIsSsoModalOpen] = useState(false);
   const [isOfficialBaReOpen, setIsOfficialBaReOpen] = useState(false);
+  const [isFieldConsoleOpen, setIsFieldConsoleOpen] = useState(false);
+  const [isSapVoucherOpen, setIsSapVoucherOpen] = useState(false);
+  const [resolvedSites, setResolvedSites] = useState([]);
+
+  const handleResolveSiteAnomaly = (siteId) => {
+    setResolvedSites(prev => [...new Set([...prev, siteId])]);
+  };
   const [ssoSession, setSsoSession] = useState(() => getStoredSsoSession());
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
@@ -270,6 +279,8 @@ export default function App() {
         onOpenAiCopilot={openAiCopilot}
         onOpenQrShare={() => setIsQrShareOpen(true)}
         onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+        onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
+        onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
         emergencyState={emergencyState}
         selectedScale={selectedScale}
         setSelectedScale={setSelectedScale}
@@ -344,13 +355,20 @@ export default function App() {
                         viewMode={viewMode}
                         setViewMode={changeViewMode}
                         isPitchWalkthroughActive={isPitchWalkthroughActive}
+                        onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
                       />
                     </>
                   )}
                   {tabId === 'pilotvalidation' && <PilotValidationCenterTab onOpenReportModal={openReportModal} />}
                   {tabId === 'digitaltwin' && <DigitalTwinTab />}
                   {tabId === 'agents' && <AgentOrchestratorTab />}
-                  {tabId === 'telemetry' && <TelemetryTab onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} />}
+                  {tabId === 'telemetry' && (
+                    <TelemetryTab 
+                      onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} 
+                      onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
+                      resolvedSites={resolvedSites}
+                    />
+                  )}
                   {tabId === 'scenariolab' && (
                     <ScenarioLabTab
                       isActive={activeTab === tabId}
@@ -364,6 +382,7 @@ export default function App() {
                     <FinancialModelTab
                       simulationMode={simulationMode}
                       onToggleSimulationMode={toggleSimulationMode}
+                      onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
                     />
                   )}
                   {tabId === 'architecture' && <ArchitectureTab onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} />}
@@ -523,6 +542,31 @@ export default function App() {
             <OfficialBeritaAcaraModal
               isOpen={isOfficialBaReOpen}
               onClose={() => setIsOfficialBaReOpen(false)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Field Operations (FOP) Mobile Technician Console Modal */}
+      {isFieldConsoleOpen && (
+        <AppErrorBoundary key={`fop-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <FieldTechnicianConsoleModal
+              isOpen={isFieldConsoleOpen}
+              onClose={() => setIsFieldConsoleOpen(false)}
+              onResolveSiteAnomaly={handleResolveSiteAnomaly}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* SAP S/4HANA Accounting Journal Voucher & BAST Modal */}
+      {isSapVoucherOpen && (
+        <AppErrorBoundary key={`sap-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <SapAccountingVoucherModal
+              isOpen={isSapVoucherOpen}
+              onClose={() => setIsSapVoucherOpen(false)}
             />
           </Suspense>
         </AppErrorBoundary>

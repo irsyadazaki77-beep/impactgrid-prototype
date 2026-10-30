@@ -102,7 +102,7 @@ const SIMULATED_BTS_FEEDS = [
   }
 ];
 
-export default function TelemetryTab({ onOpenOfficialBaRe }) {
+export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, resolvedSites = [] }) {
   const [activeView, setActiveView] = useState('all'); // 'all', 'ingestion', 'reconciliation', 'live_stream'
 
   return (
@@ -242,7 +242,11 @@ export default function TelemetryTab({ onOpenOfficialBaRe }) {
       {/* Feature 2: 3-Way Reconciliation Matrix between PLN, Rectifier, and OSS */}
       {(activeView === 'all' || activeView === 'reconciliation') && (
         <section className="animate-fade-in">
-          <TelemetryReconciliationMatrix onOpenOfficialBaRe={onOpenOfficialBaRe} />
+          <TelemetryReconciliationMatrix 
+            onOpenOfficialBaRe={onOpenOfficialBaRe} 
+            onOpenFieldConsole={onOpenFieldConsole}
+            resolvedSites={resolvedSites}
+          />
         </section>
       )}
 

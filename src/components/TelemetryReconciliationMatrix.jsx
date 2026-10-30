@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, AlertTriangle, CheckCircle2, RefreshCw, Zap, Cpu, Server, ShieldCheck, ArrowRight, FileText } from 'lucide-react';
+import { Database, AlertTriangle, CheckCircle2, RefreshCw, Zap, Cpu, Server, ShieldCheck, ArrowRight, FileText, Wrench } from 'lucide-react';
 
 const RECONCILIATION_SITES = [
   {
@@ -43,7 +43,7 @@ const RECONCILIATION_SITES = [
   }
 ];
 
-export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe }) {
+export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe, onOpenFieldConsole, resolvedSites = [] }) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -54,9 +54,23 @@ export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe }) {
     }, 800);
   };
 
+  const processedSites = RECONCILIATION_SITES.map(s => {
+    if (resolvedSites.includes(s.id)) {
+      return {
+        ...s,
+        status: 'RESOLVED',
+        plnKw: 3.12,
+        discrepancyPct: 14.1,
+        unaccountedPct: 0.7,
+        statusText: 'Anomali Teratasi: Filter AC Dibersihkan & Freon R-410A Terisi'
+      };
+    }
+    return s;
+  });
+
   const filtered = filterStatus === 'all' 
-    ? RECONCILIATION_SITES 
-    : RECONCILIATION_SITES.filter(s => s.status === filterStatus);
+    ? processedSites 
+    : processedSites.filter(s => s.status === filterStatus);
 
   return (
     <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 md:p-6 space-y-5 shadow-xs">
@@ -160,14 +174,29 @@ export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe }) {
                   </div>
                 </td>
                 <td className="p-3">
-                  {site.status === 'NORMAL' ? (
+                  {site.status === 'RESOLVED' ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Servis FOP Selesai (+{site.unaccountedPct}%)
+                    </span>
+                  ) : site.status === 'NORMAL' ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                       <CheckCircle2 className="w-3 h-3" /> Rekonsiliasi Klop (&plusmn;{site.unaccountedPct}%)
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
-                      <AlertTriangle className="w-3 h-3" /> Anomali Kebocoran (+{site.unaccountedPct}%)
-                    </span>
+                    <div className="space-y-1">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                        <AlertTriangle className="w-3 h-3" /> Anomali Kebocoran (+{site.unaccountedPct}%)
+                      </span>
+                      {onOpenFieldConsole && (
+                        <button
+                          onClick={onOpenFieldConsole}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-slate-950 text-[10px] font-black transition cursor-pointer shadow-xs"
+                        >
+                          <Wrench className="w-3 h-3" />
+                          <span>Dispatch FOP Lapangan</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </td>
               </tr>

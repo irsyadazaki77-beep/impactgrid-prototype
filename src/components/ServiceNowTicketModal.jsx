@@ -14,11 +14,12 @@ import {
   Layers,
   ExternalLink,
   RefreshCw,
-  Hash
+  Hash,
+  Wrench
 } from 'lucide-react';
 import { addStoredWorkOrder } from '../utils/storageEngine';
 
-export default function ServiceNowTicketModal({ isOpen, onClose, ticketData }) {
+export default function ServiceNowTicketModal({ isOpen, onClose, ticketData, onOpenFieldConsole }) {
   const [isDispatching, setIsDispatching] = useState(false);
   const [dispatchResult, setDispatchResult] = useState(null);
   const [copiedPayload, setCopiedPayload] = useState(false);
@@ -317,7 +318,21 @@ STANDAR INTEGRASI & KEPATUHAN:
             <span>Unduh Berita Acara e-WO (.txt)</span>
           </button>
 
-          <div className="w-full sm:w-auto flex items-center gap-2">
+          <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
+            {dispatchResult?.success && onOpenFieldConsole && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenFieldConsole();
+                }}
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer shadow-xs"
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                <span>Buka Konsol FOP Lapangan</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onClose}

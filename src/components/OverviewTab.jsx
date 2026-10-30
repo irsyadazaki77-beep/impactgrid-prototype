@@ -45,6 +45,7 @@ import BeforeVsAfterComparison from './BeforeVsAfterComparison';
 import ExecutiveDecisionTimeline from './ExecutiveDecisionTimeline';
 import SocialDividendCard from './SocialDividendCard';
 import ImpactGridAcademyCard from './ImpactGridAcademyCard';
+import ExecutiveOnePagerModal from './ExecutiveOnePagerModal';
 
 const IndonesiaGisMap = lazy(() => import('./IndonesiaGisMap'));
 
@@ -109,12 +110,14 @@ export default function OverviewTab({
   viewMode = 'executive',
   setViewMode,
   isPitchWalkthroughActive = false,
-  onOpenExecutiveMemo
+  onOpenExecutiveMemo,
+  onOpenFieldConsole
 }) {
   const [showGisMap, setShowGisMap] = useState(false);
   const [isBrowserOnline, setIsBrowserOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
   const [isBodSigned, setIsBodSigned] = useState(false);
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const [isOnePagerOpen, setIsOnePagerOpen] = useState(false);
   const [incidentFilter, setIncidentFilter] = useState('all'); // 'all', 'critical', 'warning', 'info'
   const [incidents, setIncidents] = useState(INITIAL_INCIDENTS);
   const [showOpsCenter, setShowOpsCenter] = useState(false);
@@ -270,6 +273,14 @@ export default function OverviewTab({
                 <span>Executive Dossier A4</span>
               </button>
             )}
+            <button 
+              onClick={() => setIsOnePagerOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 text-white hover:from-red-700 hover:to-red-600 text-xs font-black transition cursor-pointer flex items-center space-x-1.5 shadow-xs btn-bounce"
+              title="Buka Lembar Keputusan Resmi Dewan Direksi (Executive 1-Pager)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+              <span>One-Pager Direksi</span>
+            </button>
           </div>
 
           {/* Secondary Tools & Enterprise Hub Shortcuts */}
@@ -934,7 +945,7 @@ export default function OverviewTab({
 
           {/* NOC Field Operations & Runbook Center */}
           <div id="noc-fop-operations-center" className="scroll-mt-6">
-            <NocOperationsRunbookCenter />
+            <NocOperationsRunbookCenter onOpenFieldConsole={onOpenFieldConsole} />
           </div>
         </div>
       )}
@@ -951,6 +962,12 @@ export default function OverviewTab({
       <BoDCertificateModal
         isOpen={isCertModalOpen}
         onClose={() => setIsCertModalOpen(false)}
+      />
+
+      {/* Executive One-Pager Decision Modal */}
+      <ExecutiveOnePagerModal
+        isOpen={isOnePagerOpen}
+        onClose={() => setIsOnePagerOpen(false)}
       />
     </div>
   );

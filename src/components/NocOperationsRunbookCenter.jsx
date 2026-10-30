@@ -31,7 +31,7 @@ import {
 import ServiceNowTicketModal from './ServiceNowTicketModal';
 import { getStoredWorkOrders, saveStoredWorkOrders } from '../utils/storageEngine';
 
-export default function NocOperationsRunbookCenter() {
+export default function NocOperationsRunbookCenter({ onOpenFieldConsole }) {
   const [activeSubTab, setActiveSubTab] = useState('work_orders'); // 'work_orders' | 'runbooks' | 'asset_health' | 'shift_handover'
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isServiceNowModalOpen, setIsServiceNowModalOpen] = useState(false);
@@ -1000,6 +1000,7 @@ DAFTAR TIKET DALAM PROSES:
         isOpen={isServiceNowModalOpen}
         onClose={() => setIsServiceNowModalOpen(false)}
         ticketData={serviceNowTicketData}
+        onOpenFieldConsole={onOpenFieldConsole}
       />
     </div>
   );

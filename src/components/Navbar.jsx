@@ -25,7 +25,9 @@ import {
   Cpu,
   Check,
   Users,
-  FileText
+  FileText,
+  Database,
+  Smartphone
 } from 'lucide-react';
 import DataProvenanceModal from './DataProvenanceModal';
 import { ENTERPRISE_ROLES } from '../data/enterpriseRoles';
@@ -41,6 +43,8 @@ export default function Navbar({
   onOpenAiCopilot,
   onOpenQrShare,
   onOpenOfficialBaRe,
+  onOpenFieldConsole,
+  onOpenSapVoucher,
   emergencyState = { active: false },
   selectedScale,
   setSelectedScale,
@@ -135,10 +139,10 @@ export default function Navbar({
           </div>
 
           {/* Center Mode Switcher: Executive Pitch vs Deep Engineering */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs shrink-0 w-full sm:w-auto justify-center order-2 md:order-none">
+          <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs shrink-0 w-full sm:w-auto justify-center order-2 md:order-none shadow-2xs">
             <button
               onClick={() => setViewMode && setViewMode('executive')}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer btn-bounce ${
                 viewMode === 'executive'
                   ? 'bg-[#ED0226] text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -150,7 +154,7 @@ export default function Navbar({
             </button>
             <button
               onClick={() => setViewMode && setViewMode('engineering')}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer btn-bounce ${
                 viewMode === 'engineering'
                   ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -317,10 +321,10 @@ export default function Navbar({
             {/* Start Presentation 7 menit */}
             <button
               onClick={onTogglePitchWalkthrough}
-              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs transition cursor-pointer border shrink-0 ${
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer border shrink-0 btn-bounce ${
                 isPitchWalkthroughActive 
-                  ? 'bg-[#ED0226] text-white border-red-600 ring-2 ring-red-500/40' 
-                  : 'bg-[#ED0226] hover:bg-red-700 text-white border-red-600 shadow-sm'
+                  ? 'bg-gradient-to-r from-red-600 to-[#ED0226] text-white border-red-500 ring-2 ring-red-500/50 shadow-md' 
+                  : 'bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 hover:from-red-700 hover:to-red-600 text-white border-red-500/80 shadow-xs hover:shadow-md'
               }`}
               aria-label={isPitchWalkthroughActive ? 'Briefing aktif, tutup briefing' : 'Executive Briefing (7 Menit)'}
               title={isPitchWalkthroughActive ? 'Tutup briefing (W)' : 'Mulai Executive Briefing 7 menit (W)'}
@@ -473,6 +477,46 @@ export default function Navbar({
                         </div>
                       </div>
                       <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">BA-RE</span>
+                    </button>
+
+                    {/* Field Operations (FOP) Mobile Console */}
+                    <button
+                      onClick={() => {
+                        onOpenFieldConsole?.();
+                        setIsToolkitOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                          <Wrench className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Konsol Teknisi FOP Lapangan</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">PWA servis shelter, scan QR gerbang &amp; tutup tiket</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-mono text-amber-800 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700">FOP</span>
+                    </button>
+
+                    {/* SAP S/4HANA Accounting Journal Voucher */}
+                    <button
+                      onClick={() => {
+                        onOpenSapVoucher?.();
+                        setIsToolkitOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                          <Database className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Jurnal Akuntansi SAP S/4HANA</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Posting pengakuan efisiensi GL 510100 &amp; BAST BAPI</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-mono text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-300 dark:border-blue-700">SAP</span>
                     </button>
 
                     {/* QR Code Share for Mobile */}

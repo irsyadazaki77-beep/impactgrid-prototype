@@ -230,10 +230,19 @@ export default function DifferenceInDifferencesVisualizer() {
           <div className="h-72 w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={didChartData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
                 <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 10 }} />
                 <YAxis domain={['auto', 'auto']} stroke="#64748b" tick={{ fontSize: 10 }} />
                 <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '12px',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.4)'
+                  }}
                   formatter={(val, name) => [
                     `${Number(val).toLocaleString('id-ID')} kWh/site/bln`,
                     name === 'intervention' ? 'Grup Intervensi (40)' :

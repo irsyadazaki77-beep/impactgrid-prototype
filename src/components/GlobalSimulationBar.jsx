@@ -577,7 +577,7 @@ export default function GlobalSimulationBar({
           })}
         </div>
 
-        {/* 5. Live O-RAN Action Banner */}
+        {/* 5. Live O-RAN Action & Delta Feedback Banner */}
         <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -585,9 +585,14 @@ export default function GlobalSimulationBar({
               <strong className="text-white">Aksi O-RAN rApp ({simState.simTimeString}):</strong> {hourTelemetry.carrierAction}
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono shrink-0">
-            {currentScenario.name}
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-mono font-bold">
+              Proteksi 112: 100% Siaga
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">
+              {currentScenario.name}
+            </span>
+          </div>
         </div>
 
       </div>

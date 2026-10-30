@@ -34,13 +34,13 @@ const engineeringItems = [
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, viewMode = 'executive' }) {
-  const [expanded, setExpanded] = useState({ 'PEMANTAUAN OPERASIONAL': true, 'MODUL TEKNIS & O-RAN': true });
+  const [expanded, setExpanded] = useState({ 'Menu Operasi': true, 'Teknis & O-RAN': true });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
 
-  const groups = [{ title: 'PEMANTAUAN OPERASIONAL', items: executiveItems }];
+  const groups = [{ title: 'Menu Operasi', items: executiveItems }];
   if (viewMode === 'engineering') {
-    groups.push({ title: 'MODUL TEKNIS & O-RAN', items: engineeringItems });
+    groups.push({ title: 'Teknis & O-RAN', items: engineeringItems });
   }
 
   return (
@@ -61,8 +61,8 @@ export default function Sidebar({ activeTab, setActiveTab, viewMode = 'executive
         <div className="sidebar-header flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-800">
           <div className="sidebar-mode flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full bg-[#ED0226] shrink-0 animate-pulse" />
-            <span className="sidebar-mode-label text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 truncate">
-              {viewMode === 'executive' ? 'Executive Command Center' : 'NOC & Deep Engineering'}
+            <span className="sidebar-mode-label text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 truncate">
+              {viewMode === 'executive' ? 'Executive Mode' : 'NOC Engineering'}
             </span>
           </div>
           <button 

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import DataBadge from './DataBadge';
 import { deriveSimulationMetrics } from '../utils/simulationEngine';
 import { runMonteCarloSimulation } from '../utils/monteCarloEngine';
@@ -208,18 +208,33 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
         <div className="h-80 w-full md:h-96">
           {isActive && (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={scenarios} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <BarChart data={scenarios} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
                 <XAxis dataKey="rate" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
                 <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '12px',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.4)'
+                  }}
                   formatter={(value, name) =>
                     name === 'cost'
                       ? [`Rp ${Number(value).toFixed(1)} juta`, 'Manfaat bruto']
                       : [`${Number(value).toLocaleString('id-ID')} kWh`, 'Energi']
                   }
                 />
-                <Bar dataKey="energy" fill="#0284c7" radius={[4, 4, 0, 0]} name="Energi" />
+                <ReferenceLine 
+                  y={Math.round(annualKWh * 0.08)} 
+                  stroke="#ef4444" 
+                  strokeDasharray="4 4" 
+                  label={{ value: `Target Base 8% (${Math.round(annualKWh * 0.08 / 1000)} MWh)`, fill: '#ef4444', fontSize: 11, position: 'top' }} 
+                />
+                <Bar dataKey="energy" fill="#0284c7" radius={[6, 6, 0, 0]} name="Energi" />
               </BarChart>
             </ResponsiveContainer>
           )}

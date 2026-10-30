@@ -14,7 +14,8 @@ import {
   CheckCircle2, 
   Info,
   DollarSign,
-  Scale
+  Scale,
+  Database
 } from 'lucide-react';
 
 const CAPEX = 450_000_000;
@@ -144,7 +145,7 @@ function rupiah(value) {
   return `${isNeg ? '-Rp ' : 'Rp '}${formatted} juta`;
 }
 
-export default function FinancialModelTab({ simulationMode: externalMode, onToggleSimulationMode }) {
+export default function FinancialModelTab({ simulationMode: externalMode, onToggleSimulationMode, onOpenSapVoucher }) {
   const [internalMode, setInternalMode] = useState('STRICT_AUDIT');
   const simulationMode = externalMode || internalMode;
   const toggleMode = onToggleSimulationMode || (() => setInternalMode(m => m === 'STRICT_AUDIT' ? 'PARAMETRIC_SANDBOX' : 'STRICT_AUDIT'));
@@ -186,27 +187,40 @@ export default function FinancialModelTab({ simulationMode: externalMode, onTogg
             <DataBadge type={simulationMode === 'PARAMETRIC_SANDBOX' ? 'PARAMETRIC_PROJECTION' : 'synthetic'} />
           </div>
 
-          <button
-            type="button"
-            onClick={toggleMode}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 shadow-2xs cursor-pointer ${
-              simulationMode === 'PARAMETRIC_SANDBOX'
-                ? 'bg-[#ED0226] hover:bg-red-700 text-white border-red-600'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700'
-            }`}
-          >
-            {simulationMode === 'PARAMETRIC_SANDBOX' ? (
-              <>
-                <Calculator className="w-3.5 h-3.5 text-white" />
-                <span>Mode What-If Sandbox Aktif</span>
-              </>
-            ) : (
-              <>
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Aktifkan Mode What-If Sandbox</span>
-              </>
+          <div className="flex items-center gap-2">
+            {onOpenSapVoucher && (
+              <button
+                type="button"
+                onClick={onOpenSapVoucher}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold border border-blue-500/50 bg-blue-600 hover:bg-blue-700 text-white transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>Posting Jurnal SAP S/4HANA</span>
+              </button>
             )}
-          </button>
+
+            <button
+              type="button"
+              onClick={toggleMode}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 shadow-2xs cursor-pointer ${
+                simulationMode === 'PARAMETRIC_SANDBOX'
+                  ? 'bg-[#ED0226] hover:bg-red-700 text-white border-red-600'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700'
+              }`}
+            >
+              {simulationMode === 'PARAMETRIC_SANDBOX' ? (
+                <>
+                  <Calculator className="w-3.5 h-3.5 text-white" />
+                  <span>Mode What-If Sandbox Aktif</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Aktifkan Mode What-If Sandbox</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         <h1 className="text-2xl font-black text-slate-900 dark:text-white">
