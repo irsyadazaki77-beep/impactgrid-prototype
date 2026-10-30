@@ -230,6 +230,75 @@ app.post('/api/v1/telemetry/ingest', (req, res) => {
   });
 });
 
+// Real-time Telemetry Server-Sent Events (SSE) Stream
+app.get('/api/v1/telemetry/stream', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
+
+  // Send initial handshake
+  const initialPayload = {
+    type: 'CONNECTED',
+    server_time: new Date().toISOString(),
+    dc_node: 'TELKOM_DC_SENTUL_01',
+    message: 'ImpactGrid Real-Time Telemetry Stream Connected (O-RAN O1 Loop Active)'
+  };
+  res.write(`data: ${JSON.stringify(initialPayload)}\n\n`);
+
+  let tickCount = 0;
+  const intervalId = setInterval(() => {
+    tickCount += 1;
+    const now = new Date();
+    const baseRanKw = 184.2 + (Math.sin(tickCount * 0.4) * 4.5);
+    const savingsKw = 34.8 + (Math.cos(tickCount * 0.3) * 2.2);
+    const prbAvg = Math.max(12, Math.min(85, Math.round(38.5 + Math.sin(tickCount * 0.5) * 18)));
+    
+    let activeAlert = null;
+    if (tickCount % 8 === 0) {
+      activeAlert = {
+        site_id: 'BDG-DGO-P04',
+        type: 'PHANTOM_POWER_DISCREPANCY',
+        severity: 'HIGH',
+        discrepancy_pct: 14.2,
+        message: 'Discrepansi meteran PLN vs smart meter Class 0.5s melebihi 10% (Saran: Dispatch e-WO FOP Mitratel).'
+      };
+    } else if (tickCount % 13 === 0) {
+      activeAlert = {
+        site_id: 'SBY-GUB-P02',
+        type: 'SHELTER_HEAT_DISSIPATION',
+        severity: 'CRITICAL',
+        temp_celsius: 36.8,
+        message: 'Suhu shelter mendekati batas kritis (37°C). Model PINN pendingin menyarankan free-cooling override.'
+      };
+    }
+
+    const eventPayload = {
+      type: 'TELEMETRY_TICK',
+      timestamp: now.toISOString(),
+      sequence: tickCount,
+      metrics: {
+        total_ran_kw: Number(baseRanKw.toFixed(1)),
+        power_saved_kw: Number(savingsKw.toFixed(1)),
+        avg_prb_percent: prbAvg,
+        active_sleep_sites: prbAvg < 35 ? 38 : 34,
+        sla_drop_call_pct: 0.06,
+        dc_ambient_temp: Number((28.4 + Math.sin(tickCount * 0.2) * 1.5).toFixed(1))
+      },
+      alert: activeAlert
+    };
+
+    res.write(`data: ${JSON.stringify(eventPayload)}\n\n`);
+  }, 3000);
+
+  req.on('close', () => {
+    clearInterval(intervalId);
+    res.end();
+  });
+});
+
 app.post('/api/ai/chat', async (req, res) => {
   const { message, model = 'gemini-2.5-flash', history = [], liveContext = null } = req.body ?? {};
   if (typeof message !== 'string' || !message.trim() || message.length > 2000) {

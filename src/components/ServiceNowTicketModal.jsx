@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Hash
 } from 'lucide-react';
+import { addStoredWorkOrder } from '../utils/storageEngine';
 
 export default function ServiceNowTicketModal({ isOpen, onClose, ticketData }) {
   const [isDispatching, setIsDispatching] = useState(false);
@@ -66,6 +67,28 @@ export default function ServiceNowTicketModal({ isOpen, onClose, ticketData }) {
 
     setTimeout(() => {
       setIsDispatching(false);
+      try {
+        addStoredWorkOrder({
+          id: incidentNumber.replace('INC-', 'WO-'),
+          siteId,
+          siteName,
+          anomalyType,
+          priority: priority.split(' (')[0],
+          priorityColor: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300',
+          status: 'Dispatched',
+          statusColor: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+          technician: technician.split(' (')[0],
+          technicianPhone: technician.includes('(') ? technician.split('(')[1].replace(')', '') : '+62 811-2200-911',
+          vendorTeam: assignmentGroup,
+          slaMinutesLeft: 240,
+          checklist: [
+            { text: 'Verifikasi pembacaan meter Class 0.5s di lokasi', completed: false },
+            { text: 'Inspeksi fisik shelter & dokumentasi SOM', completed: false }
+          ]
+        });
+      } catch {
+        // storage fallback
+      }
       setDispatchResult({
         status: 201,
         statusText: 'Created',

@@ -24,6 +24,7 @@ import {
 import { 
   INVESTMENT_PORTFOLIO_RECOMMENDATIONS 
 } from '../data/mockData';
+import AutonomousClosedLoopController from './AutonomousClosedLoopController';
 
 const REQUIRED_INPUTS = [
   { icon: Database, title: 'Baseline energi per lokasi', detail: 'Data meter/tagihan dengan periode, batas aset, dan rekonsiliasi yang disetujui (AMR PLN 15-menitan).', status: 'Tervalidasi (AMR PLN 15-Menit)' },
@@ -213,6 +214,17 @@ export default function OptimizationTab() {
               }`}
             >
               Tata Kelola & Kebutuhan Data
+            </button>
+            <button
+              onClick={() => setActiveView('closed_loop')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'closed_loop'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300/40 hover:bg-emerald-100'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Closed-Loop Otonom (O-RAN)</span>
             </button>
           </div>
         </div>
@@ -715,6 +727,11 @@ export default function OptimizationTab() {
             </p>
           </section>
         </div>
+      )}
+
+      {/* SUB-VIEW 5: AUTONOMOUS CLOSED-LOOP O-RAN CONTROLLER */}
+      {activeView === 'closed_loop' && (
+        <AutonomousClosedLoopController />
       )}
     </div>
   );

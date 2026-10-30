@@ -51,6 +51,8 @@ export default function Navbar({
   setViewMode,
   currentRole = 'vp_network',
   onRoleChange,
+  onOpenSsoModal,
+  ssoSession,
   theme = 'light',
   onToggleTheme,
   onResetDemo,
@@ -249,6 +251,20 @@ export default function Navbar({
               </div>
             )}
           </div>
+
+          {/* Telkomsel IAM SSO Portal Button */}
+          <button
+            type="button"
+            onClick={onOpenSsoModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/30 bg-red-50 dark:bg-red-950/40 text-xs font-bold text-[#ED0226] hover:bg-red-100 dark:hover:bg-red-900/60 transition cursor-pointer order-2 md:order-none shrink-0"
+            title="Buka Portal Telkomsel IAM SSO (OAuth2 / PKCE Login)"
+          >
+            <Lock className="w-3.5 h-3.5 text-[#ED0226]" />
+            <span className="hidden sm:inline font-mono">
+              {ssoSession?.name ? `${ssoSession.name.split(' ')[0]} (${ssoSession.nik})` : 'SSO Telkomsel'}
+            </span>
+            <span className="sm:hidden font-mono">SSO</span>
+          </button>
 
           {/* Right Action Tools: Controls & Dropdowns */}
           <div className="flex items-center justify-center md:justify-end flex-wrap gap-1.5 sm:gap-2 shrink-0 order-3 md:order-none">
@@ -490,7 +506,7 @@ export default function Navbar({
           <div className="telemetry-ticker-metrics flex items-center flex-wrap gap-x-3.5 gap-y-1">
             <div className="flex items-center space-x-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>NOC TELEMETRI AKTIF</span>
+              <span>LIVE SSE STREAM (SENTUL DC &bull; 14ms)</span>
             </div>
             <span className="text-slate-300 dark:text-slate-700 hidden sm:inline select-none" aria-hidden="true">•</span>
             <span className="text-slate-600 dark:text-slate-300">

@@ -142,4 +142,23 @@ describe('Live REST Telemetry Ingestion endpoint', () => {
     expect(body.anomalies.some((a) => a.type === 'PHANTOM_POWER_DISCREPANCY')).toBe(true);
     expect(body.anomalies.some((a) => a.type === 'SHELTER_HEAT_DISSIPATION')).toBe(true);
   });
+
+  it('streams live SSE telemetry events on /api/v1/telemetry/stream', async () => {
+    const controller = new AbortController();
+    const res = await fetch(`${baseUrl}/api/v1/telemetry/stream`, {
+      signal: controller.signal
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/event-stream');
+
+    const reader = res.body.getReader();
+    const { value } = await reader.read();
+    const text = new TextDecoder().decode(value);
+    expect(text).toContain('data:');
+    expect(text).toContain('CONNECTED');
+    expect(text).toContain('TELKOM_DC_SENTUL_01');
+
+    controller.abort();
+  });
 });

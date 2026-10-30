@@ -10,6 +10,7 @@ import { useSimulationState } from './hooks/useSimulationState';
 import { useAuditTrail } from './hooks/useAuditTrail';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { ENTERPRISE_ROLES } from './data/enterpriseRoles';
+import { getStoredSsoSession } from './utils/storageEngine';
 
 const KpiStatRow = memo(lazy(() => import('./components/KpiStatRow')));
 const OverviewTab = memo(lazy(() => import('./components/OverviewTab')));
@@ -30,6 +31,7 @@ const BodDefenseModal = lazy(() => import('./components/BodDefenseModal'));
 const AiCopilotModal = lazy(() => import('./components/AiCopilotModal'));
 const ShortcutsModal = lazy(() => import('./components/ShortcutsModal'));
 const QrShareModal = lazy(() => import('./components/QrShareModal'));
+const TelkomselSsoModal = lazy(() => import('./components/TelkomselSsoModal'));
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
 const PRESENTATION_PREFLIGHT_ITEMS = [
@@ -63,6 +65,8 @@ export default function App() {
   const [isAiCopilotOpen, setIsAiCopilotOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isQrShareOpen, setIsQrShareOpen] = useState(false);
+  const [isSsoModalOpen, setIsSsoModalOpen] = useState(false);
+  const [ssoSession, setSsoSession] = useState(() => getStoredSsoSession());
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
   const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
@@ -270,6 +274,8 @@ export default function App() {
         setActiveLens={setActiveLens}
         currentRole={currentRole}
         onRoleChange={handleRoleChange}
+        ssoSession={ssoSession}
+        onOpenSsoModal={() => setIsSsoModalOpen(true)}
         isAutonomous={isAutonomous}
         setIsAutonomous={setIsAutonomous}
         onToggleSimBar={toggleSimulationBar}
@@ -485,6 +491,23 @@ export default function App() {
             <QrShareModal
               isOpen={isQrShareOpen}
               onClose={() => setIsQrShareOpen(false)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Telkomsel Corporate IAM SSO Login Modal */}
+      {isSsoModalOpen && (
+        <AppErrorBoundary key={`sso-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <TelkomselSsoModal
+              isOpen={isSsoModalOpen}
+              onClose={() => setIsSsoModalOpen(false)}
+              currentSession={ssoSession}
+              onLoginSuccess={(session) => {
+                setSsoSession(session);
+                if (session.roleId) handleRoleChange(session.roleId);
+              }}
             />
           </Suspense>
         </AppErrorBoundary>
