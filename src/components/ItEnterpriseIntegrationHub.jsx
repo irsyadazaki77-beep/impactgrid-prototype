@@ -16,13 +16,130 @@ import {
   Code,
   Fingerprint,
   RefreshCw,
-  Play
+  Play,
+  Package,
+  FileText
 } from 'lucide-react';
 import { generateTelkomselK8sManifest } from '../utils/k8sManifestGenerator';
+
+const DEPLOYMENT_ARTIFACTS = {
+  k8s: {
+    id: 'k8s',
+    name: 'Kubernetes YAML Manifest',
+    fileName: 'impactgrid-telkomsel-k8s.yaml',
+    mime: 'text/yaml;charset=utf-8;',
+    getContent: generateTelkomselK8sManifest,
+    description: 'Manifest produksi lengkap untuk Telkom Cloud Sentul & Surabaya (HPA 3–12 pod, NetworkPolicy, Istio).'
+  },
+  dockerfile: {
+    id: 'dockerfile',
+    name: 'Multi-Stage Dockerfile',
+    fileName: 'Dockerfile',
+    mime: 'text/plain;charset=utf-8;',
+    getContent: () => `# ==============================================================================
+# ImpactGrid Production Multi-Stage Distroless Dockerfile
+# Targeted for: Telkom Cloud Sentul & Surabaya Private Kubernetes Clusters
+# Compliance: PP No. 71/2019, ISO 27001, CIS Docker Benchmark
+# ==============================================================================
+
+# --- Stage 1: Build Frontend SPA ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+RUN npm prune --production
+
+# --- Stage 2: Hardened Distroless Production Runtime ---
+FROM gcr.io/distroless/nodejs20-debian12:nonroot
+WORKDIR /app
+USER 65532:65532
+COPY --from=builder --chown=65532:65532 /app/node_modules ./node_modules
+COPY --from=builder --chown=65532:65532 /app/package.json ./package.json
+COPY --from=builder --chown=65532:65532 /app/dist ./dist
+COPY --from=builder --chown=65532:65532 /app/server ./server
+EXPOSE 3001
+ENV NODE_ENV=production PORT=3001 HOST=0.0.0.0
+CMD ["server/proxyServer.js"]`,
+    description: 'Dockerfile multi-stage berbasis distroless nonroot untuk image ukuran kecil (<120MB) & nol celah shell.'
+  },
+  compose: {
+    id: 'compose',
+    name: 'docker-compose.yml',
+    fileName: 'docker-compose.yml',
+    mime: 'text/yaml;charset=utf-8;',
+    getContent: () => `version: '3.8'
+
+# ==============================================================================
+# ImpactGrid On-Premise & Edge Sandbox Stack (Docker Compose)
+# Telkomsel Network Operations Center (NOC) & Edge Gateway Testing
+# ==============================================================================
+
+services:
+  impactgrid-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: impactgrid-core-prod
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - HOST=0.0.0.0
+      - DATA_CENTER_PRIMARY=telkom-dc-sentul
+      - DATA_CENTER_DR=telkom-dc-surabaya
+      - DATA_SOVEREIGNTY_JURISDICTION=ID-PP71-2019
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/healthz').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - telkomsel-net
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: impactgrid-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - impactgrid-core
+    networks:
+      - telkomsel-net
+
+networks:
+  telkomsel-net:
+    driver: bridge`,
+    description: 'Stack lokal dengan ImpactGrid Core + Prometheus scraper untuk verifikasi metrik telemetri NOC.'
+  },
+  guide: {
+    id: 'guide',
+    name: 'Panduan Deployment Telkom DC (.md)',
+    fileName: 'DEPLOYMENT_TELKOM_DC.md',
+    mime: 'text/markdown;charset=utf-8;',
+    getContent: () => `# Panduan Deployment Enterprise Telkom Data Center (Sentul & Surabaya)
+## ImpactGrid RAN Energy Operations Suite — PT Telekomunikasi Selular (Telkomsel)
+
+Mematuhi regulasi kedaulatan data Republik Indonesia (PP No. 71/2019 & UU PDP No. 27/2022).
+1. Arsitektur: Dual-DC Active-Active (Sentul Primary, Surabaya DR)
+2. Ketersediaan: Target SLA 99.99%, RPO < 1m, RTO < 15m
+3. Ingest Telemetri: REST API POST /api/v1/telemetry/ingest
+4. Observabilitas: Prometheus scrape /metrics, Healthcheck /healthz & /readyz
+5. Keamanan: TLS 1.3 Ingress, Istio mTLS 128-bit, RBAC OAuth2 SSO Telkomsel`,
+    description: 'SOP resmi instalasi Telkomsel: konfigurasi namespace, Vault secrets, ingress Istio, & checklist kepatuhan.'
+  }
+};
 
 export default function ItEnterpriseIntegrationHub() {
   const [activeSubTab, setActiveSubTab] = useState('rbac'); // 'rbac' | 'tmf_api' | 'k8s' | 'privacy'
   const [activeRole, setActiveRole] = useState('RADIO_OPTIM'); // 'NOC_L1' | 'RADIO_OPTIM' | 'FINANCE_TOWERCO' | 'CISO_SECURITY'
+  const [selectedArtifactId, setSelectedArtifactId] = useState('k8s');
   
   // API Sandbox State
   const [selectedApiIndex, setSelectedApiIndex] = useState(0);
@@ -237,20 +354,33 @@ export default function ItEnterpriseIntegrationHub() {
     setTimeout(() => setCopiedCurl(false), 2000);
   };
 
-  const handleDownloadManifest = () => {
-    const manifestContent = generateTelkomselK8sManifest();
-    const blob = new Blob([manifestContent], { type: 'text/yaml;charset=utf-8;' });
+  const handleDownloadArtifact = (artifactKey) => {
+    const artifact = DEPLOYMENT_ARTIFACTS[artifactKey || selectedArtifactId];
+    if (!artifact) return;
+    const content = artifact.getContent();
+    const blob = new Blob([content], { type: artifact.mime });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'impactgrid-telkomsel-k8s.yaml');
+    link.setAttribute('download', artifact.fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  const handleDownloadAllBundle = () => {
+    Object.keys(DEPLOYMENT_ARTIFACTS).forEach((key, idx) => {
+      setTimeout(() => {
+        handleDownloadArtifact(key);
+      }, idx * 250);
+    });
+  };
+
+  const handleDownloadManifest = () => handleDownloadArtifact('k8s');
+
   const handleCopyManifest = () => {
-    navigator.clipboard?.writeText(generateTelkomselK8sManifest());
+    const artifact = DEPLOYMENT_ARTIFACTS[selectedArtifactId] || DEPLOYMENT_ARTIFACTS.k8s;
+    navigator.clipboard?.writeText(artifact.getContent());
     setCopiedManifest(true);
     setTimeout(() => setCopiedManifest(false), 2000);
   };
@@ -663,13 +793,13 @@ export default function ItEnterpriseIntegrationHub() {
                   Arsitektur deployment multi-tier berstandar Telkom Cloud Sentul/Surabaya & GCP Jakarta (asia-southeast2)
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleCopyManifest}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer"
                 >
                   {copiedManifest ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedManifest ? 'YAML Tersalin!' : 'Salin YAML'}</span>
+                  <span>{copiedManifest ? 'Tersalin!' : 'Salin File'}</span>
                 </button>
                 <button
                   onClick={handleDownloadManifest}
@@ -677,6 +807,14 @@ export default function ItEnterpriseIntegrationHub() {
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Unduh Manifest K8s Telkomsel (.yaml)</span>
+                </button>
+                <button
+                  onClick={handleDownloadAllBundle}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-bold transition cursor-pointer shadow-xs"
+                  title="Unduh Paket Lengkap: K8s YAML + Dockerfile + docker-compose.yml + DEPLOYMENT_TELKOM_DC.md"
+                >
+                  <Package className="w-3.5 h-3.5 text-[#ED0226]" />
+                  <span>Unduh Semua Paket Telkom DC (4 File)</span>
                 </button>
               </div>
             </div>
@@ -739,14 +877,43 @@ export default function ItEnterpriseIntegrationHub() {
               </div>
             </div>
 
-            {/* Preview K8s Manifest Snippet */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                Cuplikan Deployment Manifest (Kubernetes YAML Preview):
-              </span>
-              <pre className="p-4 rounded-xl bg-slate-950 text-slate-300 font-mono text-[11px] overflow-x-auto max-h-[220px] border border-slate-800">
-{generateTelkomselK8sManifest().slice(0, 1200)}
-{"\n# ... [Gunakan tombol 'Unduh Manifest K8s Telkomsel' untuk mendapatkan file lengkap] ..."}
+            {/* Artifact Selector Tabs & Preview */}
+            <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                  Pilih Berkas Paket Deployment Telkom Data Center:
+                </span>
+                <span className="text-[11px] text-slate-500 font-mono font-bold">
+                  {DEPLOYMENT_ARTIFACTS[selectedArtifactId]?.fileName}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {Object.values(DEPLOYMENT_ARTIFACTS).map((art) => {
+                  const isSelected = selectedArtifactId === art.id;
+                  return (
+                    <button
+                      key={art.id}
+                      onClick={() => setSelectedArtifactId(art.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs'
+                          : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#ED0226]" />
+                      <span>{art.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="text-[11px] text-slate-500 italic">
+                {DEPLOYMENT_ARTIFACTS[selectedArtifactId]?.description}
+              </p>
+
+              <pre className="p-4 rounded-xl bg-slate-950 text-slate-300 font-mono text-[11px] overflow-x-auto max-h-[260px] border border-slate-800">
+{DEPLOYMENT_ARTIFACTS[selectedArtifactId]?.getContent()}
               </pre>
             </div>
           </div>

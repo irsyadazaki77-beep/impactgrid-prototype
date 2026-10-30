@@ -25,12 +25,16 @@ import {
   Printer,
   X,
   ShieldCheck,
-  Building2
+  Building2,
+  Server
 } from 'lucide-react';
+import ServiceNowTicketModal from './ServiceNowTicketModal';
 
 export default function NocOperationsRunbookCenter() {
   const [activeSubTab, setActiveSubTab] = useState('work_orders'); // 'work_orders' | 'runbooks' | 'asset_health' | 'shift_handover'
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isServiceNowModalOpen, setIsServiceNowModalOpen] = useState(false);
+  const [serviceNowTicketData, setServiceNowTicketData] = useState(null);
 
   // --- SUB-TAB 1: WORK ORDERS STATE ---
   const [workOrders, setWorkOrders] = useState([
@@ -529,14 +533,37 @@ DAFTAR TIKET DALAM PROSES:
                   <span>SLA Audit Trail Tersinkron</span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsPrintModalOpen(true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
-                >
-                  <FileText className="w-3.5 h-3.5 text-[#ED0226]" />
-                  <span>Cetak / Unduh Berita Acara e-WO Resmi</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setServiceNowTicketData({
+                        incidentNumber: activeWo.id.replace('WO-', 'INC-'),
+                        siteId: activeWo.siteId,
+                        siteName: activeWo.siteName,
+                        anomalyType: activeWo.anomalyType,
+                        priority: activeWo.priority,
+                        vendorTeam: activeWo.vendorTeam,
+                        technician: activeWo.technician,
+                        auditHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+                      });
+                      setIsServiceNowModalOpen(true);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                  >
+                    <Server className="w-3.5 h-3.5" />
+                    <span>Dispatch e-WO ServiceNow (ITIL)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPrintModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-[#ED0226]" />
+                    <span>Cetak / Unduh Berita Acara e-WO Resmi</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1043,6 +1070,13 @@ DAFTAR TIKET DALAM PROSES:
           </div>
         </div>
       )}
+
+      {/* ServiceNow ITSM Incident Dispatch Modal */}
+      <ServiceNowTicketModal
+        isOpen={isServiceNowModalOpen}
+        onClose={() => setIsServiceNowModalOpen(false)}
+        ticketData={serviceNowTicketData}
+      />
     </div>
   );
 }

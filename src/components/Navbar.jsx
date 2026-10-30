@@ -20,9 +20,14 @@ import {
   Lock, 
   QrCode,
   ShieldCheck,
-  Activity
+  Activity,
+  Briefcase,
+  Cpu,
+  Check,
+  Users
 } from 'lucide-react';
 import DataProvenanceModal from './DataProvenanceModal';
+import { ENTERPRISE_ROLES } from '../data/enterpriseRoles';
 
 export default function Navbar({ 
   onOpenReportModal,
@@ -44,6 +49,8 @@ export default function Navbar({
   simState = { scenarioKey: 'normal', simTimeString: '14:00 WIB' },
   viewMode = 'executive',
   setViewMode,
+  currentRole = 'vp_network',
+  onRoleChange,
   theme = 'light',
   onToggleTheme,
   onResetDemo,
@@ -51,13 +58,32 @@ export default function Navbar({
 }) {
   const [isToolkitOpen, setIsToolkitOpen] = useState(false);
   const [isProvenanceOpen, setIsProvenanceOpen] = useState(false);
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [iamNotification, setIamNotification] = useState(null);
   const toolkitRef = useRef(null);
+  const roleDropdownRef = useRef(null);
 
-  // Close toolkit dropdown when clicking outside
+  const activeRoleObj = ENTERPRISE_ROLES.find(r => r.id === currentRole) || ENTERPRISE_ROLES[0];
+
+  const handleSelectRole = (role) => {
+    if (onRoleChange) onRoleChange(role.id);
+    setIsRoleDropdownOpen(false);
+    setIamNotification({
+      title: role.title,
+      department: role.department,
+      time: new Date().toLocaleTimeString('id-ID')
+    });
+    window.setTimeout(() => setIamNotification(null), 4000);
+  };
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (toolkitRef.current && !toolkitRef.current.contains(event.target)) {
         setIsToolkitOpen(false);
+      }
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target)) {
+        setIsRoleDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -130,6 +156,98 @@ export default function Navbar({
               <Wrench className="w-3.5 h-3.5" />
               <span className="whitespace-nowrap">NOC & Deep Engineering</span>
             </button>
+          </div>
+
+          {/* Enterprise Persona / IAM Selector */}
+          <div className="relative shrink-0 order-2 md:order-none" ref={roleDropdownRef}>
+            <button
+              type="button"
+              onClick={() => setIsRoleDropdownOpen(prev => !prev)}
+              aria-expanded={isRoleDropdownOpen}
+              aria-haspopup="menu"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition cursor-pointer"
+              title="Ganti Persona / Hak Akses Pengguna Telkomsel (IAM SSO)"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[11px] font-black text-slate-800 dark:text-slate-100">
+                  {activeRoleObj.shortTitle}
+                </span>
+              </div>
+              <span className={`hidden sm:inline-block px-1.5 py-0.5 rounded text-[9px] font-black border ${activeRoleObj.badgeColor}`}>
+                {activeRoleObj.badge}
+              </span>
+              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-150 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isRoleDropdownOpen && (
+              <div 
+                role="menu"
+                aria-label="Pilih Persona Telkomsel"
+                className="absolute left-0 md:left-auto md:right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-2xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150"
+              >
+                <div className="p-2.5 border-b border-slate-100 dark:border-slate-800 mb-1.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                      Telkomsel Corporate IAM SSO
+                    </p>
+                    <span className="font-mono text-[9px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      OIDC Session Aktif
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Pilih persona untuk mengadaptasi dashboard, lensa KPI, dan level otorisasi
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  {ENTERPRISE_ROLES.map((role) => {
+                    const isSelected = role.id === currentRole;
+                    return (
+                      <button
+                        key={role.id}
+                        role="menuitem"
+                        onClick={() => handleSelectRole(role)}
+                        className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition cursor-pointer ${
+                          isSelected
+                            ? 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60'
+                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
+                        }`}
+                      >
+                        <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
+                          role.id === 'vp_network' ? 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400' :
+                          role.id === 'noc_leader' ? 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400' :
+                          role.id === 'rno_engineer' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' :
+                          role.id === 'esg_lead' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
+                          'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400'
+                        }`}>
+                          {role.id === 'vp_network' && <Briefcase className="w-3.5 h-3.5" />}
+                          {role.id === 'noc_leader' && <Activity className="w-3.5 h-3.5" />}
+                          {role.id === 'rno_engineer' && <Cpu className="w-3.5 h-3.5" />}
+                          {role.id === 'esg_lead' && <Leaf className="w-3.5 h-3.5" />}
+                          {role.id === 'auditor' && <ShieldCheck className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className={`text-xs font-black truncate ${isSelected ? 'text-[#ED0226]' : 'text-slate-900 dark:text-white'}`}>
+                              {role.title}
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-[#ED0226] shrink-0" />}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-medium line-clamp-1 mt-0.5">
+                            {role.department}
+                          </div>
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 line-clamp-1 leading-relaxed">
+                            {role.description}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Action Tools: Controls & Dropdowns */}
@@ -412,6 +530,19 @@ export default function Navbar({
             </span>
           </div>
         </div>
+
+        {/* IAM Session Switch Notification Banner */}
+        {iamNotification && (
+          <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-xs font-bold px-4 py-1.5 flex items-center justify-between shadow-md animate-in slide-in-from-top duration-200">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-white shrink-0" />
+              <span>Sesi IAM Telkomsel Dialihkan: <strong>{iamNotification.title}</strong> ({iamNotification.department}) • Hak Akses Terverifikasi OIDC Token ({iamNotification.time})</span>
+            </div>
+            <button onClick={() => setIamNotification(null)} className="text-white/80 hover:text-white text-xs px-2 cursor-pointer font-bold">
+              ✕
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Provenance & Data Transparency Modal */}

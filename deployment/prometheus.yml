@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    datacenter: 'telkom-dc-sentul'
+    operator: 'pt-telekomunikasi-selular'
+
+scrape_configs:
+  - job_name: 'impactgrid-telemetry-engine'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['impactgrid-core:3001']
+        labels:
+          environment: 'telkom-dc-production'
+          tier: 'core-decision-engine'

@@ -9,6 +9,7 @@ import { resolveTabForMode } from './utils/demoState';
 import { useSimulationState } from './hooks/useSimulationState';
 import { useAuditTrail } from './hooks/useAuditTrail';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { ENTERPRISE_ROLES } from './data/enterpriseRoles';
 
 const KpiStatRow = memo(lazy(() => import('./components/KpiStatRow')));
 const OverviewTab = memo(lazy(() => import('./components/OverviewTab')));
@@ -65,6 +66,7 @@ export default function App() {
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
   const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
+  const [currentRole, setCurrentRole] = useState('vp_network');
   const [isAutonomous, setIsAutonomous] = useState(false);
 
   // Live Executive Simulation Console & Audit Trail Custom Hooks
@@ -140,12 +142,31 @@ export default function App() {
     }
   }, [activeTab]);
 
+  const handleRoleChange = useCallback((roleId) => {
+    const role = ENTERPRISE_ROLES.find(r => r.id === roleId);
+    if (!role) return;
+    setCurrentRole(roleId);
+    setViewMode(role.viewMode);
+    setActiveLens(role.activeLens);
+    if (role.preferredTab) {
+      const nextTab = resolveTabForMode(role.preferredTab, role.viewMode);
+      setActiveTab(nextTab);
+      setLoadedTabs((tabs) => new Set(tabs).add(nextTab));
+    }
+    appendAuditLog({
+      action: 'ROLE_SWITCH',
+      detail: `IAM Session switched to ${role.title} (${role.department})`,
+      category: 'SECURITY'
+    });
+  }, [appendAuditLog]);
+
   const resetDemo = useCallback(() => {
     resetSimulation();
     clearAuditLogs();
     setEmergencyState({ active: false });
     setSelectedScale('pilot');
     setActiveLens('all');
+    setCurrentRole('vp_network');
     setIsAutonomous(false);
     setViewMode('executive');
     setActiveTab('overview');
@@ -247,6 +268,8 @@ export default function App() {
         setSelectedScale={setSelectedScale}
         activeLens={activeLens}
         setActiveLens={setActiveLens}
+        currentRole={currentRole}
+        onRoleChange={handleRoleChange}
         isAutonomous={isAutonomous}
         setIsAutonomous={setIsAutonomous}
         onToggleSimBar={toggleSimulationBar}

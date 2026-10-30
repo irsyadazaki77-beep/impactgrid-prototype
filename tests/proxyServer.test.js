@@ -57,3 +57,89 @@ describe('optional AI proxy integration', () => {
     expect(denied.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
+
+describe('Kubernetes health probes and Prometheus metrics', () => {
+  it('returns healthy status for /healthz liveness probe', async () => {
+    const res = await fetch(`${baseUrl}/healthz`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe('healthy');
+    expect(body.service).toBe('impactgrid-enterprise-core');
+    expect(typeof body.uptime_seconds).toBe('number');
+  });
+
+  it('returns ready status with Telkom DC region for /readyz readiness probe', async () => {
+    const res = await fetch(`${baseUrl}/readyz`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe('ready');
+    expect(body.dc_region).toBe('TELKOM_DC_SENTUL_SURABAYA');
+    expect(body.checks.ingestion_engine).toBe('ok');
+  });
+
+  it('serves metrics formatted for Prometheus scraping', async () => {
+    const res = await fetch(`${baseUrl}/metrics`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/plain');
+    const text = await res.text();
+    expect(text).toContain('impactgrid_telemetry_ingest_total');
+    expect(text).toContain('impactgrid_anomalies_detected_total{type="phantom_load"}');
+    expect(text).toContain('impactgrid_reconciled_batches_total');
+    expect(text).toContain('impactgrid_potential_savings_kwh');
+  });
+});
+
+describe('Live REST Telemetry Ingestion endpoint', () => {
+  it('rejects non-array or empty records payload with 400', async () => {
+    const res = await fetch(`${baseUrl}/api/v1/telemetry/ingest`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ records: [] })
+    });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.success).toBe(false);
+  });
+
+  it('processes a valid batch, detects anomalies, and computes audit hash', async () => {
+    const sampleBatch = {
+      batch_id: 'BATCH-TEST-001',
+      source: 'TELKOMSEL_EDGEX_GW',
+      records: [
+        {
+          site_id: 'TSEL-BDG-001',
+          pln_kwh: 45.2,
+          rectifier_dc_kwh: 41.5,
+          smart_meter_kwh: 45.0,
+          temp_celsius: 28.5,
+          power_factor: 0.96
+        },
+        {
+          site_id: 'TSEL-BDG-042',
+          pln_kwh: 58.0,
+          rectifier_dc_kwh: 42.0,
+          smart_meter_kwh: 49.5, // 14.6% discrepancy -> phantom power anomaly!
+          temp_celsius: 38.5,    // > 34°C -> thermal anomaly!
+          power_factor: 0.82     // < 0.85 -> low power factor anomaly!
+        }
+      ]
+    };
+
+    const res = await fetch(`${baseUrl}/api/v1/telemetry/ingest`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(sampleBatch)
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.batch_id).toBe('BATCH-TEST-001');
+    expect(body.records_processed).toBe(2);
+    expect(body.anomalies_count).toBeGreaterThan(0);
+    expect(typeof body.audit_hash).toBe('string');
+    expect(body.audit_hash.length).toBe(64); // SHA-256 hex length
+    expect(body.anomalies.some((a) => a.type === 'PHANTOM_POWER_DISCREPANCY')).toBe(true);
+    expect(body.anomalies.some((a) => a.type === 'SHELTER_HEAT_DISSIPATION')).toBe(true);
+  });
+});
