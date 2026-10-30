@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, AlertTriangle, CheckCircle2, RefreshCw, Zap, Cpu, Server, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Database, AlertTriangle, CheckCircle2, RefreshCw, Zap, Cpu, Server, ShieldCheck, ArrowRight, FileText } from 'lucide-react';
 
 const RECONCILIATION_SITES = [
   {
@@ -43,7 +43,7 @@ const RECONCILIATION_SITES = [
   }
 ];
 
-export default function TelemetryReconciliationMatrix() {
+export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe }) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -74,14 +74,25 @@ export default function TelemetryReconciliationMatrix() {
           </p>
         </div>
 
-        <button
-          onClick={runReconciliationCheck}
-          disabled={isVerifying}
-          className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer self-start sm:self-auto disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isVerifying ? 'animate-spin' : ''}`} />
-          <span>{isVerifying ? 'Memverifikasi...' : 'Uji Rekonsiliasi Real-time'}</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          {onOpenOfficialBaRe && (
+            <button
+              onClick={onOpenOfficialBaRe}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer shadow-xs"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Cetak Berita Acara (BA-RE)</span>
+            </button>
+          )}
+          <button
+            onClick={runReconciliationCheck}
+            disabled={isVerifying}
+            className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isVerifying ? 'animate-spin' : ''}`} />
+            <span>{isVerifying ? 'Memverifikasi...' : 'Uji Rekonsiliasi Real-time'}</span>
+          </button>
+        </div>
       </div>
 
       {/* 3-Stream Flow Explanation Cards */}

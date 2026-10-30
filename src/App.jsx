@@ -32,6 +32,7 @@ const AiCopilotModal = lazy(() => import('./components/AiCopilotModal'));
 const ShortcutsModal = lazy(() => import('./components/ShortcutsModal'));
 const QrShareModal = lazy(() => import('./components/QrShareModal'));
 const TelkomselSsoModal = lazy(() => import('./components/TelkomselSsoModal'));
+const OfficialBeritaAcaraModal = lazy(() => import('./components/OfficialBeritaAcaraModal'));
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
 const PRESENTATION_PREFLIGHT_ITEMS = [
@@ -66,6 +67,7 @@ export default function App() {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isQrShareOpen, setIsQrShareOpen] = useState(false);
   const [isSsoModalOpen, setIsSsoModalOpen] = useState(false);
+  const [isOfficialBaReOpen, setIsOfficialBaReOpen] = useState(false);
   const [ssoSession, setSsoSession] = useState(() => getStoredSsoSession());
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
@@ -267,6 +269,7 @@ export default function App() {
         onOpenBodDefense={openBodDefense}
         onOpenAiCopilot={openAiCopilot}
         onOpenQrShare={() => setIsQrShareOpen(true)}
+        onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
         emergencyState={emergencyState}
         selectedScale={selectedScale}
         setSelectedScale={setSelectedScale}
@@ -347,7 +350,7 @@ export default function App() {
                   {tabId === 'pilotvalidation' && <PilotValidationCenterTab onOpenReportModal={openReportModal} />}
                   {tabId === 'digitaltwin' && <DigitalTwinTab />}
                   {tabId === 'agents' && <AgentOrchestratorTab />}
-                  {tabId === 'telemetry' && <TelemetryTab />}
+                  {tabId === 'telemetry' && <TelemetryTab onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} />}
                   {tabId === 'scenariolab' && (
                     <ScenarioLabTab
                       isActive={activeTab === tabId}
@@ -363,7 +366,7 @@ export default function App() {
                       onToggleSimulationMode={toggleSimulationMode}
                     />
                   )}
-                  {tabId === 'architecture' && <ArchitectureTab />}
+                  {tabId === 'architecture' && <ArchitectureTab onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} />}
                 </Suspense>
               </AppErrorBoundary>
             </section>
@@ -508,6 +511,18 @@ export default function App() {
                 setSsoSession(session);
                 if (session.roleId) handleRoleChange(session.roleId);
               }}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Official Berita Acara Rekonsiliasi Energi (BA-RE) Legal Modal */}
+      {isOfficialBaReOpen && (
+        <AppErrorBoundary key={`bare-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <OfficialBeritaAcaraModal
+              isOpen={isOfficialBaReOpen}
+              onClose={() => setIsOfficialBaReOpen(false)}
             />
           </Suspense>
         </AppErrorBoundary>

@@ -34,7 +34,7 @@ import {
   SOLUTION_COMPARISON_MATRIX 
 } from '../data/mockData';
 
-export default function ArchitectureTab() {
+export default function ArchitectureTab({ onOpenOfficialBaRe }) {
   const [activeSubView, setActiveSubView] = useState('diagrams'); // 'diagrams' | 'case_study' | 'stakeholders' | 'risks' | 'comparison'
   const [selectedDiagram, setSelectedDiagram] = useState('issue_tree');
   const [selectedLayer, setSelectedLayer] = useState('ric');
@@ -701,7 +701,7 @@ export default function ArchitectureTab() {
 
       {/* SUB-VIEW 6: IT ENTERPRISE & ARCHITECTURE INTEGRATION HUB */}
       {activeSubView === 'it_integration' && (
-        <ItEnterpriseIntegrationHub />
+        <ItEnterpriseIntegrationHub onOpenBeritaAcara={onOpenOfficialBaRe} />
       )}
 
       {/* Netconf Deployment Simulation Modal */}

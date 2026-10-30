@@ -24,7 +24,8 @@ import {
   Briefcase,
   Cpu,
   Check,
-  Users
+  Users,
+  FileText
 } from 'lucide-react';
 import DataProvenanceModal from './DataProvenanceModal';
 import { ENTERPRISE_ROLES } from '../data/enterpriseRoles';
@@ -39,6 +40,7 @@ export default function Navbar({
   onOpenBodDefense,
   onOpenAiCopilot,
   onOpenQrShare,
+  onOpenOfficialBaRe,
   emergencyState = { active: false },
   selectedScale,
   setSelectedScale,
@@ -451,6 +453,26 @@ export default function Navbar({
                         </div>
                       </div>
                       <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">P</span>
+                    </button>
+
+                    {/* Official Berita Acara Rekonsiliasi (BA-RE) */}
+                    <button
+                      onClick={() => {
+                        onOpenOfficialBaRe?.();
+                        setIsToolkitOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Berita Acara Rekonsiliasi (BA-RE)</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Kop resmi Telkomsel &amp; PLN UID Jabar + QR SHA-256</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">BA-RE</span>
                     </button>
 
                     {/* QR Code Share for Mobile */}

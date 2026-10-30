@@ -25,6 +25,7 @@ data:
   ORAN_O1_VES_COLLECTOR: "ves-collector.internal.telkomsel.co.id:8080"
   ORAN_A1_RIC_URL: "https://nonrt-ric.tsel-ran.internal:8443/a1-p/policies"
   DATA_SOVEREIGNTY_JURISDICTION: "ID-PP71-2019"
+  BGP_ROUTER_ASN: "17974"
   CRYPTO_AUDIT_ALGORITHM: "SHA-256"
 ---
 apiVersion: apps/v1

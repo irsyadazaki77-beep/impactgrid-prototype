@@ -18,7 +18,16 @@ import {
   RefreshCw,
   Play,
   Package,
-  FileText
+  FileText,
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  Zap,
+  RotateCcw,
+  Flame,
+  Building2,
+  ShieldAlert,
+  Layers
 } from 'lucide-react';
 import { generateTelkomselK8sManifest } from '../utils/k8sManifestGenerator';
 
@@ -136,8 +145,8 @@ Mematuhi regulasi kedaulatan data Republik Indonesia (PP No. 71/2019 & UU PDP No
   }
 };
 
-export default function ItEnterpriseIntegrationHub() {
-  const [activeSubTab, setActiveSubTab] = useState('rbac'); // 'rbac' | 'tmf_api' | 'k8s' | 'privacy'
+export default function ItEnterpriseIntegrationHub({ onOpenBeritaAcara }) {
+  const [activeSubTab, setActiveSubTab] = useState('rbac'); // 'rbac' | 'tmf_api' | 'k8s' | 'privacy' | 'disaster_recovery' | 'towerco_contract'
   const [activeRole, setActiveRole] = useState('RADIO_OPTIM'); // 'NOC_L1' | 'RADIO_OPTIM' | 'FINANCE_TOWERCO' | 'CISO_SECURITY'
   const [selectedArtifactId, setSelectedArtifactId] = useState('k8s');
   
@@ -150,6 +159,67 @@ export default function ItEnterpriseIntegrationHub() {
 
   // Privacy Engine Toggle
   const [isAnonymized, setIsAnonymized] = useState(true);
+
+  // Disaster Recovery Active-Active Chaos State
+  const [drActiveDc, setDrActiveDc] = useState('sentul'); // 'sentul' | 'surabaya'
+  const [isDrSimulating, setIsDrSimulating] = useState(false);
+  const [drRpo, setDrRpo] = useState('0.00s');
+  const [drRto, setDrRto] = useState('0.00s');
+  const [drLogs, setDrLogs] = useState([
+    { time: '13:00:00.000', event: 'SYSTEM_READY', message: 'Dual-DC Active-Active mesh operational. Sentul (Leader) • Surabaya (Hot Standby).', type: 'info' },
+    { time: '13:00:00.120', event: 'REPLICATION_SYNC', message: 'Bi-directional WAL replication delay: 4.2ms. BGP Anycast AS17974 converged.', type: 'success' }
+  ]);
+
+  // Multi-TowerCo Settlement State
+  const [selectedTowerCo, setSelectedTowerCo] = useState('mitratel'); // 'mitratel' | 'protelindo' | 'stp'
+  const [towerCoCalcMonths, setTowerCoCalcMonths] = useState(12);
+
+  const handleTriggerDrChaos = () => {
+    setIsDrSimulating(true);
+    setDrLogs(prev => [
+      { time: new Date().toLocaleTimeString('id-ID') + '.000', event: 'CHAOS_INJECT', message: 'Simulasi Putus FO Backbone Sentul diaktifkan (DWDM link down).', type: 'danger' },
+      ...prev
+    ]);
+
+    setTimeout(() => {
+      setDrLogs(prev => [
+        { time: new Date().toLocaleTimeString('id-ID') + '.340', event: 'BFD_TRIP', message: 'BFD probe kehilangan 3 paket 100ms. Sentul ditandai UNREACHABLE.', type: 'danger' },
+        ...prev
+      ]);
+    }, 400);
+
+    setTimeout(() => {
+      setDrLogs(prev => [
+        { time: new Date().toLocaleTimeString('id-ID') + '.820', event: 'BGP_FAILOVER', message: 'BGP Anycast AS17974 rute Sentul ditarik. Traffic dialihkan ke Surabaya DC.', type: 'warning' },
+        ...prev
+      ]);
+    }, 900);
+
+    setTimeout(() => {
+      setDrActiveDc('surabaya');
+      setDrRpo('0.00s');
+      setDrRto('1.84s');
+      setIsDrSimulating(false);
+      setDrLogs(prev => [
+        { time: new Date().toLocaleTimeString('id-ID') + '.840', event: 'PROMOTION_COMPLETE', message: 'Surabaya DC dipromosikan sebagai Primary Leader (etcd 3/3). Ingest & O-RAN 100% aktif.', type: 'success' },
+        { time: new Date().toLocaleTimeString('id-ID') + '.920', event: 'SERVICENOW_DISPATCH', message: 'Tiket Darurat INC-2026-DR-SENTUL-001 terkirim otomatis ke Enterprise NOC.', type: 'info' },
+        ...prev
+      ]);
+    }, 1600);
+  };
+
+  const handleRestoreDrPrimary = () => {
+    setIsDrSimulating(true);
+    setTimeout(() => {
+      setDrActiveDc('sentul');
+      setIsDrSimulating(false);
+      setDrLogs(prev => [
+        { time: new Date().toLocaleTimeString('id-ID') + '.100', event: 'DELTA_RESYNC', message: 'Resinkronisasi delta data Surabaya -> Sentul berhasil (+2.480 transaksi tersinkronisasi).', type: 'info' },
+        { time: new Date().toLocaleTimeString('id-ID') + '.320', event: 'FAILBACK_SUCCESS', message: 'Sentul DC kembali normal sebagai Primary Active Leader. Dual-DC mesh stabil.', type: 'success' },
+        ...prev
+      ]);
+    }, 1000);
+  };
 
   // RBAC Roles Definition
   const ROLES = [
@@ -465,6 +535,28 @@ export default function ItEnterpriseIntegrationHub() {
           >
             <Fingerprint className="w-3.5 h-3.5" />
             <span>4. Kepatuhan UU PDP No. 27/2022</span>
+          </button>
+          <button
+            onClick={() => setActiveSubTab('disaster_recovery')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+              activeSubTab === 'disaster_recovery'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>5. Disaster Recovery Dual-DC</span>
+          </button>
+          <button
+            onClick={() => setActiveSubTab('towerco_contract')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+              activeSubTab === 'towerco_contract'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+            }`}
+          >
+            <Building2 className="w-3.5 h-3.5" />
+            <span>6. TowerCo Shared-Savings</span>
           </button>
         </div>
       </header>
@@ -1016,6 +1108,415 @@ export default function ItEnterpriseIntegrationHub() {
 }, null, 2)}
               </pre>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* SUB-TAB 5: DUAL-DC DISASTER RECOVERY & CHAOS DRILL */}
+      {activeSubTab === 'disaster_recovery' && (
+        <section className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 shadow-xs space-y-6">
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Kedaulatan Data & High-Availability Tier-1 Telco (PP No. 71/2019)</span>
+                </div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white mt-1">
+                  Arsitektur Dual-DC Active-Active (Sentul Primary ↔ Surabaya DR)
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Simulasi chaos engineering pengujian ketahanan bencana: kegagalan link fiber optik atau blackout gardu tanpa kehilangan data transaksi telemetri (Zero Data Loss).
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-xl text-xs font-bold border flex items-center gap-1.5 ${
+                  drActiveDc === 'sentul'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${drActiveDc === 'sentul' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-ping'}`} />
+                  <span>Node Aktif: {drActiveDc === 'sentul' ? 'DC Sentul (Primary)' : 'DC Surabaya (Failover Active)'}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* SLA & RPO/RTO Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block">Target SLA Ketersediaan</span>
+                <span className="text-base font-black text-slate-900 dark:text-white">99,99%</span>
+                <span className="text-[10px] text-slate-500 block">Maksimal downtime 52 menit/tahun</span>
+              </div>
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block">RPO (Recovery Point)</span>
+                <span className="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">{drRpo}</span>
+                <span className="text-[10px] text-slate-500 block">Target standar: &lt; 1 menit</span>
+              </div>
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block">RTO (Recovery Time)</span>
+                <span className="text-base font-black text-indigo-600 dark:text-indigo-400 font-mono">{drRto}</span>
+                <span className="text-[10px] text-slate-500 block">Target standar: &lt; 15 menit</span>
+              </div>
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block">BGP Anycast Routing</span>
+                <span className="text-base font-black text-sky-600 dark:text-sky-400 font-mono">AS17974</span>
+                <span className="text-[10px] text-slate-500 block">Autonomus System Telkomsel</span>
+              </div>
+            </div>
+
+            {/* Interactive Dual-Node Topology Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* NODE 1: TELKOM DC SENTUL */}
+              <div className={`p-5 rounded-2xl border transition ${
+                drActiveDc === 'sentul'
+                  ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-xs'
+                  : 'border-red-300 dark:border-red-900 bg-red-50/20 dark:bg-red-950/20 opacity-80'
+              }`}>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Server className="w-5 h-5 text-[#ED0226]" />
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                        Telkom Data Center Sentul
+                      </h3>
+                    </div>
+                    <p className="text-[11px] text-slate-500">Sentul Industrial Estate, Bogor, Jawa Barat</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    drActiveDc === 'sentul'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
+                  }`}>
+                    {drActiveDc === 'sentul' ? 'PRIMARY LEADER (ONLINE)' : 'FIBER CUT (ISOLATED)'}
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-2 text-xs font-mono">
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">Spesifikasi Fasilitas:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Tier IV Uptime Institute</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">IP Endpoint Subnet:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">10.142.20.10/24 (VLAN 142)</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">K8s Cluster ID:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">tsel-k8s-sentul-prod01</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">O-RAN rApp Engine:</span>
+                    <span className={drActiveDc === 'sentul' ? 'font-bold text-emerald-600' : 'text-slate-400'}>
+                      {drActiveDc === 'sentul' ? 'Active Leader (WG1 Non-RT RIC)' : 'Standby / Paused'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500 font-sans">Latency to BTS Gateway:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">12.4 ms (Metro-E Telkom)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* NODE 2: TELKOM DC SURABAYA */}
+              <div className={`p-5 rounded-2xl border transition ${
+                drActiveDc === 'surabaya'
+                  ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-xs'
+                  : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20'
+              }`}>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Server className="w-5 h-5 text-indigo-600" />
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                        Telkom Data Center Surabaya
+                      </h3>
+                    </div>
+                    <p className="text-[11px] text-slate-500">Rungkut Industri, Kota Surabaya, Jawa Timur</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    drActiveDc === 'surabaya'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
+                  }`}>
+                    {drActiveDc === 'surabaya' ? 'PROMOTED PRIMARY (ACTIVE)' : 'HOT STANDBY (SYNC 4.2ms)'}
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-2 text-xs font-mono">
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">Spesifikasi Fasilitas:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Tier III Certified</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">IP Endpoint Subnet:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">10.158.30.15/24 (VLAN 158)</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">K8s Cluster ID:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">tsel-k8s-sby-dr01</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+                    <span className="text-slate-500 font-sans">Replication Engine:</span>
+                    <span className="font-bold text-emerald-600">Patroni Raft WAL Sync (0 Lag)</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500 font-sans">Status Promosi DR:</span>
+                    <span className={drActiveDc === 'surabaya' ? 'font-bold text-emerald-600' : 'text-slate-500'}>
+                      {drActiveDc === 'surabaya' ? 'Handling 100% Ingest & Closed-Loop' : 'Siaga Pengambilalihan Instan'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Interactive Chaos Trigger Bar */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="space-y-0.5 text-center sm:text-left">
+                <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 justify-center sm:justify-start">
+                  <Flame className="w-4 h-4 text-amber-500" />
+                  Simulasi Chaos Engineering (Uji Ketahanan Failover Otomatis)
+                </span>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Uji coba skenario pemutusan link optik Sentul. Sistem secara otomatis me-reroute trafik telemetri ke Surabaya tanpa intervensi manual.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {drActiveDc === 'sentul' ? (
+                  <button
+                    onClick={handleTriggerDrChaos}
+                    disabled={isDrSimulating}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50 shadow-xs"
+                  >
+                    <AlertTriangle className={`w-3.5 h-3.5 ${isDrSimulating ? 'animate-bounce' : ''}`} />
+                    <span>{isDrSimulating ? 'Menjalankan Drill...' : 'Putus FO Sentul (Chaos Drill)'}</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleRestoreDrPrimary}
+                    disabled={isDrSimulating}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50 shadow-xs"
+                  >
+                    <RotateCcw className={`w-3.5 h-3.5 ${isDrSimulating ? 'animate-spin' : ''}`} />
+                    <span>{isDrSimulating ? 'Menyinkronkan...' : 'Pulihkan Primary Sentul (Failback)'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Live Failover Trace Log Console */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="flex items-center gap-1.5">
+                  <Terminal className="w-4 h-4 text-slate-500" />
+                  Audit Trace Log Failover Dual-DC (Real-time Telemetry Reroute):
+                </span>
+                <span className="font-mono text-[10px] text-slate-500">
+                  Telkomsel BGP Daemon • BFD Protocol Active
+                </span>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 space-y-1.5 max-h-52 overflow-y-auto border border-slate-800">
+                {drLogs.map((log, idx) => (
+                  <div key={idx} className="flex items-start gap-2 leading-relaxed">
+                    <span className="text-slate-500 shrink-0 select-none">[{log.time}]</span>
+                    <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold shrink-0 ${
+                      log.type === 'danger' ? 'bg-red-950 text-red-400 border border-red-800' :
+                      log.type === 'warning' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
+                      log.type === 'success' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                      'bg-slate-800 text-slate-400'
+                    }`}>
+                      {log.event}
+                    </span>
+                    <span className={log.type === 'danger' ? 'text-red-300' : log.type === 'success' ? 'text-emerald-300' : 'text-slate-300'}>
+                      {log.message}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </section>
+      )}
+
+      {/* SUB-TAB 6: MULTI-TOWERCO SHARED-SAVINGS SETTLEMENT */}
+      {activeSubTab === 'towerco_contract' && (
+        <section className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 shadow-xs space-y-6">
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] font-bold text-amber-800 dark:text-amber-300">
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>Manajemen Sewa Menara Makro &amp; Insentif Efisiensi Energi</span>
+                </div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white mt-1">
+                  Multi-TowerCo Shared-Savings Contract Engine (Mitratel, Protelindo, STP)
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Menyelesaikan tantangan operasional ~38.000 menara sewa: membagi hasil penghematan listrik PLN antara Telkomsel dan TowerCo, dilengkapi penalti otomatis jika suhu pendingin shelter melanggar SLA.
+                </p>
+              </div>
+
+              {onOpenBeritaAcara && (
+                <button
+                  onClick={onOpenBeritaAcara}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white text-xs font-bold transition cursor-pointer shrink-0 shadow-xs"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Buka Berita Acara Rekonsiliasi (BA-RE)</span>
+                </button>
+              )}
+            </div>
+
+            {/* TowerCo Portfolio Selector */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                {
+                  id: 'mitratel',
+                  name: 'Mitratel (PT Dayamitra Telekomunikasi Tbk)',
+                  badge: 'Telkom Group Subsidiary',
+                  sitesCount: '22.330 Sites',
+                  sharePct: '58% Portfolio',
+                  splitRatio: '85% Telkomsel : 15% Mitratel',
+                  slaTempMax: '32.0°C',
+                  monthlyEstSavings: 2260000000,
+                  monthlyBonus: 399000000
+                },
+                {
+                  id: 'protelindo',
+                  name: 'Protelindo (PT Profesional Telekomunikasi)',
+                  badge: 'Tier-1 Independent TowerCo',
+                  sitesCount: '9.625 Sites',
+                  sharePct: '25% Portfolio',
+                  splitRatio: '80% Telkomsel : 20% Protelindo',
+                  slaTempMax: '32.0°C',
+                  monthlyEstSavings: 916000000,
+                  monthlyBonus: 229000000
+                },
+                {
+                  id: 'stp',
+                  name: 'STP / Centratama Group',
+                  badge: 'Multi-Tenant Operator',
+                  sitesCount: '6.545 Sites',
+                  sharePct: '17% Portfolio',
+                  splitRatio: '82% Telkomsel : 18% STP',
+                  slaTempMax: '32.0°C',
+                  monthlyEstSavings: 638000000,
+                  monthlyBonus: 140000000
+                }
+              ].map(tco => (
+                <button
+                  key={tco.id}
+                  onClick={() => setSelectedTowerCo(tco.id)}
+                  className={`p-4 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between space-y-3 ${
+                    selectedTowerCo === tco.id
+                      ? 'border-[#ED0226] bg-red-50/20 dark:bg-red-950/20 ring-2 ring-red-500/20'
+                      : 'border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-slate-500">{tco.sitesCount}</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                        {tco.sharePct}
+                      </span>
+                    </div>
+                    <div className="text-xs font-black text-slate-900 dark:text-white leading-snug">
+                      {tco.name}
+                    </div>
+                    <p className="text-[10px] text-slate-500">{tco.badge}</p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1 text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Skema Bagi Hasil:</span>
+                      <span className="font-bold text-slate-900 dark:text-white font-mono">{tco.splitRatio}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">SLA Pendingin Shelter:</span>
+                      <span className="font-bold text-slate-900 dark:text-white font-mono">Maks. {tco.slaTempMax}</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Settlement Calculator Output */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                    Simulasi Rekonsiliasi Keuangan Sewa Menara ({selectedTowerCo.toUpperCase()})
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Kalkulasi proyeksi penghematan berdasarkan tarif listrik PLN B-2/B-3 Rp 1.444,70 / kWh
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-slate-500 font-bold">Horizon Waktu:</span>
+                  <select
+                    value={towerCoCalcMonths}
+                    onChange={(e) => setTowerCoCalcMonths(Number(e.target.value))}
+                    className="p-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-xs"
+                  >
+                    <option value={1}>1 Bulan</option>
+                    <option value={6}>6 Bulan (Semester)</option>
+                    <option value={12}>12 Bulan (1 Tahun)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Total Penghematan Listrik Riil:</span>
+                  <span className="text-lg font-black text-slate-900 dark:text-white font-mono">
+                    Rp {((selectedTowerCo === 'mitratel' ? 2659 : selectedTowerCo === 'protelindo' ? 1145 : 778) * towerCoCalcMonths / 1000).toFixed(2)} Miliar
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5">Berdasarkan telemetri AI Carrier Sleep</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800">
+                  <span className="text-[10px] font-bold uppercase text-emerald-600 block">Bagian Telkomsel (Net Savings):</span>
+                  <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                    Rp {((selectedTowerCo === 'mitratel' ? 2260 : selectedTowerCo === 'protelindo' ? 916 : 638) * towerCoCalcMonths / 1000).toFixed(2)} Miliar
+                  </span>
+                  <span className="text-[10px] text-emerald-700 block mt-0.5">Langsung memotong OpEx Telkomsel</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800">
+                  <span className="text-[10px] font-bold uppercase text-amber-600 block">Insentif TowerCo (Shared Bonus):</span>
+                  <span className="text-lg font-black text-amber-600 dark:text-amber-400 font-mono">
+                    Rp {((selectedTowerCo === 'mitratel' ? 399 : selectedTowerCo === 'protelindo' ? 229 : 140) * towerCoCalcMonths / 1000).toFixed(2)} Miliar
+                  </span>
+                  <span className="text-[10px] text-amber-700 block mt-0.5">Bonus pemeliharaan isolasi termal shelter</span>
+                </div>
+              </div>
+
+              {/* Active Dispute Box for BDG-DGO-P04 */}
+              <div className="p-3.5 rounded-xl border border-rose-300 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/20 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-rose-900 dark:text-rose-300 flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4 text-rose-600" />
+                    Klaim Pelanggaran SLA Aktif: Site BDG-DGO-P04 (Mitratel Shelter)
+                  </span>
+                  <span className="font-mono text-[10px] text-rose-700 bg-rose-100 dark:bg-rose-950 px-2 py-0.5 rounded font-bold">
+                    PENALTI POTONG SEWA DIKENAKAN
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                  Sensor telemetri mendeteksi suhu ambient shelter mencapai <strong>34,8°C</strong> (melanggar SLA batas 32,0°C) dengan kebocoran daya <strong>+10,4%</strong>. Sesuai Klausul 14 PKS Sewa Menara, insentif shared savings untuk site ini <strong>DIBEKUKAN (Rp 0,-)</strong> dan denda penalti <strong>Rp 2.500.000,-</strong> otomatis dipotongkan dari tagihan sewa bulanan Mitratel.
+                </p>
+              </div>
+
+            </div>
+
           </div>
         </section>
       )}
