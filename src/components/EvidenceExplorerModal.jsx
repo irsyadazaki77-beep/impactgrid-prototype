@@ -76,7 +76,7 @@ export default function EvidenceExplorerModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="evidence-explorer-title">
-      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden my-6">
+      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] shadow-2xl overflow-hidden my-6">
         
         {/* Header */}
         <div className="flex items-start justify-between bg-slate-900 text-white p-6">
@@ -171,7 +171,7 @@ export default function EvidenceExplorerModal({ isOpen, onClose }) {
                     </p>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px]">
+                  <div className="p-2.5 rounded-xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px]">
                     <div className="flex items-center gap-1.5 overflow-hidden font-mono text-slate-500">
                       <Hash className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span className="truncate max-w-[280px] sm:max-w-[400px]">

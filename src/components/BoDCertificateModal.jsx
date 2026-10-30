@@ -6,7 +6,7 @@ export default function BoDCertificateModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-3 sm:p-4">
-      <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl">
+      <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] shadow-2xl">
         <header className="flex items-center justify-between bg-slate-900 dark:bg-slate-950 px-6 py-4 text-white border-b border-slate-800">
           <div className="flex items-center gap-2"><FileCheck className="h-5 w-5 text-amber-300" /><span className="font-extrabold text-sm">Pratinjau kerangka keputusan pilot</span></div>
           <button onClick={onClose} aria-label="Tutup" className="rounded-lg p-1 text-slate-300 hover:bg-slate-800 hover:text-white"><X className="h-5 w-5" /></button>

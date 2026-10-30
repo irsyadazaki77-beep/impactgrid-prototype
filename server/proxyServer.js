@@ -52,7 +52,7 @@ app.get('/api/health', (_req, res) => res.json({
 }));
 
 app.post('/api/ai/chat', async (req, res) => {
-  const { message, model = 'gemini-2.5-flash', history = [] } = req.body ?? {};
+  const { message, model = 'gemini-2.5-flash', history = [], liveContext = null } = req.body ?? {};
   if (typeof message !== 'string' || !message.trim() || message.length > 2000) {
     return res.status(400).json({ fallback: true, error: 'Pesan wajib berupa teks 1–2.000 karakter.' });
   }
@@ -68,6 +68,16 @@ app.post('/api/ai/chat', async (req, res) => {
     return res.status(503).json({ fallback: true, error: 'Layanan model eksternal tidak dikonfigurasi. Jawaban lokal tetap tersedia.' });
   }
 
+  let effectiveSystemInstruction = SYSTEM_INSTRUCTION;
+  if (liveContext && typeof liveContext === 'object') {
+    const safeScenario = typeof liveContext.scenarioKey === 'string' ? liveContext.scenarioKey.slice(0, 50) : 'normal';
+    const safeTraffic = typeof liveContext.trafficLoad === 'number' ? liveContext.trafficLoad : 'N/A';
+    const safeTemp = typeof liveContext.tempAmbient === 'number' ? liveContext.tempAmbient : 'N/A';
+    const safeScale = typeof liveContext.selectedScale === 'string' ? liveContext.selectedScale.slice(0, 30) : 'pilot';
+    const safeTab = typeof liveContext.activeTab === 'string' ? liveContext.activeTab.slice(0, 30) : 'overview';
+    effectiveSystemInstruction += `\nKonteks dashboard saat ini: Tab aktif = ${safeTab}, Skenario = ${safeScenario}, Utilisasi Trafik = ${safeTraffic}%, Suhu Ambient = ${safeTemp}°C, Skala = ${safeScale}. Gunakan konteks ini untuk menjawab secara spesifik.`;
+  }
+
   const contents = [
     ...history.map(({ sender, text }) => ({
       role: sender === 'user' ? 'user' : 'model',
@@ -81,7 +91,7 @@ app.post('/api/ai/chat', async (req, res) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents,
-        systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+        systemInstruction: { parts: [{ text: effectiveSystemInstruction }] },
         generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
       }),
       signal: AbortSignal.timeout(20_000),

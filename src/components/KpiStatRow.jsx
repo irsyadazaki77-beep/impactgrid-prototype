@@ -8,35 +8,35 @@ const kpis = [
     value: '1.885,4 GWh',
     note: 'Angka korporat dari laporan resmi',
     icon: Zap,
-    accentBorder: 'border-l-amber-500 dark:border-l-amber-400',
-    iconStyle: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 dark:border dark:border-amber-800/40',
+    topGradient: 'from-amber-500 to-amber-600',
+    iconStyle: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20',
   },
   {
     id: 'scope2',
     title: 'Emisi Scope 2 2025',
     value: '1,722 juta tCO₂e',
-    note: '63,6% dari total emisi',
+    note: '63,6% dari total emisi Telkomsel',
     icon: Leaf,
-    accentBorder: 'border-l-emerald-600 dark:border-l-emerald-400',
-    iconStyle: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border dark:border-emerald-800/40',
+    topGradient: 'from-emerald-500 to-teal-600',
+    iconStyle: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20',
   },
   {
     id: 'pilot',
-    title: 'Desain pilot usulan',
+    title: 'Desain Pilot Usulan',
     value: '40 + 10 lokasi',
     note: '40 intervensi + 10 pembanding',
     icon: Database,
-    accentBorder: 'border-l-sky-600 dark:border-l-sky-400',
-    iconStyle: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 dark:border dark:border-sky-800/40',
+    topGradient: 'from-sky-500 to-blue-600',
+    iconStyle: 'bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 border border-sky-500/20',
   },
   {
     id: 'validation',
-    title: 'Baseline lokasi',
+    title: 'Baseline Lokasi',
     value: 'Belum tersedia',
     note: 'Perlu audit meter dan biaya',
     icon: ClipboardCheck,
-    accentBorder: 'border-l-[#ED0226] dark:border-l-red-500',
-    iconStyle: 'bg-red-50 text-[#ED0226] dark:bg-red-950/40 dark:text-red-400 dark:border dark:border-red-900/40',
+    topGradient: 'from-[#ED0226] to-rose-600',
+    iconStyle: 'bg-red-500/10 text-[#ED0226] dark:bg-red-500/20 dark:text-red-400 border border-red-500/20',
   },
 ];
 
@@ -59,26 +59,31 @@ export default function KpiStatRow({ selectedScale = 'pilot', className = '' }) 
   ];
 
   return (
-    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 ${className}`}>
+    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6 ${className}`}>
       {dynamicKpis.map((kpi) => {
         const Icon = kpi.icon;
         return (
           <div 
             key={kpi.id} 
-            className={`rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 border-l-[3.5px] ${kpi.accentBorder} p-4 sm:p-5 shadow-xs hover:shadow-sm transition-shadow`}
+            className="group relative rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200 overflow-hidden"
           >
+            {/* Sleek Top Line Accent */}
+            <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${kpi.topGradient} opacity-80 group-hover:opacity-100 transition-opacity`} />
+
             <div className="flex items-start justify-between gap-2">
-              <span className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 leading-tight">
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 leading-tight">
                 {kpi.title}
               </span>
-              <div className={`p-1.5 sm:p-2 rounded-xl shrink-0 ${kpi.iconStyle}`}>
+              <div className={`p-2 rounded-xl shrink-0 ${kpi.iconStyle}`}>
                 <Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2 text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+
+            <div className="mt-2.5 text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight tabular-nums">
               {kpi.value}
             </div>
-            <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-normal">
+
+            <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-normal">
               {kpi.note}
             </div>
           </div>

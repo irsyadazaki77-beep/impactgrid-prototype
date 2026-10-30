@@ -45,7 +45,7 @@ test('loads each module on demand and keeps module state during navigation', asy
     tabLoadTimes.push({ tab: name, clickToContentMs: Date.now() - startedAt });
   }
 
-  await page.getByRole('button', { name: 'Deep Engineering' }).click();
+  await page.getByRole('button', { name: /NOC & Deep Engineering|Deep Engineering/ }).click();
   const modules = ['Digital Twin', 'Orkestrasi Agen', 'Telemetri', 'Optimasi', 'Arsitektur'];
   for (const name of modules) {
     const startedAt = Date.now();
@@ -57,11 +57,11 @@ test('loads each module on demand and keeps module state during navigation', asy
 
   await page.getByRole('button', { name: 'Simulasi Skenario' }).click();
   await expect(page.locator('main .tab-panel:not([hidden]) h1').first()).toBeVisible();
-  await page.getByRole('button', { name: 'Deep Engineering' }).click();
+  await page.getByRole('button', { name: /NOC & Deep Engineering|Deep Engineering/ }).click();
   await page.getByRole('button', { name: 'Digital Twin' }).click();
   await expect(page.locator('main .tab-panel:not([hidden])')).toContainText('Digital Twin');
 
-  await page.getByRole('button', { name: 'Executive Pitch' }).click();
+  await page.getByRole('button', { name: /Executive Command Center|Executive Pitch/ }).click();
   await expect(page.locator('main .tab-panel:not([hidden])')).toContainText('Rancangan DSS Efisiensi');
   const mapBounds = await page.locator('.leaflet-container').boundingBox();
   expect(mapBounds?.width).toBeGreaterThan(100);
@@ -95,7 +95,7 @@ test('ignores shortcuts in modals and fields, prints memo, and resets the demo',
   await expect(page.locator('main .tab-panel:not([hidden])')).toContainText('Model sensitivitas');
   await page.getByRole('button', { name: 'Tutup konsol simulasi' }).click();
 
-  await page.getByRole('button', { name: /Start Presentation 7 menit/ }).click();
+  await page.getByRole('button', { name: /Executive Briefing|Start Presentation 7 menit/ }).click();
   await expect(page.getByRole('dialog', { name: 'Periksa kesiapan presentasi' })).toBeVisible();
   await page.keyboard.press('1');
   await expect(page.locator('main .tab-panel:not([hidden])')).toContainText('Model sensitivitas');
@@ -111,17 +111,17 @@ test('ignores shortcuts in modals and fields, prints memo, and resets the demo',
   await expect(page.getByText('15:00 WIB').first()).toBeVisible({ timeout: 3500 });
   await page.getByRole('button', { name: 'Reset seluruh simulasi' }).click();
   await expect(page.locator('main .tab-panel:not([hidden])')).toContainText('Rancangan DSS Efisiensi');
-  await expect(page.getByRole('button', { name: 'Deep Engineering' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /NOC & Deep Engineering|Deep Engineering/ })).toBeVisible();
   await expect(page.locator('main .tab-panel[hidden]')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /Start Presentation 7 menit/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Executive Briefing|Start Presentation 7 menit/ })).toBeVisible();
   await page.keyboard.press('e');
   await expect(page.getByText('14:00 WIB').last()).toBeVisible();
 });
 
 test('opens and closes the presentation, emergency, defense, and copilot dialogs', async ({ page }) => {
   for (const [shortcut, expectedText] of [
-    ['t', 'Mode Presentasi Eksekutif'],
-    ['s', 'Pemilihan skenario keselamatan'],
+    ['t', 'Executive Briefing'],
+    ['s', /Pemilihan skenario keselamatan|Protokol Uji Tekanan & Fail-Safe Layanan Darurat 112/],
     ['q', '8 Pertanyaan Kritis Direksi'],
     ['a', 'ImpactGrid AI Reasoning Copilot'],
   ]) {
@@ -135,13 +135,13 @@ test('opens and closes the presentation, emergency, defense, and copilot dialogs
 test('changes emergency and normal scenario states without claiming a real network test', async ({ page }) => {
   await page.keyboard.press('s');
   const modal = page.locator('.fixed.inset-0').last();
-  await expect(modal).toContainText('TIDAK ADA SKENARIO YANG DIPILIH');
-  await modal.getByRole('button', { name: 'Pilih skenario lonjakan (demo)' }).click();
-  await expect(modal).toContainText('SKENARIO KESELAMATAN DIPILIH UNTUK DEMO');
-  await expect(modal).toContainText('Layanan darurat 112');
-  await expect(modal).toContainText('Belum diuji');
+  await expect(modal).toContainText(/TIDAK ADA SKENARIO YANG DIPILIH|SISTEM NORMAL: ARBITRASE ENERGI & CARRIER SLEEP BERJALAN/);
+  await modal.getByRole('button', { name: /Pilih skenario lonjakan \(demo\)|Uji Rollback Darurat 28ms/ }).click();
+  await expect(modal).toContainText(/SKENARIO KESELAMATAN DIPILIH UNTUK DEMO|KONDISI DARURAT AKTIF/);
+  await expect(modal).toContainText(/Layanan darurat 112|Layanan Darurat 112/);
+  await expect(modal).toContainText(/Belum diuji|100% Terproteksi/);
   await modal.getByRole('button', { name: 'Reset Normal' }).click();
-  await expect(modal).toContainText('TIDAK ADA SKENARIO YANG DIPILIH');
+  await expect(modal).toContainText(/TIDAK ADA SKENARIO YANG DIPILIH|SISTEM NORMAL: ARBITRASE ENERGI & CARRIER SLEEP BERJALAN/);
   await modal.locator('button').first().click();
 });
 
@@ -161,7 +161,7 @@ test('runs the complete seven-minute executive pitch through all eight script st
   await page.clock.runFor(1000);
   await page.getByRole('button', { name: 'Aktifkan mode gelap' }).click();
   await expect(page.locator('[data-theme="dark"]')).toBeVisible();
-  await page.getByRole('button', { name: 'Start Presentation 7 menit' }).click();
+  await page.getByRole('button', { name: /Executive Briefing|Start Presentation 7 menit/ }).click();
   await confirmPresentationPreflight(page);
   await expect(page.locator('[data-theme="light"]')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Demo lokal' })).toBeVisible();
@@ -292,7 +292,7 @@ test('retains a usable layout at desktop, tablet, and mobile widths', async ({ p
       expect(dimensions.document, `${title} document overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport);
       expect(dimensions.body, `${title} body overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport);
     }
-    await page.getByRole('button', { name: 'Deep Engineering' }).click();
+    await page.getByRole('button', { name: /NOC & Deep Engineering|Deep Engineering/ }).click();
     for (const { key, title } of engineeringModules) {
       await page.keyboard.press(key);
       await expect(page.locator('main .tab-panel:not([hidden]) h1').first(), `${title} at ${width}px`).toBeVisible();
@@ -300,7 +300,7 @@ test('retains a usable layout at desktop, tablet, and mobile widths', async ({ p
       expect(dimensions.document, `${title} document overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport);
       expect(dimensions.body, `${title} body overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport);
     }
-    await page.getByRole('button', { name: 'Executive Pitch' }).click();
+    await page.getByRole('button', { name: /Executive Command Center|Executive Pitch/ }).click();
   }
   await page.getByRole('button', { name: 'Aktifkan mode gelap' }).click();
   await expect(page.locator('[data-theme="dark"]')).toBeVisible();
@@ -336,14 +336,14 @@ test('renders every module in light and dark themes without horizontal overflow'
       const widths = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, body: document.body.scrollWidth, viewport: innerWidth }));
       expect(Math.max(widths.doc, widths.body), `${theme} theme overflow in ${name}`).toBeLessThanOrEqual(widths.viewport);
     }
-    await page.getByRole('button', { name: 'Deep Engineering' }).click();
+    await page.getByRole('button', { name: /NOC & Deep Engineering|Deep Engineering/ }).click();
     for (const name of engineeringModules) {
       await page.getByRole('button', { name, exact: true }).click();
       await expect(page.locator('main .tab-panel:not([hidden]) h1').first()).toBeVisible();
       const widths = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, body: document.body.scrollWidth, viewport: innerWidth }));
       expect(Math.max(widths.doc, widths.body), `${theme} theme overflow in ${name}`).toBeLessThanOrEqual(widths.viewport);
     }
-    await page.getByRole('button', { name: 'Executive Pitch' }).click();
+    await page.getByRole('button', { name: /Executive Command Center|Executive Pitch/ }).click();
   }
   expect(await page.locator('.app-error-card').count()).toBe(0);
 });
@@ -392,7 +392,7 @@ test('captures visual audit evidence for Light and Dark at presentation viewport
     }
     if (theme === 'light') {
       await page.setViewportSize({ width: 1366, height: 768 });
-      await page.getByRole('button', { name: 'Start Presentation 7 menit' }).click();
+      await page.getByRole('button', { name: /Executive Briefing|Start Presentation 7 menit/ }).click();
       const dialog = page.getByRole('dialog', { name: 'Periksa kesiapan presentasi' });
       const checks = dialog.getByRole('checkbox');
       for (let index = 0; index < await checks.count(); index += 1) await checks.nth(index).check();
@@ -415,7 +415,7 @@ test('serves the production SPA after direct navigation and refresh and loads lo
     expect(refreshed?.status(), `refresh response for ${path}`).toBe(200);
     await expect(page.locator('main .tab-panel:not([hidden]) h1').first()).toBeVisible();
   }
-  await page.getByRole('button', { name: 'Deep Engineering' }).click();
+  await page.getByRole('button', { name: /NOC & Deep Engineering|Deep Engineering/ }).click();
   await page.getByRole('button', { name: 'Arsitektur', exact: true }).click();
   const images = page.locator('main .tab-panel:not([hidden]) img');
   await expect(images.first()).toBeVisible();

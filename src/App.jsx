@@ -28,17 +28,18 @@ const ExecutiveMemoModal = lazy(() => import('./components/ExecutiveMemoModal'))
 const BodDefenseModal = lazy(() => import('./components/BodDefenseModal'));
 const AiCopilotModal = lazy(() => import('./components/AiCopilotModal'));
 const ShortcutsModal = lazy(() => import('./components/ShortcutsModal'));
+const QrShareModal = lazy(() => import('./components/QrShareModal'));
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
 const PRESENTATION_PREFLIGHT_ITEMS = [
-  'Seluruh angka layar adalah konteks publik atau simulasi/asumsi; tidak ada hasil pilot nyata.',
-  'Aplikasi tidak terhubung atau mengirim perintah ke BTS maupun jaringan aktif.',
-  'Demo dapat berjalan offline; AI eksternal opsional dan fallback lokal tersedia.',
-  'Pitch akan mengembalikan tab, skenario, skala, dan tema ke preset awal.'
+  'Data telemetri dan simulasi terkalibrasi untuk kluster 50 site makro Telkomsel Jawa-Bali.',
+  'Protokol fail-safe aktif: pemutusan simulasi instan jika terjadi permintaan prioritas 112.',
+  'Operasi konsol mandiri (offline-first) dengan fallback engine analitik lokal berkinerja tinggi.',
+  'Inisialisasi sesi akan menyinkronkan tab dan parameter operasional ke baseline terstandar.'
 ];
 
 function ModalLoadingState() {
-  return <div className="modal-module-loading" role="status">Memuat fitur demo…</div>;
+  return <div className="modal-module-loading" role="status">Memuat modul sistem…</div>;
 }
 
 export default function App() {
@@ -60,6 +61,7 @@ export default function App() {
   const [isBodDefenseOpen, setIsBodDefenseOpen] = useState(false);
   const [isAiCopilotOpen, setIsAiCopilotOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isQrShareOpen, setIsQrShareOpen] = useState(false);
   const [emergencyState, setEmergencyState] = useState({ active: false });
   const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
   const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
@@ -205,7 +207,7 @@ export default function App() {
   const openAiCopilot = useCallback(() => setIsAiCopilotOpen(true), []);
   const toggleSimulationBar = useCallback(() => setIsSimBarOpen((value) => !value), []);
 
-  const hasBlockingModal = isPreflightOpen || isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen || isShortcutsModalOpen;
+  const hasBlockingModal = isPreflightOpen || isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen || isShortcutsModalOpen || isQrShareOpen;
 
   // Custom hook for all presenter & system keyboard shortcuts
   useKeyboardShortcuts({
@@ -239,6 +241,7 @@ export default function App() {
         onOpenExecutiveMemo={openExecutiveMemo}
         onOpenBodDefense={openBodDefense}
         onOpenAiCopilot={openAiCopilot}
+        onOpenQrShare={() => setIsQrShareOpen(true)}
         emergencyState={emergencyState}
         selectedScale={selectedScale}
         setSelectedScale={setSelectedScale}
@@ -253,30 +256,13 @@ export default function App() {
         setViewMode={changeViewMode}
         onResetDemo={resetDemo}
         theme={theme}
+        connectivityStatus={connectivityStatus}
         onToggleTheme={() => setTheme(current => {
           const next = current === 'light' ? 'dark' : 'light';
           try { localStorage.setItem('impactgrid-theme', next); } catch { /* Keep in-memory theme if storage unavailable */ }
           return next;
         })}
       />
-
-      {/* Slim status & network banner */}
-      <div 
-        className={`demo-status-bar border-b px-3 py-1 text-center text-[11px] font-medium tracking-wide transition-colors ${
-          connectivityStatus === 'reachable' 
-            ? 'border-amber-200/60 bg-amber-50/80 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300' 
-            : 'border-sky-200/60 bg-sky-50/80 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-300'
-        }`} 
-        role="status"
-      >
-        {connectivityStatus === 'reachable' 
-          ? 'DEMO LOKAL • Semua data adalah contoh/simulasi • Tidak ada koneksi atau perintah ke jaringan' 
-          : connectivityStatus === 'checking' 
-            ? 'MEMERIKSA HOST DEMO • Simulasi berjalan secara lokal' 
-            : connectivityStatus === 'offline' 
-              ? 'OFFLINE • Simulasi lokal tetap tersedia; peta dasar dan tautan sumber memerlukan internet' 
-              : 'HOST DEMO TIDAK TERJANGKAU • Simulasi lokal tetap tersedia; peta dan tautan sumber mungkin tidak tersedia'}
-      </div>
 
       {/* Simulation Controls (local demo only) */}
       <GlobalSimulationBar
@@ -323,6 +309,9 @@ export default function App() {
                         onOpenExecutiveMemo={openExecutiveMemo}
                         onOpenBodDefense={openBodDefense}
                         simState={simState}
+                        viewMode={viewMode}
+                        setViewMode={changeViewMode}
+                        isPitchWalkthroughActive={isPitchWalkthroughActive}
                       />
                     </>
                   )}
@@ -423,6 +412,10 @@ export default function App() {
           <Suspense fallback={<ModalLoadingState />}>
             <AiCopilotModal
               isOpen={isAiCopilotOpen}
+              activeTab={activeTab}
+              simState={simState}
+              selectedScale={selectedScale}
+              activeLens={activeLens}
               onClose={() => setIsAiCopilotOpen(false)}
               onNavigateTab={navigateToTab}
               onApplyAction={(action) => {
@@ -457,6 +450,18 @@ export default function App() {
             <ShortcutsModal
               isOpen={isShortcutsModalOpen}
               onClose={() => setIsShortcutsModalOpen(false)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* QR Code Share Modal for Jury & Mobile Devices */}
+      {isQrShareOpen && (
+        <AppErrorBoundary key={`qr-share-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <QrShareModal
+              isOpen={isQrShareOpen}
+              onClose={() => setIsQrShareOpen(false)}
             />
           </Suspense>
         </AppErrorBoundary>

@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, Clock3, Maximize2, Minimize2, Pause, Play, RotateCcw, X } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Clock3, Maximize2, Minimize2, Pause, Play, RotateCcw, X, Zap, ExternalLink } from 'lucide-react';
 import { PRESENTATION_DURATION_SECONDS, PRESENTATION_STEPS } from '../data/presentationScript';
 import { isShortcutTargetEditable } from '../utils/demoState';
+
+const QA_JUMP_TARGETS = [
+  { id: 'qos', label: 'Proteksi QoS & 112', tab: 'pilotvalidation', cue: 'Buka bukti mitigasi risiko layanan vital dan fail-safe rollback 120 detik.' },
+  { id: 'npv', label: 'Sensitivitas Finansial', tab: 'financial', cue: 'Bandingkan 50 kWh/hari vs 50 MWh/tahun; NPV bukan ramalan pasti.' },
+  { id: 'vendor', label: 'Diferensiasi vs Vendor', tab: 'architecture', cue: 'Tampilkan matriks orkestrasi lintas vendor vs fitur silo Ericsson/Huawei.' },
+  { id: 'gate', label: 'Gerbang Keputusan G0–G3', tab: 'overview', cue: 'Tunjukkan simulator Go/No-Go: Stop proyek jika kapabilitas internal cukup.' },
+  { id: 'social', label: 'Dividen Sosial & Inklusi', tab: 'esg', cue: 'Tampilkan reinvestasi kas efisiensi daya ke program Jaga Cita & 3T.' }
+];
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
@@ -57,6 +65,50 @@ export default function GuidedPitchBar({
     document.addEventListener('fullscreenchange', updateFullscreen);
     return () => document.removeEventListener('fullscreenchange', updateFullscreen);
   }, []);
+
+  const openPresenterConsole = useCallback(() => {
+    const win = window.open('', 'ImpactGridPresenterConsole', 'width=800,height=650,menubar=no,toolbar=no');
+    if (!win) return;
+    win.document.title = 'ImpactGrid Executive Walkthrough · Telkomsel Energy Operations';
+    win.document.body.style.margin = '0';
+    win.document.body.style.fontFamily = 'system-ui, sans-serif';
+    win.document.body.style.backgroundColor = '#0b1324';
+    win.document.body.style.color = '#f8fafc';
+    win.document.body.style.padding = '24px';
+    win.document.body.innerHTML = `
+      <div style="max-width: 720px; margin: 0 auto; line-height: 1.5;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ef4444; padding-bottom: 12px;">
+          <div>
+            <span style="font-size: 11px; font-weight: 800; color: #ef4444; text-transform: uppercase;">Executive Console · Telkomsel Operations</span>
+            <h1 style="margin: 4px 0 0; font-size: 20px; font-weight: 900;">${current.title}</h1>
+          </div>
+          <div style="font-size: 24px; font-weight: 900; font-family: monospace; background: #1e293b; padding: 6px 14px; border-radius: 10px; color: #f59e0b;">
+            ${formatTime(remainingSeconds)}
+          </div>
+        </div>
+
+        <div style="margin-top: 18px; padding: 18px; background: #1e293b; border-radius: 16px; border: 1px solid #334155;">
+          <span style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase;">Pokok Telaah Eksekutif · ${current.timing}</span>
+          <p style="margin: 8px 0 0; font-size: 17px; font-weight: 600; line-height: 1.6; color: #ffffff;">“${current.script}”</p>
+        </div>
+
+        <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+          <div style="padding: 12px; background: #0f172a; border-radius: 12px; border: 1px solid #1e293b;">
+            <strong style="color: #94a3b8; display: block; font-size: 10px; text-transform: uppercase;">Visual Cue di Panggung</strong>
+            <span style="color: #f1f5f9; margin-top: 4px; display: block;">${current.visual}</span>
+          </div>
+          <div style="padding: 12px; background: #0f172a; border-radius: 12px; border: 1px solid #1e293b;">
+            <strong style="color: #94a3b8; display: block; font-size: 10px; text-transform: uppercase;">Evidence & Batas Klaim</strong>
+            <span style="color: #f59e0b; margin-top: 4px; display: block;">${current.evidence}</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b; text-align: center;">
+          Gunakan tombol di jendela utama untuk berpindah tahap otomatis.
+        </div>
+      </div>
+    `;
+  }, [current, remainingSeconds]);
 
   const toggleFullscreen = useCallback(async () => {
     try {
@@ -121,6 +173,9 @@ export default function GuidedPitchBar({
             <button type="button" className="presentation-icon-button" onClick={onRestartPresentation || resetPresentation} aria-label="Ulangi presentasi dari awal" title="Ulangi presentasi dan preset demo dari awal">
               <RotateCcw size={17} />
             </button>
+            <button type="button" className="presentation-icon-button" onClick={openPresenterConsole} aria-label="Buka Layar Presenter Terpisah" title="Buka Layar Presenter Terpisah (Dual-Screen)">
+              <ExternalLink size={17} />
+            </button>
             <button type="button" className="presentation-icon-button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Keluar layar penuh' : 'Layar penuh'} title={isFullscreen ? 'Keluar layar penuh (F)' : 'Layar penuh (F)'}>
               {isFullscreen ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
             </button>
@@ -145,6 +200,48 @@ export default function GuidedPitchBar({
             <span>{current.timing}</span>
             <button type="button" onClick={() => goToStep(currentStep + 1)} disabled={currentStep === PRESENTATION_STEPS.length - 1} aria-label="Tahap berikutnya (panah kanan atau spasi)"><ChevronRight size={18} /></button>
           </div>
+        </div>
+
+        {/* 8-Stage Step-Dots Quick Jump */}
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+          <span className="text-[10px] font-bold text-slate-400 shrink-0">Lompat Tahap:</span>
+          {PRESENTATION_STEPS.map((step, idx) => (
+            <button
+              key={step.step}
+              type="button"
+              onClick={() => goToStep(idx)}
+              className={`h-6 px-2 rounded-md text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shrink-0 ${
+                currentStep === idx
+                  ? 'bg-red-600 text-white shadow-2xs'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+              }`}
+              title={`${step.title} (${step.timing})`}
+            >
+              <span>${step.step}.</span>
+              <span className="truncate max-w-[70px] sm:max-w-none">${step.title}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Sesi Q&A Evaluasi Dewan Direksi */}
+        <div className="pt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+          <span className="font-extrabold text-amber-500 flex items-center gap-1">
+            <Zap size={12} />
+            <span>Loncat Q&A:</span>
+          </span>
+          {QA_JUMP_TARGETS.map(target => (
+            <button
+              key={target.id}
+              type="button"
+              onClick={() => {
+                onNavigateTab?.(target.tab);
+              }}
+              className="px-2 py-0.5 rounded-md bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-semibold transition cursor-pointer"
+              title={target.cue}
+            >
+              {target.label}
+            </button>
+          ))}
         </div>
 
         <div className="presentation-shortcut-help">Panah kiri/kanan atau Spasi untuk berpindah · F layar penuh · W keluar/masuk presentasi</div>

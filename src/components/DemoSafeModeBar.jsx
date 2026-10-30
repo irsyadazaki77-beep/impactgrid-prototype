@@ -2,16 +2,7 @@ import React from 'react';
 import { 
   RotateCcw, 
   ShieldCheck, 
-  Sparkles, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Camera, 
-  WifiOff, 
-  Database,
-  Radio,
-  Flame,
-  Zap,
-  HelpCircle
+  Database
 } from 'lucide-react';
 import { SIMULATION_SCENARIOS } from './GlobalSimulationBar';
 
@@ -25,7 +16,7 @@ export default function DemoSafeModeBar({
   simState,
   setSimState,
   onResetState,
-  isOfflineMode = true
+  isOfflineMode: _isOfflineMode = true
 }) {
   const handleSelectScenario = (key) => {
     const sc = SIMULATION_SCENARIOS[key];
@@ -37,8 +28,6 @@ export default function DemoSafeModeBar({
       }));
     }
   };
-
-  const currentScenario = SIMULATION_SCENARIOS[simState.scenarioKey] || SIMULATION_SCENARIOS.normal;
 
   return (
     <div className="bg-slate-900 text-white px-4 py-2 text-xs border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-inner">

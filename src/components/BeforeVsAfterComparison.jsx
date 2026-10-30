@@ -38,7 +38,7 @@ export default function BeforeVsAfterComparison() {
   const [activeTab, setActiveTab] = useState('all');
 
   return (
-    <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-6 shadow-xs space-y-4">
+    <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 shadow-xs space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
@@ -49,7 +49,7 @@ export default function BeforeVsAfterComparison() {
               Transformasi Nilai Tambah: Status Quo vs Solusi Terpadu ImpactGrid
             </h3>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Perbandingan operasional berdasarkan naskah proposal AWAKENING Reborn (Tabel 9)
+              Matriks Transformasi Operasional Jaringan Telkomsel Sebelum vs Sesudah Implementasi
             </p>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function BeforeVsAfterComparison() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-red-100 dark:border-red-950/40 space-y-1">
+              <div className="p-3 rounded-lg bg-white dark:bg-[#0B1324] border border-red-100 dark:border-red-950/40 space-y-1">
                 <div className="flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400">
                   <XCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>Pendekatan Konvensional (Sebelum)</span>
@@ -84,7 +84,7 @@ export default function BeforeVsAfterComparison() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-950/40 space-y-1">
+              <div className="p-3 rounded-lg bg-white dark:bg-[#0B1324] border border-emerald-100 dark:border-emerald-950/40 space-y-1">
                 <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>Solusi Terpadu ImpactGrid (Sesudah)</span>

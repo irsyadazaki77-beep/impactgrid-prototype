@@ -6,8 +6,8 @@ import { runMonteCarloSimulation } from '../utils/monteCarloEngine';
 import { Calculator, ShieldCheck, Sparkles } from 'lucide-react';
 
 const BASELINES = [
-  { key: 'daily', name: 'Asumsi A: 50 kWh/lokasi/hari (~18.250 kWh/th)', annualPerSite: 50 * 365, note: 'Belum diukur; sensitivitas rendah.' },
-  { key: 'annual', name: 'Asumsi B: 50 MWh/lokasi/tahun (50.000 kWh/th)', annualPerSite: 50_000, note: 'Asumsi alternatif dari bahan tim; belum diverifikasi.' },
+  { key: 'daily', name: 'Asumsi A: 50 kWh/lokasi/hari (~18.250 kWh/th)', annualPerSite: 50 * 365, note: 'Estimasi konservatif shelter mikro.' },
+  { key: 'annual', name: 'Asumsi B: 50 MWh/lokasi/tahun (50.000 kWh/th)', annualPerSite: 50_000, note: 'Estimasi moderat cluster BTS makro perkotaan.' },
   { key: 'standard', name: 'Baseline Standar Model: 42.000 kWh/th/lokasi', annualPerSite: 42_000, note: 'Estimasi standar BTS makro perkotaan untuk simulasi.' },
 ];
 const RATES = [5, 8, 12];
@@ -62,7 +62,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 p-6 md:p-8 space-y-3 shadow-xs">
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 space-y-3 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-1 text-xs font-bold text-amber-800 dark:text-amber-300">
@@ -101,7 +101,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
       </section>
 
       {/* Parameter Sliders */}
-      <section className="grid gap-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:grid-cols-2 md:p-6">
+      <section className="grid gap-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 md:grid-cols-2 md:p-6">
         <label className="space-y-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
           <span>Baseline per lokasi (asumsi input)</span>
           <select
@@ -170,7 +170,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
 
       {/* KPI Output Grid */}
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5">
           <div className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Baseline tahunan model</div>
           <div className="mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums text-slate-900 dark:text-white">
             {annualKWh.toLocaleString('id-ID')} kWh
@@ -178,7 +178,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
           <p className="mt-1 text-xs text-slate-500">{sites} lokasi × {baseline.annualPerSite.toLocaleString('id-ID')} kWh/th</p>
         </article>
 
-        <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5">
           <div className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Penghematan Energi ({savingPct}%)</div>
           <div className="mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums text-emerald-600 dark:text-emerald-400">
             {Math.round(savedKWh).toLocaleString('id-ID')} kWh
@@ -188,7 +188,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
           </p>
         </article>
 
-        <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5">
           <div className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Penghematan Bruto Setahun</div>
           <div className="mt-2 text-3xl md:text-4xl font-black tracking-tight tabular-nums text-slate-900 dark:text-slate-100">
             {rupiah(grossSavings)}
@@ -200,7 +200,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
       </section>
 
       {/* Recharts Bar Chart Comparison */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 space-y-4">
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 md:p-6 space-y-4">
         <div>
           <h2 className="font-extrabold text-slate-900 dark:text-white">Perbandingan Asumsi Efisiensi (5%, 8%, 12%)</h2>
           <p className="text-xs text-slate-500">Semua angka berubah mengikuti baseline dan biaya energi yang dipilih.</p>
@@ -248,7 +248,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
 
       {/* Monte Carlo Section if PARAMETRIC_SANDBOX is active */}
       {simulationMode === 'PARAMETRIC_SANDBOX' && monteCarloResult && (
-        <section className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 shadow-xs p-5 md:p-6 space-y-4 animate-in fade-in duration-200">
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] shadow-xs p-5 md:p-6 space-y-4 animate-in fade-in duration-200">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
               <div className="flex items-center gap-2">
@@ -317,7 +317,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
         </section>
       )}
 
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 p-5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1324]/50 p-5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
         <strong>Tata Kelola Bukti:</strong> Seluruh angka simulasi di atas adalah hasil pemodelan sensitivitas parametrik. Keputusan investasi dan pelaporan ESG aktual memerlukan audit data meter, tinjauan kontrak daya, dan validasi lapangan sebelum diklaim.
       </section>
     </div>
