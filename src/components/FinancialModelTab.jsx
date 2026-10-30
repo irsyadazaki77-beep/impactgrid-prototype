@@ -433,7 +433,7 @@ export default function FinancialModelTab({ simulationMode: externalMode, onTogg
           </section>
 
           {/* Table 15 Multivariable Sensitivity */}
-          <section className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] shadow-xs">
+          <section id="pitch-step-6-financial" className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] shadow-xs scroll-mt-6">
             <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-5">
               <h2 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <Scale className="w-4 h-4 text-slate-700 dark:text-slate-300" />

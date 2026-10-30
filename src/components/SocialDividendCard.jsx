@@ -50,7 +50,7 @@ export default function SocialDividendCard({ selectedScale = 'pilot' }) {
   };
 
   return (
-    <section className="rounded-2xl border border-rose-200 dark:border-rose-950/80 bg-gradient-to-br from-rose-50/50 via-white to-amber-50/30 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950/90 p-5 sm:p-6 shadow-xs space-y-5">
+    <section id="social-dividend-card" className="rounded-2xl border border-rose-200 dark:border-rose-950/80 bg-gradient-to-br from-rose-50/50 via-white to-amber-50/30 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-950/90 p-5 sm:p-6 shadow-xs space-y-5 scroll-mt-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-100 dark:border-rose-950/60 pb-4">
         <div className="space-y-1">

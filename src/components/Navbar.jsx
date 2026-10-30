@@ -253,7 +253,7 @@ export default function Navbar({
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-900 dark:text-white">Q&A Defense Direksi</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">8 Jawaban kritis pertanyaan direksi</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">10 Jawaban kritis pertanyaan direksi & CISO</p>
                         </div>
                       </div>
                       <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Q</span>

@@ -23,7 +23,7 @@ const validations = [
 export default function ESGComplianceTab({ onOpenReportModal }) {
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-emerald-300 dark:border-emerald-700/60 bg-emerald-50/50 dark:bg-[#071912] p-6 md:p-8 space-y-4 shadow-xs">
+      <section id="pitch-step-7-esg" className="rounded-2xl border border-emerald-300 dark:border-emerald-700/60 bg-emerald-50/50 dark:bg-[#071912] p-6 md:p-8 space-y-4 shadow-xs scroll-mt-6">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-emerald-950 px-3 py-1 text-xs font-bold text-emerald-900 dark:text-emerald-200">
           <Leaf className="h-4 w-4 text-emerald-600" /> 
           <span>SISTEM INVENTARISASI EMISI SCOPE 2 • KEPATUHAN IFRS S2 & ISO 14064</span>

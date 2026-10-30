@@ -16,6 +16,7 @@ import {
   ShieldAlert,
   CheckCircle2,
   FileCheck,
+  FileText,
   AlertTriangle,
   Award,
   ArrowRight,
@@ -107,7 +108,8 @@ export default function OverviewTab({
   simState = { simHour: 14, tempC: 28, trafficMultiplier: 1.0, carrierSleepActive: true, simTimeString: '14:00 WIB' },
   viewMode = 'executive',
   setViewMode,
-  isPitchWalkthroughActive = false
+  isPitchWalkthroughActive = false,
+  onOpenExecutiveMemo
 }) {
   const [showGisMap, setShowGisMap] = useState(false);
   const [isBrowserOnline, setIsBrowserOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
@@ -211,7 +213,7 @@ export default function OverviewTab({
       )}
 
       {/* 1. NOC Operations Executive Header */}
-      <div className="bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs space-y-4">
+      <div id="pitch-step-1-overview" className="bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs space-y-4 scroll-mt-6">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-red-50 text-[#ED0226] border border-red-200/80 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50 text-xs font-bold">
@@ -258,6 +260,16 @@ export default function OverviewTab({
               <ShieldAlert className="w-3.5 h-3.5" />
               <span>Drill Darurat</span>
             </button>
+            {onOpenExecutiveMemo && (
+              <button 
+                onClick={onOpenExecutiveMemo}
+                className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+                title="Buka Executive Investment Dossier 1-Halaman (Siap Cetak / PDF)"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#ED0226]" />
+                <span>Executive Dossier A4</span>
+              </button>
+            )}
           </div>
 
           {/* Secondary Tools & Enterprise Hub Shortcuts */}
@@ -399,7 +411,8 @@ export default function OverviewTab({
 
       {/* 4. TIGA PILAR SKOR EKSEKUTIF (FILTERED BY LENS) */}
       <div 
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-2xl transition"
+        id="pitch-step-2-pillars"
+        className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-2xl transition scroll-mt-6"
         data-pitch-highlight={isPitchWalkthroughActive ? 'true' : undefined}
       >
         {/* Pilar 1: Finansial */}
@@ -927,7 +940,7 @@ export default function OverviewTab({
       )}
 
       {/* 8. DIVIDEN SOSIAL, ACADEMY, ALUR KEPUTUSAN & SEBELUM VS SESUDAH */}
-      <div className="space-y-6 pt-2">
+      <div id="pitch-step-8-decisiongates" className="space-y-6 pt-2 scroll-mt-6">
         <SocialDividendCard selectedScale={selectedScale} />
         <ImpactGridAcademyCard />
         <ExecutiveDecisionTimeline />

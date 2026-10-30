@@ -4,11 +4,11 @@ import { PRESENTATION_DURATION_SECONDS, PRESENTATION_STEPS } from '../data/prese
 import { isShortcutTargetEditable } from '../utils/demoState';
 
 const QA_JUMP_TARGETS = [
-  { id: 'qos', label: 'Proteksi QoS & 112', tab: 'pilotvalidation', cue: 'Buka bukti mitigasi risiko layanan vital dan fail-safe rollback 120 detik.' },
-  { id: 'npv', label: 'Sensitivitas Finansial', tab: 'financial', cue: 'Bandingkan 50 kWh/hari vs 50 MWh/tahun; NPV bukan ramalan pasti.' },
-  { id: 'vendor', label: 'Diferensiasi vs Vendor', tab: 'architecture', cue: 'Tampilkan matriks orkestrasi lintas vendor vs fitur silo Ericsson/Huawei.' },
-  { id: 'gate', label: 'Gerbang Keputusan G0–G3', tab: 'overview', cue: 'Tunjukkan simulator Go/No-Go: Stop proyek jika kapabilitas internal cukup.' },
-  { id: 'social', label: 'Dividen Sosial & Inklusi', tab: 'esg', cue: 'Tampilkan reinvestasi kas efisiensi daya ke program Jaga Cita & 3T.' }
+  { id: 'qos', label: 'Proteksi QoS & 112', tab: 'pilotvalidation', targetId: 'pitch-step-5-pilotvalidation', cue: 'Buka bukti mitigasi risiko layanan vital dan fail-safe rollback 120 detik.' },
+  { id: 'npv', label: 'Sensitivitas Finansial', tab: 'financial', targetId: 'pitch-step-6-financial', cue: 'Bandingkan 50 kWh/hari vs 50 MWh/tahun; NPV bukan ramalan pasti.' },
+  { id: 'vendor', label: 'Diferensiasi vs Vendor', tab: 'architecture', targetId: 'it-enterprise-hub', cue: 'Tampilkan matriks orkestrasi lintas vendor vs fitur silo Ericsson/Huawei.' },
+  { id: 'gate', label: 'Gerbang Keputusan G0–G3', tab: 'overview', targetId: 'pitch-step-8-decisiongates', cue: 'Tunjukkan simulator Go/No-Go: Stop proyek jika kapabilitas internal cukup.' },
+  { id: 'social', label: 'Dividen Sosial & Inklusi', tab: 'esg', targetId: 'social-dividend-card', cue: 'Tampilkan reinvestasi kas efisiensi daya ke program Jaga Cita & 3T.' }
 ];
 
 function formatTime(seconds) {
@@ -38,7 +38,16 @@ export default function GuidedPitchBar({
   const goToStep = useCallback((index) => {
     if (index < 0 || index >= PRESENTATION_STEPS.length) return;
     setCurrentStep(index);
-    onNavigateTab?.(PRESENTATION_STEPS[index].tab);
+    const step = PRESENTATION_STEPS[index];
+    onNavigateTab?.(step.tab);
+    if (step.targetId) {
+      setTimeout(() => {
+        const el = document.getElementById(step.targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 120);
+    }
   }, [onNavigateTab]);
 
   const resetPresentation = useCallback(() => {
@@ -48,6 +57,14 @@ export default function GuidedPitchBar({
     setIsNotesExpanded(false);
     onNotesExpandedChange?.(false);
     onNavigateTab?.(PRESENTATION_STEPS[0].tab);
+    if (PRESENTATION_STEPS[0].targetId) {
+      setTimeout(() => {
+        const el = document.getElementById(PRESENTATION_STEPS[0].targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 120);
+    }
   }, [onNavigateTab, onNotesExpandedChange]);
 
   useEffect(() => {
@@ -217,8 +234,8 @@ export default function GuidedPitchBar({
               }`}
               title={`${step.title} (${step.timing})`}
             >
-              <span>${step.step}.</span>
-              <span className="truncate max-w-[70px] sm:max-w-none">${step.title}</span>
+              <span>{step.step}.</span>
+              <span className="truncate max-w-[70px] sm:max-w-none">{step.title}</span>
             </button>
           ))}
         </div>
@@ -235,6 +252,14 @@ export default function GuidedPitchBar({
               type="button"
               onClick={() => {
                 onNavigateTab?.(target.tab);
+                if (target.targetId) {
+                  setTimeout(() => {
+                    const el = document.getElementById(target.targetId);
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }, 120);
+                }
               }}
               className="px-2 py-0.5 rounded-md bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-semibold transition cursor-pointer"
               title={target.cue}

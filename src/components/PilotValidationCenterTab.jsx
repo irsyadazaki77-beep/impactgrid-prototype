@@ -51,7 +51,7 @@ export default function PilotValidationCenterTab({ onOpenReportModal }) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 space-y-4 shadow-xs">
+      <section id="pitch-step-5-pilotvalidation" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 space-y-4 shadow-xs scroll-mt-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200/80 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 text-xs font-bold text-emerald-800 dark:text-emerald-300">
           <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> 
           <span>VALIDASI OPERASIONAL 40 SITE PILOT • KEPATUHAN QOS & DID</span>
@@ -103,7 +103,7 @@ export default function PilotValidationCenterTab({ onOpenReportModal }) {
         ))}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 md:p-6 shadow-xs">
+      <section id="pitch-step-8-decisiongates" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 md:p-6 shadow-xs scroll-mt-6">
         <h2 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           Tata Kelola Gerbang Keputusan Tahap (Stage-Gate G0–G3 Telkomsel)

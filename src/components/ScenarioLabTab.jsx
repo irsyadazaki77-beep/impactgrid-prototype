@@ -62,7 +62,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 space-y-3 shadow-xs">
+      <section id="pitch-step-3-scenarios" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 space-y-3 shadow-xs scroll-mt-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-1 text-xs font-bold text-amber-800 dark:text-amber-300">
@@ -200,7 +200,7 @@ export default function ScenarioLabTab({ isActive = true, simulationMode: extern
       </section>
 
       {/* Recharts Bar Chart Comparison */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 md:p-6 space-y-4">
+      <section id="pitch-step-4-montecarlo" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 md:p-6 space-y-4 scroll-mt-6">
         <div>
           <h2 className="font-extrabold text-slate-900 dark:text-white">Perbandingan Asumsi Efisiensi (5%, 8%, 12%)</h2>
           <p className="text-xs text-slate-500">Semua angka berubah mengikuti baseline dan biaya energi yang dipilih.</p>
