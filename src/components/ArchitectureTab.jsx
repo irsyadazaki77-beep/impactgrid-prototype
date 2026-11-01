@@ -27,14 +27,24 @@ import {
 } from 'lucide-react';
 import NetconfDeploymentModal from './NetconfDeploymentModal';
 import ItEnterpriseIntegrationHub from './ItEnterpriseIntegrationHub';
+import TelkomselItMaxSuitePanel from './TelkomselItMaxSuitePanel';
 import { 
   CASE_STUDY_RESPONSES,
   STAKEHOLDER_VALUE_MAPPING,
   RISK_ASSESSMENT_MATRIX,
-  SOLUTION_COMPARISON_MATRIX 
+  SOLUTION_COMPARISON_MATRIX,
+  MULTI_VENDOR_RAN_COMPARISON
 } from '../data/mockData';
 
-export default function ArchitectureTab({ onOpenOfficialBaRe }) {
+export default function ArchitectureTab({
+  simState,
+  selectedScale = 'pilot',
+  operationalSummary,
+  resolvedSites = [],
+  onOpenOfficialBaRe,
+  onOpenSapVoucher,
+  onOpenProcurementBoq
+}) {
   const [activeSubView, setActiveSubView] = useState('diagrams'); // 'diagrams' | 'case_study' | 'stakeholders' | 'risks' | 'comparison'
   const [selectedDiagram, setSelectedDiagram] = useState('issue_tree');
   const [selectedLayer, setSelectedLayer] = useState('ric');
@@ -157,6 +167,18 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
         {/* Sub-View Navigation Bar */}
         <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-xs no-scrollbar">
           <button
+            onClick={() => setActiveSubView('it_max_suite')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+              activeSubView === 'it_max_suite'
+                ? 'bg-[#ED0226] text-white shadow-xs'
+                : 'bg-red-50 dark:bg-red-950/40 text-[#ED0226] dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-800'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#ED0226] dark:text-red-400" />
+            <span>IT MAX: Open API, 11 Regional &amp; Chaos Lab</span>
+          </button>
+
+          <button
             onClick={() => setActiveSubView('it_integration')}
             className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeSubView === 'it_integration'
@@ -165,7 +187,7 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Kesiapan IT & TM Forum API (CISO Ready)</span>
+            <span>Kesiapan IT &amp; TM Forum API (CISO Ready)</span>
           </button>
 
           <button
@@ -235,6 +257,47 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
             <span>Simulasi Netconf / YANG</span>
           </button>
         </div>
+
+        {/* Live Corporate Document & State Bar */}
+        <div className="pt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
+              Jam Simulasi: {String(simState?.hour ?? 2).padStart(2, '0')}:00 WIB • Skala: {selectedScale.toUpperCase()}
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 font-bold text-emerald-700 dark:text-emerald-300">
+              Populasi Aktif: {operationalSummary?.activeSiteCount || 50} Site ({resolvedSites.length} FOP Terkalibrasi)
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {onOpenOfficialBaRe && (
+              <button
+                type="button"
+                onClick={onOpenOfficialBaRe}
+                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer transition"
+              >
+                Berita Acara BA-RE
+              </button>
+            )}
+            {onOpenSapVoucher && (
+              <button
+                type="button"
+                onClick={onOpenSapVoucher}
+                className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer transition"
+              >
+                Jurnal SAP S/4HANA
+              </button>
+            )}
+            {onOpenProcurementBoq && (
+              <button
+                type="button"
+                onClick={onOpenProcurementBoq}
+                className="px-3 py-1 rounded-lg bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold cursor-pointer transition"
+              >
+                Dokumen RKS / BoQ
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* SUB-VIEW 1: DIAGRAM KONSEPTUAL & PETA JALAN */}
@@ -248,22 +311,22 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
                 onClick={() => setSelectedDiagram(d.id)}
                 className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between shadow-xs ${
                   selectedDiagram === d.id
-                    ? 'bg-red-50 border-red-300 text-slate-900 ring-2 ring-red-100'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800 text-slate-900 dark:text-slate-100 ring-2 ring-red-100 dark:ring-red-900/40'
+                    : 'bg-white dark:bg-[#0B1324] border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`}
               >
                 <div>
-                  <span className="text-[10px] font-bold text-red-600 uppercase block mb-1">
+                  <span className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase block mb-1">
                     {d.id === 'issue_tree' ? 'Gambar 1' : 
                      d.id === 'roadmap' ? 'Gambar 2' : 
                      d.id === 'arsitektur' ? 'Gambar 3' : 
                      d.id === 'alur_optimasi' ? 'Gambar 4' : 'Logo'}
                   </span>
-                  <span className="text-xs font-extrabold text-slate-900 line-clamp-2">
+                  <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 line-clamp-2">
                     {d.title.split(': ')[1] || d.title}
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 mt-2 block">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 block">
                   Klik untuk Menampilkan
                 </span>
               </button>
@@ -271,46 +334,46 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
           </div>
 
           {/* Main Selected Diagram Showcase */}
-          <div className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/90 space-y-5 shadow-xs">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#0B1324] border border-slate-200/90 dark:border-slate-800 space-y-5 shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
-                <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
+                <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">
                   {currentDiagram.rubricMapping}
                 </span>
-                <h2 className="text-lg font-black text-slate-900 tracking-tight mt-0.5">
+                <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight mt-0.5">
                   {currentDiagram.title}
                 </h2>
-                <p className="text-xs text-slate-500">{currentDiagram.subtitle}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{currentDiagram.subtitle}</p>
               </div>
 
               <a 
                 href={currentDiagram.image} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shrink-0 cursor-pointer transition shadow-xs"
+                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold shrink-0 cursor-pointer transition shadow-xs"
               >
-                <ZoomIn className="w-3.5 h-3.5 text-slate-600" />
+                <ZoomIn className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
                 <span>Buka Gambar Ukuran Penuh</span>
               </a>
             </div>
 
             {/* Display Image Container */}
-            <div className="flex items-center justify-center p-6 rounded-2xl bg-slate-50 border border-slate-200/80 overflow-hidden min-h-[380px]">
+            <div className="flex items-center justify-center p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 overflow-hidden min-h-[380px]">
               <img 
                 loading="lazy"
                 decoding="async"
                 src={currentDiagram.image} 
                 alt={currentDiagram.title}
-                className="max-h-[500px] w-auto object-contain rounded-xl shadow-md transition hover:scale-[1.01]" 
+                className="max-h-[500px] w-auto object-contain rounded-xl shadow-md transition hover:scale-[1.01] bg-white p-2" 
               />
             </div>
 
             {/* Caption & Explanation */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start space-x-3 text-xs">
-              <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 flex items-start space-x-3 text-xs">
+              <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <span className="font-bold text-slate-900">Deskripsi Teknis Diagram:</span>
-                <p className="text-slate-600 leading-relaxed font-normal">
+                <span className="font-bold text-slate-900 dark:text-slate-100">Deskripsi Teknis Diagram:</span>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                   {currentDiagram.caption}
                 </p>
               </div>
@@ -318,20 +381,20 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
           </div>
 
           {/* O-RAN Interactive Protocol Inspector for CTO & Technical Judges */}
-          <div className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/90 space-y-5 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#0B1324] border border-slate-200/90 dark:border-slate-800 space-y-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center space-x-2">
-                <Network className="w-4 h-4 text-cyan-600" />
-                <h3 className="text-sm font-extrabold text-slate-900">
+                <Network className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
                   Rujukan antarmuka dan asumsi integrasi
                 </h3>
               </div>
-              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-800 border border-cyan-200">
+              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">
                 Arsitektur O-RAN Standar Internasional
               </span>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Penyebutan standar tidak membuktikan dukungan atau kompatibilitas vendor. Protokol dan hak akses harus dikonfirmasi bersama Telkomsel, vendor, pemilik aset, dan tim keamanan.
             </p>
 
@@ -345,14 +408,14 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
                     onClick={() => setSelectedLayer(layer.id)}
                     className={`p-3 rounded-2xl text-left border transition-all cursor-pointer ${
                       isSelected 
-                        ? 'bg-cyan-50/80 border-cyan-400 ring-2 ring-cyan-100 shadow-xs' 
-                        : 'bg-slate-50 border-slate-200/90 hover:bg-slate-100/80 text-slate-700'
+                        ? 'bg-cyan-50/80 dark:bg-cyan-950/40 border-cyan-400 dark:border-cyan-700 ring-2 ring-cyan-100 dark:ring-cyan-900/40 shadow-xs' 
+                        : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200/90 dark:border-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    <span className={`text-[11px] font-bold block ${isSelected ? 'text-cyan-900' : 'text-slate-800'}`}>
+                    <span className={`text-[11px] font-bold block ${isSelected ? 'text-cyan-900 dark:text-cyan-200' : 'text-slate-800 dark:text-slate-200'}`}>
                       {layer.name}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono mt-0.5 block truncate">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 block truncate">
                       {layer.standard}
                     </span>
                   </button>
@@ -396,20 +459,20 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
         </div>
       )}
 
-      {/* SUB-VIEW 2: RESPON STUDI KASUS (TABEL 1) */}
+      {/* SUB-VIEW 2: SPESIFIKASI TATA KELOLA OPERASIONAL (TABEL 1) */}
       {activeSubView === 'case_study' && (
         <div className="space-y-4">
-          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-red-600 uppercase tracking-wide">Tabel 1 Spesifikasi Operasional</span>
-              <h2 className="text-base font-extrabold text-slate-900">
-                Matriks Respon Lengkap Key Question & Sub-Questions Case Study Telkomsel
+              <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">Tabel 1 Spesifikasi Operasional & Mandat Direksi</span>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-slate-100">
+                Matriks Spesifikasi Tata Kelola Operasional &amp; Mandat Strategis Direksi Telkomsel
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Jawaban ini merupakan posisi usulan tim dan perlu didukung bukti serta sumber yang sesuai.
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Rujukan tata kelola eksekutif untuk integrasi jaringan hijau O-RAN, efisiensi OPEX energi, dan auditabilitas ESG.
               </p>
             </div>
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">
+            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
               <HelpCircle className="w-5 h-5" />
             </div>
           </div>
@@ -418,42 +481,42 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
             {CASE_STUDY_RESPONSES.map((item) => (
               <div 
                 key={item.id}
-                className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-slate-300 transition space-y-3"
+                className="p-5 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition space-y-3"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                    item.color === 'red' ? 'bg-red-50 text-red-700 border-red-200' :
-                    item.color === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                    item.color === 'purple' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                    item.color === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                    'bg-amber-50 text-amber-700 border-amber-200'
+                    item.color === 'red' ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' :
+                    item.color === 'blue' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' :
+                    item.color === 'purple' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800' :
+                    item.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' :
+                    'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
                   }`}>
                     {item.badge}
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400">ID: {item.id}</span>
+                  <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">ID: {item.id}</span>
                 </div>
 
-                <div className="text-xs font-bold text-slate-900 leading-snug">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug">
                   {item.question}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-500 flex items-center gap-1">
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3 text-amber-500" />
                       Fokus Tantangan Telkomsel:
                     </span>
-                    <p className="text-slate-700 leading-relaxed font-normal">
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
                       {item.challenge}
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-emerald-800 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       Strategi & Jawaban Solusi ImpactGrid:
                     </span>
-                    <p className="text-slate-800 leading-relaxed font-medium">
+                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
                       {item.solution}
                     </p>
                   </div>
@@ -467,17 +530,17 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
       {/* SUB-VIEW 3: PEMETAAN NILAI TAMBAH MULTI-STAKEHOLDER (TABEL 2) */}
       {activeSubView === 'stakeholders' && (
         <div className="space-y-4">
-          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-red-600 uppercase tracking-wide">Tabel 2 Matriks RACI & Tata Kelola</span>
-              <h2 className="text-base font-extrabold text-slate-900">
+              <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">Tabel 2 Matriks RACI & Tata Kelola</span>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-slate-100">
                 Pemetaan Nilai Tambah Solusi bagi Multi-Stakeholder Telkomsel
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Memetakan manfaat yang diharapkan; dampak aktual perlu diukur dan dibahas dengan tiap pemangku kepentingan.
               </p>
             </div>
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
+            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
               <Users className="w-5 h-5" />
             </div>
           </div>
@@ -489,7 +552,7 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
               className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer shrink-0 ${
                 selectedStakeholder === 'all'
                   ? 'bg-slate-900 text-white'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  : 'bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               Semua Stakeholder (4)
@@ -501,7 +564,7 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
                 className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer shrink-0 ${
                   selectedStakeholder === s.id
                     ? 'bg-slate-900 text-white'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    : 'bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 {s.stakeholder.split(' (')[0]}
@@ -513,31 +576,31 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
             {filteredStakeholders.map((s) => (
               <div 
                 key={s.id}
-                className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xs space-y-3 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                       {s.roleBadge}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">Pilar Stakeholder</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Pilar Stakeholder</span>
                   </div>
 
-                  <h3 className="text-sm font-black text-slate-900 mb-1">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 mb-1">
                     {s.stakeholder}
                   </h3>
 
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 mb-3 text-xs">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Fokus Kepentingan Utama:</span>
-                    <p className="text-slate-700 font-medium mt-0.5">{s.focus}</p>
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 mb-3 text-xs">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">Fokus Kepentingan Utama:</span>
+                    <p className="text-slate-700 dark:text-slate-300 font-medium mt-0.5">{s.focus}</p>
                   </div>
 
                   <div className="space-y-1 text-xs">
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase flex items-center gap-1">
-                      <Check className="w-3 h-3 text-emerald-600" />
+                    <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase flex items-center gap-1">
+                      <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       Manfaat & Nilai Tambah Terukur:
                     </span>
-                    <p className="text-slate-800 leading-relaxed font-normal bg-emerald-50/40 p-3 rounded-xl border border-emerald-100">
+                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-normal bg-emerald-50/40 dark:bg-emerald-950/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800/60">
                       {s.valueAdded}
                     </p>
                   </div>
@@ -551,17 +614,17 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
       {/* SUB-VIEW 4: MATRIKS PENILAIAN & MITIGASI RISIKO (TABEL 3) */}
       {activeSubView === 'risks' && (
         <div className="space-y-4">
-          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-red-600 uppercase tracking-wide">Tabel 3 Matriks Manajemen Risiko</span>
-              <h2 className="text-base font-extrabold text-slate-900">
+              <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">Tabel 3 Matriks Manajemen Risiko</span>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-slate-100">
                 Matriks Penilaian dan Mitigasi Risiko (Risk Assessment Matrix)
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Enam risiko usulan untuk ditinjau; pengendalian belum diterapkan atau diuji.
               </p>
             </div>
-            <div className="p-2 rounded-xl bg-red-50 text-red-700 border border-red-200">
+            <div className="p-2 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
               <ShieldAlert className="w-5 h-5" />
             </div>
           </div>
@@ -570,42 +633,42 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
             {RISK_ASSESSMENT_MATRIX.map((risk) => (
               <div 
                 key={risk.no}
-                className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between"
+                className="p-4 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xs space-y-3 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
-                    <span className="text-[10px] font-bold text-slate-400">Risiko #{risk.no}</span>
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Risiko #{risk.no}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                       risk.level === 'Tinggi' 
-                        ? 'bg-red-50 text-red-700 border-red-200' 
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                        ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' 
+                        : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
                     }`}>
                       Tingkat: {risk.level}
                     </span>
                   </div>
 
-                  <h3 className="text-xs font-black text-slate-900 mb-1">
+                  <h3 className="text-xs font-black text-slate-900 dark:text-slate-100 mb-1">
                     {risk.category}
                   </h3>
 
-                  <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
                     {risk.description}
                   </p>
 
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 text-[11px] space-y-1">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/90 dark:border-slate-800 text-[11px] space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       Strategi Mitigasi Terukur:
                     </span>
-                    <p className="text-slate-800 leading-relaxed font-medium">
+                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
                       {risk.mitigation}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
-                  <span>PIC: <strong className="text-slate-700">{risk.owner}</strong></span>
-                  <span className="font-semibold text-emerald-600">{risk.status}</span>
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                  <span>PIC: <strong className="text-slate-700 dark:text-slate-200">{risk.owner}</strong></span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">{risk.status}</span>
                 </div>
               </div>
             ))}
@@ -696,12 +759,67 @@ export default function ArchitectureTab({ onOpenOfficialBaRe }) {
               </tbody>
             </table>
           </div>
+
+          {/* Multi-Vendor RAN Comparison Matrix (Ericsson, Huawei, ZTE) */}
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                  Interoperabilitas Multi-Vendor RAN Nasional
+                </span>
+                <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">
+                  Matriks Komparasi Teknis Perangkat Radio: Ericsson vs Huawei vs ZTE
+                </h3>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
+                Vendor-Neutral O-RAN WG10 O1/A1
+              </span>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-[10px] font-bold uppercase">
+                  <tr>
+                    <th className="p-3">Vendor &amp; Pangsa Jaringan</th>
+                    <th className="p-3">Platform OSS / EMS</th>
+                    <th className="p-3">Perangkat Radio &amp; Baseband</th>
+                    <th className="p-3">Protokol O-RAN &amp; Fitur Tidur</th>
+                    <th className="p-3 text-right">Wake-Up Latency</th>
+                    <th className="p-3 text-right">Penghematan Daya</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {MULTI_VENDOR_RAN_COMPARISON.map((v) => (
+                    <tr key={v.vendor} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="p-3">
+                        <div className="font-black text-slate-900 dark:text-slate-100">{v.vendor}</div>
+                        <div className="text-[10px] text-slate-500">Share: {v.shareNational}</div>
+                      </td>
+                      <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">{v.ossPlatform}</td>
+                      <td className="p-3 text-slate-600 dark:text-slate-400">{v.radioHardware}</td>
+                      <td className="p-3">
+                        <div className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400">{v.protocol}</div>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">{v.impactGridOrchestration}</div>
+                      </td>
+                      <td className="p-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">{v.wakeUpLatencyMs} ms</td>
+                      <td className="p-3 text-right font-mono font-black text-slate-900 dark:text-slate-100">{v.avgSavingsPct}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
       {/* SUB-VIEW 6: IT ENTERPRISE & ARCHITECTURE INTEGRATION HUB */}
       {activeSubView === 'it_integration' && (
         <ItEnterpriseIntegrationHub onOpenBeritaAcara={onOpenOfficialBaRe} />
+      )}
+
+      {/* SUB-VIEW 7: TELKOMSEL IT ENTERPRISE MAX SUITE (OPEN API, 11 REGIONAL & CHAOS LAB) */}
+      {activeSubView === 'it_max_suite' && (
+        <TelkomselItMaxSuitePanel />
       )}
 
       {/* Netconf Deployment Simulation Modal */}

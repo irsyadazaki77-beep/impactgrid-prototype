@@ -39,6 +39,9 @@ export function useKeyboardShortcuts({
   onToggleSimBar,
   onOpenShortcuts,
   onOpenCopilot,
+  onOpenCommandPalette,
+  onOpenProcurementBoq,
+  onOpenJuryScorecard,
   onOpenExport,
   onTogglePitch,
   onOpenTour,
@@ -70,10 +73,14 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      // 3. Cmd/Ctrl + K : Membuka modal AI Copilot ('askAi')
+      // 3. Cmd/Ctrl + K : Membuka Global Command Palette ('commandPalette' atau fallback ke 'copilot')
       if (isCmdOrCtrl && !e.shiftKey && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
-        onOpenCopilot?.();
+        if (onOpenCommandPalette) {
+          onOpenCommandPalette();
+        } else {
+          onOpenCopilot?.();
+        }
         return;
       }
 
@@ -134,7 +141,7 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      // 8. Pintasan presenter eksisting lainnya (v, 6-9, w, t, s, p, q, a)
+      // 8. Pintasan presenter eksisting lainnya (v, 6-9, w, t, s, p, q, a, b, k)
       if (keyLower === 'v') {
         onNavigateTab('pilotvalidation');
         return;
@@ -177,6 +184,14 @@ export function useKeyboardShortcuts({
       }
       if (keyLower === 'a') {
         onOpenCopilot?.();
+        return;
+      }
+      if (keyLower === 'b') {
+        onOpenProcurementBoq?.();
+        return;
+      }
+      if (keyLower === 'j') {
+        onOpenJuryScorecard?.();
       }
     };
 
@@ -193,6 +208,9 @@ export function useKeyboardShortcuts({
     onToggleSimBar,
     onOpenShortcuts,
     onOpenCopilot,
+    onOpenCommandPalette,
+    onOpenProcurementBoq,
+    onOpenJuryScorecard,
     onOpenExport,
     onTogglePitch,
     onOpenTour,

@@ -9,8 +9,15 @@ import { resolveTabForMode } from './utils/demoState';
 import { useSimulationState } from './hooks/useSimulationState';
 import { useAuditTrail } from './hooks/useAuditTrail';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useOperationalBackend } from './hooks/useOperationalBackend';
 import { ENTERPRISE_ROLES } from './data/enterpriseRoles';
 import { getStoredSsoSession } from './utils/storageEngine';
+import {
+  SYNC_CHANNEL_NAME,
+  createPresenterSyncMessage,
+  parsePresenterSyncMessage
+} from './utils/enterpriseCommandAndClosedLoopEngine';
+import { DEFAULT_BYOD_REGIONAL_PRESET } from './utils/telkomselNextGenOperationsEngine';
 
 const KpiStatRow = memo(lazy(() => import('./components/KpiStatRow')));
 const OverviewTab = memo(lazy(() => import('./components/OverviewTab')));
@@ -35,6 +42,10 @@ const TelkomselSsoModal = lazy(() => import('./components/TelkomselSsoModal'));
 const OfficialBeritaAcaraModal = lazy(() => import('./components/OfficialBeritaAcaraModal'));
 const FieldTechnicianConsoleModal = lazy(() => import('./components/FieldTechnicianConsoleModal'));
 const SapAccountingVoucherModal = lazy(() => import('./components/SapAccountingVoucherModal'));
+const CommandPaletteModal = lazy(() => import('./components/CommandPaletteModal'));
+const ProcurementBoqModal = lazy(() => import('./components/ProcurementBoqModal'));
+const DualScreenSyncModal = lazy(() => import('./components/DualScreenSyncModal'));
+const JuryScorecardModal = lazy(() => import('./components/JuryScorecardModal'));
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
 const PRESENTATION_PREFLIGHT_ITEMS = [
@@ -72,19 +83,24 @@ export default function App() {
   const [isOfficialBaReOpen, setIsOfficialBaReOpen] = useState(false);
   const [isFieldConsoleOpen, setIsFieldConsoleOpen] = useState(false);
   const [isSapVoucherOpen, setIsSapVoucherOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isProcurementBoqOpen, setIsProcurementBoqOpen] = useState(false);
+  const [isDualScreenSyncOpen, setIsDualScreenSyncOpen] = useState(false);
+  const [isJuryScorecardOpen, setIsJuryScorecardOpen] = useState(false);
   const [resolvedSites, setResolvedSites] = useState([]);
+  const [customByodSites, setCustomByodSites] = useState([]);
+  const [syncRole, setSyncRole] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('screen') === 'audience' ? 'audience' : 'controller';
+    } catch {
+      return 'controller';
+    }
+  });
+  const [lastSyncEvent, setLastSyncEvent] = useState(null);
+  const [tabSenderId] = useState(() => `tab-${Math.random().toString(36).slice(2, 9)}`);
 
-  const handleResolveSiteAnomaly = (siteId) => {
-    setResolvedSites(prev => [...new Set([...prev, siteId])]);
-  };
-  const [ssoSession, setSsoSession] = useState(() => getStoredSsoSession());
-  const [emergencyState, setEmergencyState] = useState({ active: false });
-  const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
-  const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
-  const [currentRole, setCurrentRole] = useState('vp_network');
-  const [isAutonomous, setIsAutonomous] = useState(false);
-
-  // Live Executive Simulation Console & Audit Trail Custom Hooks
+  // Live Executive Simulation Console, Operational Full-Stack Backend & Audit Trail Custom Hooks
   const [isSimBarOpen, setIsSimBarOpen] = useState(false);
   const {
     simState,
@@ -96,6 +112,76 @@ export default function App() {
     resetSimulation
   } = useSimulationState();
   const { appendAuditLog, clearAuditLogs } = useAuditTrail();
+  const {
+    operationalState,
+    operationalSummary,
+    divisionAccounts,
+    selectDatasetPreset,
+    ingestTelemetryRecords,
+    upsertBtsSite,
+    deleteBtsSite,
+    updateSlaThresholds,
+    dispatchOranPolicy,
+    resolveFopAnomaly,
+    signBareDocument,
+    postSapVoucher,
+    authenticateSso,
+    resetOperationalDatabase
+  } = useOperationalBackend();
+
+  useEffect(() => {
+    if (Array.isArray(operationalState?.resolvedSites) && operationalState.resolvedSites.length > 0) {
+      setResolvedSites((prev) => [...new Set([...prev, ...operationalState.resolvedSites])]);
+    }
+  }, [operationalState?.resolvedSites]);
+
+  const broadcastSyncEvent = useCallback((type, payload = {}) => {
+    const packet = createPresenterSyncMessage(type, payload, tabSenderId);
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        ch.postMessage(packet);
+        ch.close();
+      }
+      localStorage.setItem(SYNC_CHANNEL_NAME, JSON.stringify(packet));
+    } catch {
+      // Ignore storage or broadcast restrictions in private browsing
+    }
+  }, [tabSenderId]);
+
+  const handleResolveSiteAnomaly = useCallback((siteId) => {
+    const targetSite = siteId || 'BDG-DGO-P04';
+    setResolvedSites((prev) => [...new Set([...prev, targetSite])]);
+    void resolveFopAnomaly({ siteId: targetSite });
+    appendAuditLog({
+      action: 'FOP_CLOSED_LOOP_SETTLED',
+      detail: `Site ${targetSite} calibrated via FOP Mobile e-WO -> BA-RE & SAP S/4HANA Credit Note Rp 3.824.640 synced`,
+      category: 'RECONCILIATION'
+    });
+    broadcastSyncEvent('FOP_RESOLVE', { siteId: targetSite });
+  }, [appendAuditLog, broadcastSyncEvent, resolveFopAnomaly]);
+
+  const handleBatchResolveAnomalies = useCallback((siteIds) => {
+    const defaultAnomalyIds = ['BDG-DGO-P04', 'JAB-SITE-05', 'JKT-SEL-P03', 'BKS-MET-P06'];
+    const targets = Array.isArray(siteIds) && siteIds.length > 0 ? siteIds : defaultAnomalyIds;
+    setResolvedSites((prev) => [...new Set([...prev, ...targets])]);
+    targets.forEach((id) => {
+      void resolveFopAnomaly({ siteId: id });
+      broadcastSyncEvent('FOP_RESOLVE', { siteId: id });
+    });
+    appendAuditLog({
+      action: 'FOP_BATCH_CLOSED_LOOP_SETTLED',
+      detail: `Batch FOP calibration executed for ${targets.length} sites (${targets.join(', ')}) -> BA-RE PLN & SAP S/4HANA Credit Notes synced`,
+      category: 'RECONCILIATION'
+    });
+  }, [appendAuditLog, broadcastSyncEvent, resolveFopAnomaly]);
+
+  const [ssoSession, setSsoSession] = useState(() => getStoredSsoSession());
+  const [emergencyState, setEmergencyState] = useState({ active: false });
+  const [selectedScale, setSelectedScale] = useState('pilot'); // 'pilot' | 'regional' | 'national'
+  const [activeLens, setActiveLens] = useState('all'); // 'all' | 'finance' | 'network' | 'esg'
+  const [currentRole, setCurrentRole] = useState('vp_network');
+  const [isAutonomous, setIsAutonomous] = useState(false);
 
   const [connectivityStatus, setConnectivityStatus] = useState(() => typeof navigator === 'undefined' || navigator.onLine ? 'checking' : 'offline');
 
@@ -147,7 +233,8 @@ export default function App() {
     const nextTab = resolveTabForMode(tabId, viewMode);
     setActiveTab(nextTab);
     setLoadedTabs((tabs) => new Set(tabs).add(nextTab));
-  }, [viewMode]);
+    broadcastSyncEvent('TAB_CHANGE', { tab: nextTab, viewMode });
+  }, [viewMode, broadcastSyncEvent]);
 
   const changeViewMode = useCallback((nextMode) => {
     setViewMode(nextMode);
@@ -155,7 +242,57 @@ export default function App() {
       setActiveTab('overview');
       setLoadedTabs((tabs) => new Set(tabs).add('overview'));
     }
-  }, [activeTab]);
+    broadcastSyncEvent('VIEW_MODE_CHANGE', { viewMode: nextMode });
+  }, [activeTab, broadcastSyncEvent]);
+
+  // Listen for Dual-Screen Presenter Sync events via BroadcastChannel & storage fallback
+  useEffect(() => {
+    const applySyncMessage = (raw) => {
+      const msg = parsePresenterSyncMessage(raw, tabSenderId);
+      if (!msg) return;
+      setLastSyncEvent(msg);
+      if (msg.type === 'TAB_CHANGE' && msg.payload.tab) {
+        if (msg.payload.viewMode) setViewMode(msg.payload.viewMode);
+        setActiveTab(msg.payload.tab);
+        setLoadedTabs((tabs) => new Set(tabs).add(msg.payload.tab));
+      } else if (msg.type === 'REMOTE_STAGE_JUMP' && msg.payload.tab) {
+        setActiveTab(msg.payload.tab);
+        setLoadedTabs((tabs) => new Set(tabs).add(msg.payload.tab));
+      } else if (msg.type === 'FOP_RESOLVE' && msg.payload.siteId) {
+        setResolvedSites((prev) => [...new Set([...prev, msg.payload.siteId])]);
+      } else if (msg.type === 'EMERGENCY_TOGGLE') {
+        const active = Boolean(msg.payload.active);
+        const scenario = SIMULATION_SCENARIOS[active ? 'emergency' : 'normal'];
+        setEmergencyState({ active });
+        setSimState((state) => ({ ...state, scenarioKey: scenario.id, emergencyActive: active }));
+      }
+    };
+
+    let channel;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        channel.onmessage = (event) => applySyncMessage(event.data);
+      }
+    } catch {
+      // Ignore if BroadcastChannel unsupported
+    }
+
+    const handleStorage = (event) => {
+      if (event.key === SYNC_CHANNEL_NAME && event.newValue) {
+        try {
+          applySyncMessage(JSON.parse(event.newValue));
+        } catch {
+          // Ignore malformed storage payload
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      channel?.close();
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [tabSenderId, setSimState]);
 
   const handleRoleChange = useCallback((roleId) => {
     const role = ENTERPRISE_ROLES.find(r => r.id === roleId);
@@ -178,7 +315,9 @@ export default function App() {
   const resetDemo = useCallback(() => {
     resetSimulation();
     clearAuditLogs();
+    void resetOperationalDatabase();
     setEmergencyState({ active: false });
+    setResolvedSites([]);
     setSelectedScale('pilot');
     setActiveLens('all');
     setCurrentRole('vp_network');
@@ -197,6 +336,11 @@ export default function App() {
     setIsAiCopilotOpen(false);
     setIsShortcutsModalOpen(false);
     setIsReportModalOpen(false);
+    setIsCommandPaletteOpen(false);
+    setIsProcurementBoqOpen(false);
+    setIsDualScreenSyncOpen(false);
+    setIsJuryScorecardOpen(false);
+    setCustomByodSites([]);
     setResetVersion((version) => version + 1);
   }, [clearAuditLogs, resetSimulation]);
 
@@ -234,7 +378,8 @@ export default function App() {
       detail: `Emergency state changed to ${active}`,
       category: 'SAFETY',
     });
-  }, [appendAuditLog, setSimState]);
+    broadcastSyncEvent('EMERGENCY_TOGGLE', { active });
+  }, [appendAuditLog, setSimState, broadcastSyncEvent]);
 
   const openReportModal = useCallback(() => setIsReportModalOpen(true), []);
   const openEmergencyModal = useCallback(() => setIsEmergencyModalOpen(true), []);
@@ -243,7 +388,41 @@ export default function App() {
   const openAiCopilot = useCallback(() => setIsAiCopilotOpen(true), []);
   const toggleSimulationBar = useCallback(() => setIsSimBarOpen((value) => !value), []);
 
-  const hasBlockingModal = isPreflightOpen || isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen || isShortcutsModalOpen || isQrShareOpen;
+  const handleExecuteCommandAction = useCallback((item) => {
+    if (!item) return;
+    if (item.actionType === 'RESOLVE_FOP_LOOP') {
+      handleResolveSiteAnomaly(item.siteId || 'BDG-DGO-P04');
+      setIsOfficialBaReOpen(true);
+      return;
+    }
+    if (item.actionType === 'LOAD_BYOD_PRESET') {
+      setCustomByodSites(DEFAULT_BYOD_REGIONAL_PRESET);
+      setIsOfficialBaReOpen(true);
+      return;
+    }
+    if (item.actionType === 'START_PITCH') {
+      requestPresentationStart();
+      return;
+    }
+    if (item.actionType === 'OPEN_BOD_QUESTION') {
+      setIsBodDefenseOpen(true);
+      return;
+    }
+    if (item.actionType === 'OPEN_MODAL') {
+      if (item.modalKey === 'fop') setIsFieldConsoleOpen(true);
+      else if (item.modalKey === 'bare') setIsOfficialBaReOpen(true);
+      else if (item.modalKey === 'sap') setIsSapVoucherOpen(true);
+      else if (item.modalKey === 'boq') setIsProcurementBoqOpen(true);
+      else if (item.modalKey === 'jury') setIsJuryScorecardOpen(true);
+      else if (item.modalKey === 'dualsync') setIsDualScreenSyncOpen(true);
+      else if (item.modalKey === 'emergency') setIsEmergencyModalOpen(true);
+      else if (item.modalKey === 'defense') setIsBodDefenseOpen(true);
+      else if (item.modalKey === 'memo') setIsExecutiveMemoOpen(true);
+      else if (item.modalKey === 'copilot') setIsAiCopilotOpen(true);
+    }
+  }, [handleResolveSiteAnomaly, requestPresentationStart]);
+
+  const hasBlockingModal = isPreflightOpen || isReportModalOpen || isDirectorTourOpen || isEmergencyModalOpen || isExecutiveMemoOpen || isBodDefenseOpen || isAiCopilotOpen || isShortcutsModalOpen || isQrShareOpen || isCommandPaletteOpen || isProcurementBoqOpen || isDualScreenSyncOpen || isJuryScorecardOpen;
 
   // Custom hook for all presenter & system keyboard shortcuts
   useKeyboardShortcuts({
@@ -257,6 +436,9 @@ export default function App() {
     onToggleSimBar: toggleSimulationBar,
     onOpenShortcuts: () => setIsShortcutsModalOpen(true),
     onOpenCopilot: () => setIsAiCopilotOpen(true),
+    onOpenCommandPalette: () => setIsCommandPaletteOpen(true),
+    onOpenProcurementBoq: () => setIsProcurementBoqOpen(true),
+    onOpenJuryScorecard: () => setIsJuryScorecardOpen(true),
     onOpenExport: openReportModal,
     onTogglePitch: togglePitchWalkthrough,
     onOpenTour: () => setIsDirectorTourOpen(prev => !prev),
@@ -277,6 +459,10 @@ export default function App() {
         onOpenExecutiveMemo={openExecutiveMemo}
         onOpenBodDefense={openBodDefense}
         onOpenAiCopilot={openAiCopilot}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenProcurementBoq={() => setIsProcurementBoqOpen(true)}
+        onOpenJuryScorecard={() => setIsJuryScorecardOpen(true)}
+        onOpenDualScreenSync={() => setIsDualScreenSyncOpen(true)}
         onOpenQrShare={() => setIsQrShareOpen(true)}
         onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
         onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
@@ -309,7 +495,7 @@ export default function App() {
 
       {/* Simulation Controls (local demo only) */}
       <GlobalSimulationBar
-        key={resetVersion}
+        key={`sim-bar-${resetVersion}`}
         simState={simState}
         setSimState={setSimState}
         isOpen={isSimBarOpen}
@@ -339,7 +525,11 @@ export default function App() {
                 <Suspense fallback={<TabLoadingFallback />}>
                   {tabId === 'overview' && (
                     <>
-                      <KpiStatRow simState={simState} selectedScale={selectedScale} />
+                      <KpiStatRow
+                        simState={simState}
+                        selectedScale={selectedScale}
+                        operationalSummary={operationalSummary}
+                      />
                       <OverviewTab
                         setActiveTab={navigateToTab}
                         selectedScale={selectedScale}
@@ -356,17 +546,76 @@ export default function App() {
                         setViewMode={changeViewMode}
                         isPitchWalkthroughActive={isPitchWalkthroughActive}
                         onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
+                        resolvedSites={resolvedSites}
+                        customByodSites={customByodSites}
+                        operationalSummary={operationalSummary}
+                        onResolveSiteAnomaly={handleResolveSiteAnomaly}
+                        onOpenModal={(modalKey) => {
+                          if (modalKey === 'memo') setIsExecutiveMemoOpen(true);
+                          else if (modalKey === 'boq') setIsProcurementBoqOpen(true);
+                          else if (modalKey === 'bare') setIsOfficialBaReOpen(true);
+                          else if (modalKey === 'sap') setIsSapVoucherOpen(true);
+                          else if (modalKey === 'jury') setIsJuryScorecardOpen(true);
+                          else if (modalKey === 'emergency') setIsEmergencyModalOpen(true);
+                          else if (modalKey === 'fop') setIsFieldConsoleOpen(true);
+                        }}
                       />
                     </>
                   )}
-                  {tabId === 'pilotvalidation' && <PilotValidationCenterTab onOpenReportModal={openReportModal} />}
-                  {tabId === 'digitaltwin' && <DigitalTwinTab />}
-                  {tabId === 'agents' && <AgentOrchestratorTab />}
+                  {tabId === 'pilotvalidation' && (
+                    <PilotValidationCenterTab
+                      onOpenReportModal={openReportModal}
+                      onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+                      onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+                      simState={simState}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
+                      onResolveSiteAnomaly={handleResolveSiteAnomaly}
+                      onBatchResolveAnomalies={handleBatchResolveAnomalies}
+                    />
+                  )}
+                  {tabId === 'digitaltwin' && (
+                    <DigitalTwinTab
+                      simState={simState}
+                      operationalState={operationalState}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
+                      onResolveSiteAnomaly={handleResolveSiteAnomaly}
+                      onDispatchOranPolicy={dispatchOranPolicy}
+                      onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+                      onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+                    />
+                  )}
+                  {tabId === 'agents' && (
+                    <AgentOrchestratorTab
+                      simState={simState}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
+                      onDispatchOranPolicy={dispatchOranPolicy}
+                      onBatchResolveAnomalies={handleBatchResolveAnomalies}
+                      onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+                      onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+                    />
+                  )}
                   {tabId === 'telemetry' && (
                     <TelemetryTab 
                       onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} 
                       onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
+                      onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
                       resolvedSites={resolvedSites}
+                      operationalState={operationalState}
+                      operationalSummary={operationalSummary}
+                      onSelectDatasetPreset={selectDatasetPreset}
+                      onIngestRecords={ingestTelemetryRecords}
+                      onIngestTelemetryRecords={ingestTelemetryRecords}
+                      onUpsertSite={upsertBtsSite}
+                      onUpsertBtsSite={upsertBtsSite}
+                      onDeleteSite={deleteBtsSite}
+                      onDeleteBtsSite={deleteBtsSite}
+                      onUpdateSlaThresholds={updateSlaThresholds}
+                      onDispatchOranPolicy={dispatchOranPolicy}
+                      onResolveSiteAnomaly={handleResolveSiteAnomaly}
+                      onBatchResolveAnomalies={handleBatchResolveAnomalies}
                     />
                   )}
                   {tabId === 'scenariolab' && (
@@ -374,18 +623,75 @@ export default function App() {
                       isActive={activeTab === tabId}
                       simulationMode={simulationMode}
                       onToggleSimulationMode={toggleSimulationMode}
+                      simState={simState}
+                      selectedScale={selectedScale}
+                      onSelectScale={setSelectedScale}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
                     />
                   )}
-                  {tabId === 'optimization' && <OptimizationTab />}
-                  {tabId === 'esg' && <ESGComplianceTab onOpenReportModal={openReportModal} />}
+                  {tabId === 'optimization' && (
+                    <OptimizationTab
+                      simState={simState}
+                      selectedScale={selectedScale}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
+                      onResolveSiteAnomaly={handleResolveSiteAnomaly}
+                      onBatchResolveAnomalies={handleBatchResolveAnomalies}
+                      onDispatchOranPolicy={dispatchOranPolicy}
+                      onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+                      onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+                      onOpenProcurementBoq={() => setIsProcurementBoqOpen(true)}
+                    />
+                  )}
+                  {tabId === 'esg' && (
+                    <ESGComplianceTab
+                      onOpenReportModal={openReportModal}
+                      simState={simState}
+                      selectedScale={selectedScale}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
+                      customByodSites={customByodSites}
+                      onResolveSiteAnomaly={handleResolveSiteAnomaly}
+                      onBatchResolveAnomalies={handleBatchResolveAnomalies}
+                      onNavigateTab={(tab, targetMode) => {
+                        if (targetMode) changeViewMode(targetMode);
+                        navigateToTab(tab);
+                      }}
+                      onOpenModal={(modalKey) => {
+                        if (modalKey === 'memo') setIsExecutiveMemoOpen(true);
+                        else if (modalKey === 'boq') setIsProcurementBoqOpen(true);
+                        else if (modalKey === 'bare') setIsOfficialBaReOpen(true);
+                        else if (modalKey === 'sap') setIsSapVoucherOpen(true);
+                        else if (modalKey === 'jury') setIsJuryScorecardOpen(true);
+                        else if (modalKey === 'emergency') setIsEmergencyModalOpen(true);
+                        else if (modalKey === 'fop') setIsFieldConsoleOpen(true);
+                      }}
+                    />
+                  )}
                   {tabId === 'financial' && (
                     <FinancialModelTab
                       simulationMode={simulationMode}
                       onToggleSimulationMode={toggleSimulationMode}
+                      simState={simState}
+                      selectedScale={selectedScale}
+                      onSelectScale={setSelectedScale}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
                       onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+                      onOpenProcurementBoq={() => setIsProcurementBoqOpen(true)}
+                      onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
                     />
                   )}
-                  {tabId === 'architecture' && <ArchitectureTab onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} />}
+                  {tabId === 'architecture' && (
+                    <ArchitectureTab
+                      onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+                      onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+                      onOpenProcurementBoq={() => setIsProcurementBoqOpen(true)}
+                      operationalSummary={operationalSummary}
+                      resolvedSites={resolvedSites}
+                    />
+                  )}
                 </Suspense>
               </AppErrorBoundary>
             </section>
@@ -467,6 +773,7 @@ export default function App() {
               simState={simState}
               selectedScale={selectedScale}
               activeLens={activeLens}
+              operationalSummary={operationalSummary}
               onClose={() => setIsAiCopilotOpen(false)}
               onNavigateTab={navigateToTab}
               onApplyAction={(action) => {
@@ -526,6 +833,8 @@ export default function App() {
               isOpen={isSsoModalOpen}
               onClose={() => setIsSsoModalOpen(false)}
               currentSession={ssoSession}
+              onAuthenticateSso={authenticateSso}
+              divisionAccounts={divisionAccounts}
               onLoginSuccess={(session) => {
                 setSsoSession(session);
                 if (session.roleId) handleRoleChange(session.roleId);
@@ -542,6 +851,13 @@ export default function App() {
             <OfficialBeritaAcaraModal
               isOpen={isOfficialBaReOpen}
               onClose={() => setIsOfficialBaReOpen(false)}
+              resolvedSites={resolvedSites}
+              customByodSites={customByodSites}
+              onResolveSiteAnomaly={handleResolveSiteAnomaly}
+              onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+              onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
+              operationalState={operationalState}
+              onSignBareDocument={signBareDocument}
             />
           </Suspense>
         </AppErrorBoundary>
@@ -555,6 +871,8 @@ export default function App() {
               isOpen={isFieldConsoleOpen}
               onClose={() => setIsFieldConsoleOpen(false)}
               onResolveSiteAnomaly={handleResolveSiteAnomaly}
+              onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+              onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
             />
           </Suspense>
         </AppErrorBoundary>
@@ -567,6 +885,79 @@ export default function App() {
             <SapAccountingVoucherModal
               isOpen={isSapVoucherOpen}
               onClose={() => setIsSapVoucherOpen(false)}
+              resolvedSites={resolvedSites}
+              customByodSites={customByodSites}
+              onResolveSiteAnomaly={handleResolveSiteAnomaly}
+              onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+              operationalState={operationalState}
+              onPostSapVoucher={postSapVoucher}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Global Executive Command Palette (Ctrl+K) */}
+      {isCommandPaletteOpen && (
+        <AppErrorBoundary key={`cmd-palette-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <CommandPaletteModal
+              isOpen={isCommandPaletteOpen}
+              onClose={() => setIsCommandPaletteOpen(false)}
+              onNavigateTab={navigateToTab}
+              onChangeViewMode={changeViewMode}
+              onExecuteAction={handleExecuteCommandAction}
+              resolvedSites={resolvedSites}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Procurement BoQ, RKS & Telkomsel Differentiator Modal */}
+      {isProcurementBoqOpen && (
+        <AppErrorBoundary key={`boq-rks-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <ProcurementBoqModal
+              isOpen={isProcurementBoqOpen}
+              onClose={() => setIsProcurementBoqOpen(false)}
+              onOpenBaRe={() => setIsOfficialBaReOpen(true)}
+              onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+              onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Investment Committee & Jury Scorecard + BYOD Live Sandbox Modal */}
+      {isJuryScorecardOpen && (
+        <AppErrorBoundary key={`jury-scorecard-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <JuryScorecardModal
+              isOpen={isJuryScorecardOpen}
+              onClose={() => setIsJuryScorecardOpen(false)}
+              resolvedSites={resolvedSites}
+              customByodSites={customByodSites}
+              onUpdateCustomByodSites={setCustomByodSites}
+              onResolveSiteAnomaly={handleResolveSiteAnomaly}
+              onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
+              onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
+      {/* Dual-Screen Presenter & Jury Live Sync Modal */}
+      {isDualScreenSyncOpen && (
+        <AppErrorBoundary key={`dual-sync-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <DualScreenSyncModal
+              isOpen={isDualScreenSyncOpen}
+              onClose={() => setIsDualScreenSyncOpen(false)}
+              syncStats={{ connectedPeers: 1, lastEvent: lastSyncEvent, role: syncRole }}
+              onSetSyncRole={setSyncRole}
+              onBroadcastTestAction={broadcastSyncEvent}
+              onNavigateTab={navigateToTab}
+              onTriggerEmergency={handleApplyEmergency}
+              onStartPitch={requestPresentationStart}
             />
           </Suspense>
         </AppErrorBoundary>
@@ -599,9 +990,9 @@ export default function App() {
           }}
         >
           <section className="w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-2xl sm:p-7">
-            <p className="text-xs font-black uppercase tracking-wider text-red-700">Preflight demo · 7 menit</p>
-            <h2 id="presentation-preflight-title" className="mt-1 text-xl font-black">Periksa kesiapan presentasi</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">Konfirmasi batas demo sebelum pitch dimulai. Skenario akan direset ke preset lokal saat Anda melanjutkan.</p>
+            <p className="text-xs font-black uppercase tracking-wider text-red-700">Verifikasi Kesiapan Sesi · Briefing Eksekutif Direksi</p>
+            <h2 id="presentation-preflight-title" className="mt-1 text-xl font-black">Periksa Kesiapan Sesi Briefing</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">Konfirmasi kesiapan parameter telemetri sebelum sesi peninjauan direksi dimulai. Parameter operasional akan disinkronkan ke baseline standar.</p>
             <ul className="mt-4 space-y-3">
               {PRESENTATION_PREFLIGHT_ITEMS.map((item, index) => (
                 <li key={item}>
@@ -626,7 +1017,7 @@ export default function App() {
                 onClick={startPresentation}
                 className="rounded-xl bg-[#ED0226] px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
-                Mulai pitch dan reset demo
+                Mulai Briefing Eksekutif
               </button>
             </div>
           </section>
@@ -635,7 +1026,7 @@ export default function App() {
 
       {/* Live Presenter Pitch Walkthrough Teleprompter */}
       <GuidedPitchBar
-        key={resetVersion}
+        key={`pitch-bar-${resetVersion}`}
         isActive={isPitchWalkthroughActive}
         shortcutsEnabled={!hasBlockingModal}
         onClose={() => {

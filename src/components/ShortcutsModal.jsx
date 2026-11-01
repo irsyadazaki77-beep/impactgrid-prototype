@@ -6,13 +6,15 @@ export default function ShortcutsModal({ isOpen, onClose }) {
 
   const shortcuts = [
     { key: 'Shift + ?', desc: 'Buka panduan pintasan keyboard ini' },
-    { key: 'Cmd / Ctrl + K', desc: 'Buka ImpactGrid AI Reasoning Copilot' },
+    { key: 'Cmd / Ctrl + K', desc: 'Buka Command Palette & Pencarian Global (50 Site / Q&A / Bukti)' },
+    { key: 'B', desc: 'Buka Generator BoQ, RKS Pengadaan & Simulasi Penalti SLA' },
+    { key: 'J', desc: 'Buka Evaluasi Komite Investasi, Scorecard Juri & BYOD CSV Sandbox' },
     { key: 'Cmd / Ctrl + E', desc: 'Buka modal ekspor lembar kerja asumsi / laporan' },
     { key: 'Cmd / Ctrl + Shift + R', desc: 'Reset seluruh simulasi & tampilan demo' },
     { key: 'Space', desc: 'Putar / jeda jam simulasi otomatis (Auto-Sim)' },
     { key: 'E', desc: 'Buka / tutup konsol simulasi & alihkan ke mode Eksekutif' },
     { key: 'G', desc: 'Alihkan mode ke Deep Engineering' },
-    { key: '1 - 5', desc: 'Pindah tab navigasi sesuai mode aktif (Executive / Engineering)' },
+    { key: '1 - 9', desc: 'Pindah tab navigasi sesuai mode aktif (Executive / Engineering)' },
     { key: 'V', desc: 'Buka tab Validasi Pilot' },
     { key: 'W', desc: 'Buka / tutup teleprompter presentasi 7 menit' },
     { key: 'T', desc: 'Buka Tur Presentasi Direktur' },

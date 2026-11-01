@@ -34,19 +34,29 @@ const kpis = [
   },
   {
     id: 'validation',
-    title: 'Baseline Lokasi',
-    value: 'Belum tersedia',
-    tag: 'Audit Rp95 Jt',
-    note: 'Perlu audit meter dan biaya',
+    title: 'Rekonsiliasi & Baseline Site',
+    value: '50 Site Aktif',
+    tag: 'SAP: 1 Jurnal',
+    note: 'Sub-meter Kelas 0.5s & Audit G0 Rp95 Jt',
     icon: ClipboardCheck,
     topGradient: 'from-[#ED0226] to-rose-600',
     iconStyle: 'bg-red-500/10 text-[#ED0226] dark:bg-red-500/20 dark:text-red-400 border border-red-500/20',
   },
 ];
 
-export default function KpiStatRow({ selectedScale = 'pilot', className = '' }) {
+export default function KpiStatRow({ selectedScale = 'pilot', operationalSummary = null, className = '' }) {
+  const liveSiteCount = operationalSummary?.siteCount ?? 50;
+  const interventionCount = operationalSummary?.interventionCount ?? 40;
+  const controlCount = operationalSummary?.controlCount ?? 10;
+  const liveSavingsPct = operationalSummary?.overallSavingsPct ?? 13.0;
+  const resolvedCount = operationalSummary?.resolvedSitesCount ?? 0;
+  const postedSapCount = operationalSummary?.postedSapVouchersCount ?? 1;
+
   const scaleInfo = {
-    pilot: { value: '40 + 10 lokasi', note: '40 intervensi + 10 pembanding' },
+    pilot: {
+      value: liveSiteCount === 50 ? '40 + 10 lokasi' : `${liveSiteCount} lokasi aktif`,
+      note: `${interventionCount} intervensi + ${controlCount} pembanding (−${liveSavingsPct}% kW)`
+    },
     regional: { value: '5.000 lokasi', note: 'Prioritas Kluster Jamali (H2)' },
     national: { value: '10.000+ lokasi', note: 'Perluasan makro nasional (H3)' }
   }[selectedScale] || { value: '40 + 10 lokasi', note: '40 intervensi + 10 pembanding' };
@@ -59,7 +69,14 @@ export default function KpiStatRow({ selectedScale = 'pilot', className = '' }) 
       value: scaleInfo.value,
       note: scaleInfo.note,
     },
-    kpis[3]
+    {
+      ...kpis[3],
+      value: resolvedCount > 0 ? `${resolvedCount} Site Terkalibrasi` : `${liveSiteCount} Site Aktif`,
+      tag: `SAP: ${postedSapCount} Jurnal`,
+      note: resolvedCount > 0
+        ? `FOP Closed-Loop & BA-RE tersinkron di server`
+        : `Beban aktual ${operationalSummary?.totalPlnKwh ?? 234.8} kW (Audit G0 Rp95 Jt)`
+    }
   ];
 
   return (

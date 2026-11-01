@@ -1,0 +1,8 @@
+{
+  "name": "ImpactGrid | Prototipe keputusan energi dan dampak ESG",
+  "description": "Portal operasional Smart Network Operations Center (SNOC) untuk orkestrasi efisiensi daya radio O-RAN O1, manajemen termal shelter BTS, rekonsiliasi tagihan PLN BA-RE, dan pelaporan emisi Scope 2 PT Telekomunikasi Selular.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

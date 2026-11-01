@@ -25,6 +25,7 @@ import {
   INVESTMENT_PORTFOLIO_RECOMMENDATIONS 
 } from '../data/mockData';
 import AutonomousClosedLoopController from './AutonomousClosedLoopController';
+import WbpBessAndBorderGuardPanel from './WbpBessAndBorderGuardPanel';
 
 const REQUIRED_INPUTS = [
   { icon: Database, title: 'Baseline energi per lokasi', detail: 'Data meter/tagihan dengan periode, batas aset, dan rekonsiliasi yang disetujui (AMR PLN 15-menitan).', status: 'Tervalidasi (AMR PLN 15-Menit)' },
@@ -123,13 +124,24 @@ const PARETO_POINTS = [
   }
 ];
 
-export default function OptimizationTab() {
+export default function OptimizationTab({
+  simState,
+  selectedScale = 'pilot',
+  setSelectedScale,
+  operationalSummary,
+  resolvedSites = [],
+  onOpenOfficialBaRe,
+  onOpenSapVoucher,
+  onOpenProcurementBoq
+}) {
   const [activeView, setActiveView] = useState('knapsack'); // 'knapsack' | 'pareto' | 'solver_comparison' | 'governance'
   const [selectedParetoPoint, setSelectedParetoPoint] = useState('C');
   const [budgetCapEx, setBudgetCapEx] = useState(450); // in Million Rupiah
   const [fieldOpsManHoursLimit, setFieldOpsManHoursLimit] = useState(120); // max technician man-hours
   const [selectedPortfolios, setSelectedPortfolios] = useState(['PORT-01', 'PORT-02']);
   const [criticalLockActive, setCriticalLockActive] = useState(true);
+
+  const scaleMultiplier = selectedScale === 'national' ? 140 : selectedScale === 'regional' ? 75 : 1;
 
   // Toggle selection
   const togglePortfolio = (id) => {
@@ -183,7 +195,7 @@ export default function OptimizationTab() {
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
-              Simulasi Knapsack Pilot
+              Simulasi Knapsack CapEx
             </button>
             <button
               onClick={() => setActiveView('pareto')}
@@ -226,6 +238,16 @@ export default function OptimizationTab() {
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Closed-Loop Otonom (O-RAN)</span>
             </button>
+            <button
+              onClick={() => setActiveView('wbp_border')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'wbp_border'
+                  ? 'bg-[#ED0226] text-white shadow-xs'
+                  : 'bg-red-50 dark:bg-red-950/40 text-[#ED0226] dark:text-red-300 border border-red-300/40 hover:bg-red-100'
+              }`}
+            >
+              <span>Arbitrase WBP &amp; Border Guard</span>
+            </button>
           </div>
         </div>
 
@@ -235,6 +257,50 @@ export default function OptimizationTab() {
         <p className="max-w-4xl text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-400">
           Formulasi 0-1 Integer Linear Programming (Multi-Choice Knapsack Problem) untuk mengalokasikan belanja modal (CapEx) secara optimal. Berbeda dari pengurutan heuristik ranking sederhana, solver ILP ImpactGrid memaksimalkan akumulasi Net Present Value (NPV) global di bawah kendali ketat batas mutu layanan (QoS Guardrail) dan penguncian keselamatan situs kritis.
         </p>
+
+        {/* Live Scale & Corporate Procurement Bar */}
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
+              Jam Simulasi: {String(simState?.hour ?? 2).padStart(2, '0')}:00 WIB
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 font-bold text-emerald-700 dark:text-emerald-300">
+              Proyeksi Skala ({selectedScale === 'national' ? 'Nasional 10.000 Site' : selectedScale === 'regional' ? 'Regional Jamali 5.000 Site' : 'Pilot 40 Site'}): Rp {((totalNetBenefitYear * scaleMultiplier) / 1_000_000_000).toFixed(2)} Miliar/thn
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 font-bold text-blue-700 dark:text-blue-300">
+              Site FOP Terkalibrasi: {resolvedSites.length} Site ({operationalSummary?.activeSiteCount || 50} Total Aktif)
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {onOpenProcurementBoq && (
+              <button
+                type="button"
+                onClick={onOpenProcurementBoq}
+                className="px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold cursor-pointer transition"
+              >
+                Buka Dokumen RKS / BoQ
+              </button>
+            )}
+            {onOpenSapVoucher && (
+              <button
+                type="button"
+                onClick={onOpenSapVoucher}
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer transition"
+              >
+                Jurnal SAP S/4HANA
+              </button>
+            )}
+            {onOpenOfficialBaRe && (
+              <button
+                type="button"
+                onClick={onOpenOfficialBaRe}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer transition"
+              >
+                Berita Acara BA-RE
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Mathematical Formulation Pill Box */}
         <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-xs font-mono space-y-1">
@@ -732,6 +798,11 @@ export default function OptimizationTab() {
       {/* SUB-VIEW 5: AUTONOMOUS CLOSED-LOOP O-RAN CONTROLLER */}
       {activeView === 'closed_loop' && (
         <AutonomousClosedLoopController />
+      )}
+
+      {/* SUB-VIEW 6: 24-HOUR PLN WBP/LWBP BESS ARBITRAGE & CROSS-VENDOR BORDER GUARD */}
+      {activeView === 'wbp_border' && (
+        <WbpBessAndBorderGuardPanel />
       )}
     </div>
   );

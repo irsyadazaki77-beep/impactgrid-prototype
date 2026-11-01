@@ -43,7 +43,13 @@ const RECONCILIATION_SITES = [
   }
 ];
 
-export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe, onOpenFieldConsole, resolvedSites = [] }) {
+export default function TelemetryReconciliationMatrix({
+  onOpenOfficialBaRe,
+  onOpenFieldConsole,
+  onOpenSapVoucher,
+  onResolveSiteAnomaly,
+  resolvedSites = []
+}) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -84,7 +90,7 @@ export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe, onOp
             Matriks Discrepancy: PLN vs Rectifier DC vs OSS Vendor
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Memverifikasi disparitas antara meteran PLN (AC), output DC Rectifier, dan telemetri radio vendor untuk mendeteksi *phantom load*, penurunan efisiensi pendingin, atau kebocoran daya.
+            Memverifikasi disparitas antara meteran PLN (AC), output DC Rectifier, dan telemetri radio vendor untuk mendeteksi <em>phantom load</em>, penurunan efisiensi pendingin, atau kebocoran daya.
           </p>
         </div>
 
@@ -92,16 +98,25 @@ export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe, onOp
           {onOpenOfficialBaRe && (
             <button
               onClick={onOpenOfficialBaRe}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer shadow-xs whitespace-nowrap"
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Cetak Berita Acara (BA-RE)</span>
             </button>
           )}
+          {onOpenSapVoucher && (
+            <button
+              onClick={onOpenSapVoucher}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer shadow-xs whitespace-nowrap"
+            >
+              <Database className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Jurnal SAP S/4HANA</span>
+            </button>
+          )}
           <button
             onClick={runReconciliationCheck}
             disabled={isVerifying}
-            className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer disabled:opacity-50 whitespace-nowrap"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isVerifying ? 'animate-spin' : ''}`} />
             <span>{isVerifying ? 'Memverifikasi...' : 'Uji Rekonsiliasi Real-time'}</span>
@@ -147,12 +162,12 @@ export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe, onOp
         <table className="w-full text-left text-xs">
           <thead className="bg-slate-50 dark:bg-slate-800 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
             <tr>
-              <th className="p-3">ID & Nama Menara BTS</th>
+              <th className="p-3">ID &amp; Nama Menara BTS</th>
               <th className="p-3">Input PLN (AC)</th>
               <th className="p-3">Rectifier (DC)</th>
               <th className="p-3">OSS Radio</th>
-              <th className="p-3">Loss & Beban Parasitik</th>
-              <th className="p-3">Status Audit Integritas</th>
+              <th className="p-3">Loss &amp; Beban Parasitik</th>
+              <th className="p-3">Status Audit &amp; Aksi Closed-Loop</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -162,40 +177,73 @@ export default function TelemetryReconciliationMatrix({ onOpenOfficialBaRe, onOp
                   <div className="font-mono text-[10px] font-bold text-slate-500">{site.id}</div>
                   <div className="font-extrabold text-slate-900 dark:text-white">{site.name}</div>
                 </td>
-                <td className="p-3 font-mono font-bold text-amber-600 dark:text-amber-400">{site.plnKw.toFixed(2)} kW</td>
-                <td className="p-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">{site.rectifierKw.toFixed(2)} kW</td>
-                <td className="p-3 font-mono font-bold text-cyan-600 dark:text-cyan-400">{site.ossKw.toFixed(2)} kW</td>
+                <td className="p-3 font-mono tabular-nums font-bold text-amber-600 dark:text-amber-400">{site.plnKw.toFixed(2)} kW</td>
+                <td className="p-3 font-mono tabular-nums font-bold text-indigo-600 dark:text-indigo-400">{site.rectifierKw.toFixed(2)} kW</td>
+                <td className="p-3 font-mono tabular-nums font-bold text-cyan-600 dark:text-cyan-400">{site.ossKw.toFixed(2)} kW</td>
                 <td className="p-3">
-                  <div className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                  <div className="text-[11px] font-bold font-mono tabular-nums text-slate-700 dark:text-slate-300">
                     {site.discrepancyPct}% Total Discrepancy
                   </div>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-[10px] text-slate-400 font-mono">
                     HVAC ~{site.hvacEstimateKw}kW • Kabel ~{site.cableLossEstimateKw}kW
                   </div>
                 </td>
                 <td className="p-3">
                   {site.status === 'RESOLVED' ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Servis FOP Selesai (+{site.unaccountedPct}%)
-                    </span>
+                    <div className="space-y-1.5">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Servis FOP Selesai (+{site.unaccountedPct}%)
+                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {onOpenOfficialBaRe && (
+                          <button
+                            onClick={onOpenOfficialBaRe}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition cursor-pointer whitespace-nowrap"
+                          >
+                            <FileText className="w-3 h-3" />
+                            <span>Lihat BA-RE</span>
+                          </button>
+                        )}
+                        {onOpenSapVoucher && (
+                          <button
+                            onClick={onOpenSapVoucher}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold transition cursor-pointer whitespace-nowrap"
+                          >
+                            <Database className="w-3 h-3 text-cyan-300" />
+                            <span>Jurnal SAP</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   ) : site.status === 'NORMAL' ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                       <CheckCircle2 className="w-3 h-3" /> Rekonsiliasi Klop (&plusmn;{site.unaccountedPct}%)
                     </span>
                   ) : (
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
                         <AlertTriangle className="w-3 h-3" /> Anomali Kebocoran (+{site.unaccountedPct}%)
                       </span>
-                      {onOpenFieldConsole && (
-                        <button
-                          onClick={onOpenFieldConsole}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-slate-950 text-[10px] font-black transition cursor-pointer shadow-xs"
-                        >
-                          <Wrench className="w-3 h-3" />
-                          <span>Dispatch FOP Lapangan</span>
-                        </button>
-                      )}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {onOpenFieldConsole && (
+                          <button
+                            onClick={onOpenFieldConsole}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-slate-950 text-[10px] font-black transition cursor-pointer shadow-xs whitespace-nowrap"
+                          >
+                            <Wrench className="w-3 h-3" />
+                            <span>Dispatch FOP Lapangan</span>
+                          </button>
+                        )}
+                        {onResolveSiteAnomaly && (
+                          <button
+                            onClick={() => onResolveSiteAnomaly(site.id)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition cursor-pointer shadow-xs whitespace-nowrap"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Selesaikan FOP &amp; Sinkron BA-RE</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </td>

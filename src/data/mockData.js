@@ -465,13 +465,13 @@ export const FIVE_YEAR_FINANCIAL_PROJECTION = [];
 // This prototype has no real audit events or signed approvals.
 export const AUDIT_LOGS_SAMPLE = [];
 
-// Kerangka Analisis & Jawaban Studi Kasus Eksekutif Telkomsel
+// Kerangka Analisis & Tata Kelola Dekarbonisasi Jaringan Eksekutif Telkomsel
 export const CASE_STUDY_RESPONSES = [
-  { id: "key-question", question: "Bagaimana teknologi digital dapat mendukung dampak ESG yang terukur?", challenge: "Menghubungkan konsumsi energi jaringan, biaya, mutu layanan, dan akuntabilitas data.", solution: "ImpactGrid memadukan orkestrasi O-RAN, pemodelan termal PINN, dan verifikasi kausal DiD dengan audit ledger SHA-256.", badge: "Key Question", color: "red" },
-  { id: "sub-q1", question: "Program ESG apa yang layak diprioritaskan?", challenge: "Memilih intervensi sesuai kondisi aset dan kebutuhan layanan.", solution: "Efisiensi energi jaringan makro berprioritas tertinggi karena menyumbang 63,6% total emisi Scope 2 Telkomsel.", badge: "Sub-Question 1", color: "blue" },
-  { id: "sub-q2", question: "Bagaimana teknologi digital mendukung program?", challenge: "Mengelola data lintas fungsi secara transparan dan akuntabel.", solution: "Mengintegrasikan Network Data Hub, Scenario Lab, Investment Prioritizer (Knapsack), dan ESG Verification Suite.", badge: "Sub-Question 2", color: "purple" },
-  { id: "sub-q3", question: "Bagaimana stakeholder dilibatkan?", challenge: "Menjaga transparansi, keandalan jaringan, dan kepatuhan regulasi.", solution: "Koordinasi terpadu tim jaringan, keuangan, ESG, TowerCo (Mitratel/Protelindo), dan keterlibatan pelanggan MyTelkomsel.", badge: "Sub-Question 3", color: "emerald" },
-  { id: "sub-q4-5", question: "Bagaimana keberhasilan dan keberlanjutan diukur?", challenge: "Mencegah greenwashing dan menjamin validitas penghematan kWh.", solution: "Validasi pilot 50 site Jamali berbasis Difference-in-Differences (DiD), kepatuhan ITU-T L.1331, dan standar ESDM 0,87 kgCO₂e/kWh.", badge: "Sub-Question 4 & 5", color: "amber" }
+  { id: "key-question", question: "Bagaimana arsitektur digital mengorkestrasi dampak ESG jaringan yang terukur?", challenge: "Menghubungkan konsumsi energi jaringan, biaya operasional PLN, mutu layanan, dan akuntabilitas audit.", solution: "ImpactGrid memadukan orkestrasi O-RAN O1/A1, pemodelan termal PINN, dan verifikasi kausal DiD dengan buku besar audit SHA-256.", badge: "Mandat Direksi", color: "red" },
+  { id: "sub-q1", question: "Inisiatif efisiensi mana yang memiliki daya ungkit tertinggi?", challenge: "Memilih intervensi sesuai kondisi aset menara dan profil trafik regional.", solution: "Efisiensi energi jaringan RAN makro berprioritas tertinggi karena menyumbang 63,6% total emisi Scope 2 Telkomsel.", badge: "Prioritas Scope 2", color: "blue" },
+  { id: "sub-q2", question: "Bagaimana integrasi sistem mendukung operasi lintas divisi?", challenge: "Mengelola telemetri lintas fungsi Network, Finance, dan ESG secara akuntabel.", solution: "Mengintegrasikan Network Data Hub, Scenario Lab, Investment Prioritizer (0-1 Knapsack), dan modul rekonsiliasi BA-RE PLN ke SAP S/4HANA.", badge: "Arsitektur Digital", color: "purple" },
+  { id: "sub-q3", question: "Bagaimana sinergi lintas divisi dan mitra menara dijalankan?", challenge: "Menjaga transparansi tagihan listrik, keandalan jaringan, dan kepatuhan regulasi.", solution: "Koordinasi terpadu tim SNOC, Corporate Finance, ESG, mitra TowerCo (Mitratel/Protelindo), dan perlindungan SLA pelanggan.", badge: "Sinergi Ekosistem", color: "emerald" },
+  { id: "sub-q4-5", question: "Bagaimana validitas penghematan dan anti-greenwashing dijamin?", challenge: "Memisahkan efek cuaca/trafik dan menjamin keabsahan klaim penghematan kWh.", solution: "Validasi kausal berbasis Difference-in-Differences (DiD), kepatuhan ITU-T L.1331, dan faktor emisi resmi ESDM 0,87 kgCO₂e/kWh.", badge: "Audit & Kepatuhan", color: "amber" }
 ];
 
 // Nilai Tambah Pemangku Kepentingan Telkomsel
@@ -534,12 +534,12 @@ export const SOLUTION_COMPARISON_MATRIX = [
     statusQuo: "Biaya listrik membengkak seiring ekspansi 5G tanpa kontrol investasi bertahap.",
     vendorRan: "Lisensi fitur software berbiaya tinggi di muka (vendor lock-in CapEx) tanpa jaminan pengembalian kas.",
     iotEnvion: "Biaya sensor per shelter tanpa model sensitivitas NPV multi-tahun.",
-    impactGrid: "Tata kelola Two-Stage Gate: Audit Kebutuhan Rp95 Juta $\\rightarrow$ Pilot bersyarat 40+10 lokasi $\\rightarrow$ Model sensitivitas 2 baseline transparan."
+    impactGrid: "Tata kelola Two-Stage Gate: Audit Kebutuhan Rp95 Juta → Pilot bersyarat 40+10 lokasi → Model sensitivitas 2 baseline transparan."
   }
 ];
 
 
-// Kerangka Dividen Sosial & Reinvestasi Inklusi Digital (Menjawab pilar Social ESG pada studi kasus Telkomsel)
+// Kerangka Dividen Sosial & Reinvestasi Inklusi Digital Telkomsel
 export const SOCIAL_DIVIDEND_CONFIG = {
   title: "Mekanisme Dividen Sosial & Pemerataan Konektivitas",
   subtitle: "Reinvestasi manfaat kas efisiensi energi ke program inklusi, pendidikan & UMKM Telkomsel",
@@ -639,3 +639,131 @@ export const STAGE_GATE_DECISION_FRAMEWORK = [
     governancePrinciple: "Keputusan skala besar wajib didasarkan pada arus kas nyata yang dapat dibuktikan, bukan perkiraan teoritis."
   }
 ];
+
+// Matriks Komparasi Teknis Multi-Vendor RAN Telkomsel (Ericsson, Huawei, ZTE)
+export const MULTI_VENDOR_RAN_COMPARISON = [
+  {
+    vendor: "Ericsson",
+    ossPlatform: "Ericsson Network Manager (ENM 24.x)",
+    hardwareSeries: "Radio 4415 / AIR 6419 (B1/B3/B8/n78)",
+    oranO1Protocol: "NETCONF/YANG O-RAN.WG10 v08.00 + 3GPP Rel-18 NES",
+    sleepModes: "Micro-Sleep TX, MIMO Mutings, Deep Carrier Sleep",
+    wakeUpLatencyMs: 24,
+    avgEfficiencyPct: 14.9,
+    dcSubmeterSync: "Smart Shunt 48V DC Modbus-TCP (Akurasi 0.45%)",
+    pilotSitesCount: 20,
+    jamaliSitesCount: 2150,
+    statusBadge: "Tersertifikasi Penuh O1"
+  },
+  {
+    vendor: "Huawei",
+    ossPlatform: "iMaster MAE / U2020 MBB Engine",
+    hardwareSeries: "AAU5613 / RRU5502 & BBU5900",
+    oranO1Protocol: "O1 Adapter Bridge + Northbound RESTCONF/NETCONF",
+    sleepModes: "Symbol Power Saving, Channel Shutoff, Deep Dormancy",
+    wakeUpLatencyMs: 28,
+    avgEfficiencyPct: 15.2,
+    dcSubmeterSync: "Huawei SmartLi / NetEco 48V Busbar (Akurasi 0.48%)",
+    pilotSitesCount: 18,
+    jamaliSitesCount: 2050,
+    statusBadge: "Tersertifikasi Penuh O1"
+  },
+  {
+    vendor: "ZTE",
+    ossPlatform: "ZenIC NetNumen U31 / PowerPilot Pro",
+    hardwareSeries: "UniSite R8892E / A9611 Macro",
+    oranO1Protocol: "NETCONF/YANG Standard + TMF628 PM Collector",
+    sleepModes: "PA Bias Dynamic Muting, Carrier Shutoff, RF Deep Sleep",
+    wakeUpLatencyMs: 27,
+    avgEfficiencyPct: 14.1,
+    dcSubmeterSync: "ZXDU88 Smart Rectifier Telemetry (Akurasi 0.50%)",
+    pilotSitesCount: 12,
+    jamaliSitesCount: 800,
+    statusBadge: "Tersertifikasi Penuh O1"
+  }
+];
+
+// Rincian Ekspansi Skala Regional Jamali 5.000 Site per Kluster Operasional Telkomsel
+export const JAMALI_REGIONAL_CLUSTERS = [
+  {
+    id: "REG-Jabo",
+    clusterName: "Regional Jabodetabek & Banten",
+    hqCity: "Jakarta Selatan",
+    siteCount: 1650,
+    dominantVendor: "Ericsson & Huawei",
+    baselineGWhYear: 82.5,
+    targetSavingPct: 13.8,
+    savedGWhYear: 11.39,
+    grossSavingMiliarIDR: 17.08,
+    netBenefitMiliarIDR: 14.52,
+    capexMiliarIDR: 2.15,
+    carbonReducedTon: 9909,
+    wbpPeakShavingMw: 3.3,
+    slaAvailabilityPct: 99.996
+  },
+  {
+    id: "REG-Jabar",
+    clusterName: "Regional Jawa Barat (Bandung & Priangan)",
+    hqCity: "Bandung",
+    siteCount: 1100,
+    dominantVendor: "Huawei & Ericsson",
+    baselineGWhYear: 52.8,
+    targetSavingPct: 14.8,
+    savedGWhYear: 7.81,
+    grossSavingMiliarIDR: 11.72,
+    netBenefitMiliarIDR: 9.96,
+    capexMiliarIDR: 1.43,
+    carbonReducedTon: 6795,
+    wbpPeakShavingMw: 2.2,
+    slaAvailabilityPct: 99.995
+  },
+  {
+    id: "REG-Jateng",
+    clusterName: "Regional Jawa Tengah & DIY",
+    hqCity: "Semarang",
+    siteCount: 850,
+    dominantVendor: "Ericsson & ZTE",
+    baselineGWhYear: 39.1,
+    targetSavingPct: 14.2,
+    savedGWhYear: 5.55,
+    grossSavingMiliarIDR: 8.33,
+    netBenefitMiliarIDR: 7.08,
+    capexMiliarIDR: 1.10,
+    carbonReducedTon: 4829,
+    wbpPeakShavingMw: 1.7,
+    slaAvailabilityPct: 99.994
+  },
+  {
+    id: "REG-Jatim",
+    clusterName: "Regional Jawa Timur & Madura",
+    hqCity: "Surabaya",
+    siteCount: 1050,
+    dominantVendor: "Huawei & ZTE",
+    baselineGWhYear: 51.45,
+    targetSavingPct: 14.5,
+    savedGWhYear: 7.46,
+    grossSavingMiliarIDR: 11.19,
+    netBenefitMiliarIDR: 9.51,
+    capexMiliarIDR: 1.37,
+    carbonReducedTon: 6490,
+    wbpPeakShavingMw: 2.1,
+    slaAvailabilityPct: 99.995
+  },
+  {
+    id: "REG-Balnus",
+    clusterName: "Regional Bali & Nusa Tenggara",
+    hqCity: "Denpasar",
+    siteCount: 350,
+    dominantVendor: "ZTE & Ericsson",
+    baselineGWhYear: 16.8,
+    targetSavingPct: 15.1,
+    savedGWhYear: 2.54,
+    grossSavingMiliarIDR: 3.81,
+    netBenefitMiliarIDR: 3.24,
+    capexMiliarIDR: 0.45,
+    carbonReducedTon: 2210,
+    wbpPeakShavingMw: 0.7,
+    slaAvailabilityPct: 99.993
+  }
+];
+

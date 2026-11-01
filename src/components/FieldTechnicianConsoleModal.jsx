@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { addStoredWorkOrder } from '../utils/storageEngine';
 
-export default function FieldTechnicianConsoleModal({ isOpen, onClose, onResolveSiteAnomaly }) {
+export default function FieldTechnicianConsoleModal({ isOpen, onClose, onResolveSiteAnomaly, onOpenOfficialBaRe, onOpenSapVoucher }) {
   const [currentStep, setCurrentStep] = useState(1); // 1: Check-in, 2: Diagnostic, 3: Action, 4: Verify & Close
   const [isQrScanned, setIsQrScanned] = useState(false);
   const [isBleConnected, setIsBleConnected] = useState(false);
@@ -75,7 +75,7 @@ export default function FieldTechnicianConsoleModal({ isOpen, onClose, onResolve
 
       setIsClosingTicket(false);
       setIsCompleted(true);
-    }, 1200);
+    }, 600);
   };
 
   return (
@@ -454,22 +454,49 @@ export default function FieldTechnicianConsoleModal({ isOpen, onClose, onResolve
               </div>
 
               {isCompleted ? (
-                <div className="p-4 rounded-xl bg-emerald-100 dark:bg-emerald-950 border border-emerald-300 text-center space-y-2">
+                <div className="p-4 rounded-xl bg-emerald-100 dark:bg-emerald-950 border border-emerald-300 text-center space-y-2.5">
                   <div className="inline-flex items-center justify-center p-2 rounded-full bg-emerald-500 text-white">
                     <Check className="w-6 h-6" />
                   </div>
                   <h4 className="text-xs font-black text-emerald-900 dark:text-emerald-200 uppercase tracking-wider">
-                    Work Order Sukses Diselesaikan!
+                    Work Order Sukses Diselesaikan &amp; Closed-Loop Aktif!
                   </h4>
                   <p className="text-[11px] text-emerald-800 dark:text-emerald-300">
-                    Tiket ServiceNow INC-2026-TSEL-0492 telah ditutup dengan kode RESOLVED_COMPLETED. Matriks rekonsiliasi telemetri telah diperbarui.
+                    Tiket ServiceNow INC-2026-TSEL-0492 ditutup (RESOLVED_COMPLETED). Rekonsiliasi Berita Acara (BA-RE) dan Jurnal SAP S/4HANA otomatis diperbarui dengan Nota Kredit Rp 3.824.640.
                   </p>
-                  <button
-                    onClick={onClose}
-                    className="mt-2 px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition cursor-pointer"
-                  >
-                    Tutup Konsol FOP
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    {onOpenOfficialBaRe && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenOfficialBaRe();
+                        }}
+                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer"
+                      >
+                        Lihat Update Berita Acara (BA-RE)
+                      </button>
+                    )}
+                    {onOpenSapVoucher && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenSapVoucher();
+                        }}
+                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer"
+                      >
+                        Lihat Posting Jurnal SAP S/4HANA
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition cursor-pointer"
+                    >
+                      Tutup Konsol FOP
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex justify-between pt-2">

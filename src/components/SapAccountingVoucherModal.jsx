@@ -15,6 +15,8 @@ import {
   Database
 } from 'lucide-react';
 
+import { computeClosedLoopReconciliation } from '../utils/enterpriseCommandAndClosedLoopEngine';
+
 const SAP_VOUCHER_METADATA = {
   docNumber: 'SAP-2026-FI-088192',
   companyCode: '1000',
@@ -29,113 +31,67 @@ const SAP_VOUCHER_METADATA = {
   headerText: 'ImpactGrid O-RAN Energy Savings October 2026'
 };
 
-const SAP_JOURNAL_ITEMS = [
-  {
-    item: '001',
-    postingKey: '40 (Debit)',
-    glAccount: '510100',
-    glName: 'Beban Listrik & Utilitas BTS Makro PLN',
-    amount: 2659000000,
-    costCenter: 'CC-REG3-NOPS',
-    profitCenter: 'PC-TSEL-RETAIL',
-    wbsElement: 'WBS-2026-TSEL-RAN-ENERGY-01',
-    text: 'Pengakuan Beban Bruto Listrik PLN Sebelum Carrier Sleep'
-  },
-  {
-    item: '002',
-    postingKey: '50 (Credit)',
-    glAccount: '510100',
-    glName: 'Beban Listrik & Utilitas BTS Makro PLN',
-    amount: 2260000000,
-    costCenter: 'CC-REG3-NOPS',
-    profitCenter: 'PC-TSEL-RETAIL',
-    wbsElement: 'WBS-2026-TSEL-RAN-ENERGY-01',
-    text: 'Kredit Efisiensi Energi AI O-RAN (Net Savings Telkomsel)'
-  },
-  {
-    item: '003',
-    postingKey: '50 (Credit)',
-    glAccount: '210150',
-    glName: 'Hutang Bagi Hasil Shared Savings TowerCo',
-    amount: 399000000,
-    costCenter: 'CC-REG3-NOPS',
-    profitCenter: 'PC-TSEL-RETAIL',
-    wbsElement: 'WBS-2026-TSEL-RAN-ENERGY-01',
-    text: 'Akrual Insentif Efisiensi Thermal Shelter Mitratel (15% Share)'
-  }
-];
-
-export default function SapAccountingVoucherModal({ isOpen, onClose }) {
+export default function SapAccountingVoucherModal({
+  isOpen,
+  onClose,
+  resolvedSites = [],
+  customByodSites = [],
+  onResolveSiteAnomaly,
+  onOpenOfficialBaRe,
+  operationalState,
+  onPostSapVoucher
+}) {
   const [copiedBapi, setCopiedBapi] = useState(false);
   const [activeView, setActiveView] = useState('voucher'); // 'voucher' | 'bapi_payload'
+  const [isPostingSap, setIsPostingSap] = useState(false);
 
   if (!isOpen) return null;
 
-  const sapBapiPayload = {
-    DOCUMENTHEADER: {
-      OBJ_TYPE: "BAPICACHE",
-      OBJ_KEY: "$",
-      OBJ_SYS: "TSEL_S4HANA_PRD",
-      BUS_ACT: "RFBU",
-      USERNAME: "SVC_IMPACTGRID_ORCH",
-      HEADER_TXT: SAP_VOUCHER_METADATA.headerText,
-      COMP_CODE: SAP_VOUCHER_METADATA.companyCode,
-      DOC_DATE: "20261030",
-      PSTNG_DATE: "20261030",
-      FISC_YEAR: "2026",
-      FIS_PERIOD: "10",
-      DOC_TYPE: "SA",
-      REF_DOC_NO: SAP_VOUCHER_METADATA.reference
-    },
-    ACCOUNTGL: [
-      {
-        ITEMNO_ACC: "0000000001",
-        GL_ACCOUNT: "0000510100",
-        ITEM_TEXT: "Beban Bruto Listrik PLN",
-        COSTCENTER: "0000CC_REG3_NOPS",
-        PROFIT_CTR: "PC_TSEL_RETAIL",
-        WBS_ELEMENT: "WBS-2026-TSEL-RAN-ENERGY-01"
-      },
-      {
-        ITEMNO_ACC: "0000000002",
-        GL_ACCOUNT: "0000510100",
-        ITEM_TEXT: "Kredit Efisiensi O-RAN",
-        COSTCENTER: "0000CC_REG3_NOPS",
-        PROFIT_CTR: "PC_TSEL_RETAIL",
-        WBS_ELEMENT: "WBS-2026-TSEL-RAN-ENERGY-01"
-      },
-      {
-        ITEMNO_ACC: "0000000003",
-        GL_ACCOUNT: "0000210150",
-        ITEM_TEXT: "Akrual Bagi Hasil Mitratel",
-        COSTCENTER: "0000CC_REG3_NOPS",
-        PROFIT_CTR: "PC_TSEL_RETAIL",
-        WBS_ELEMENT: "WBS-2026-TSEL-RAN-ENERGY-01"
-      }
-    ],
-    CURRENCYAMOUNT: [
-      {
-        ITEMNO_ACC: "0000000001",
-        CURRENCY: "IDR",
-        AMT_DOCCUR: 2659000000.00
-      },
-      {
-        ITEMNO_ACC: "0000000002",
-        CURRENCY: "IDR",
-        AMT_DOCCUR: -2260000000.00
-      },
-      {
-        ITEMNO_ACC: "0000000003",
-        CURRENCY: "IDR",
-        AMT_DOCCUR: -399000000.00
-      }
-    ]
+  const closedLoop = computeClosedLoopReconciliation(resolvedSites, customByodSites);
+  const latestPostedVoucher = operationalState?.sapVouchers?.[0] || null;
+  const journalItems = closedLoop.sapJournalItems;
+  const sapBapiPayload = latestPostedVoucher?.bapiPayload || closedLoop.sapBapiPayload;
+  const activeDocNumber = latestPostedVoucher?.docNumber || SAP_VOUCHER_METADATA.docNumber;
+
+  const handleServerPostSap = async () => {
+    if (!onPostSapVoucher) return;
+    setIsPostingSap(true);
+    try {
+      await onPostSapVoucher({ siteId: 'BDG-DGO-P04' });
+    } finally {
+      setIsPostingSap(false);
+    }
   };
 
   const handleCopyBapi = () => {
     navigator.clipboard?.writeText(JSON.stringify(sapBapiPayload, null, 2));
     setCopiedBapi(true);
     setTimeout(() => setCopiedBapi(false), 2000);
+  };
+
+  const handleDownloadCsv = () => {
+    const headers = ['Line', 'PK', 'GL_Account', 'Account_Name', 'Cost_Center', 'Profit_Center', 'Debit_IDR', 'Credit_IDR', 'Item_Text'];
+    const rows = journalItems.map((item) => [
+      item.line,
+      item.pk,
+      item.glAccount,
+      `"${item.accountName}"`,
+      item.costCenter,
+      item.profitCenter,
+      item.debitIDR,
+      item.creditIDR,
+      `"${item.text}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SAP_FI_VOUCHER_${activeDocNumber.replace(/[\/\\]/g, '_')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -152,16 +108,28 @@ export default function SapAccountingVoucherModal({ isOpen, onClose }) {
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-extrabold tracking-tight">Voucher Jurnal Akuntansi SAP S/4HANA &amp; BAST</h2>
                 <span className="px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-[10px] font-bold text-blue-300">
-                  SAP FI-CO Ready
+                  {latestPostedVoucher ? `POSTED (${latestPostedVoucher.docNumber})` : 'SAP FI-CO Ready'}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-mono">
-                Doc: {SAP_VOUCHER_METADATA.docNumber} • Plant 1102 (Telkomsel Jabar)
+                Doc: {activeDocNumber} • Plant 1102 (Telkomsel Jabar)
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {onPostSapVoucher && (
+              <button
+                type="button"
+                disabled={isPostingSap}
+                onClick={handleServerPostSap}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/60 bg-emerald-950/80 hover:bg-emerald-900 px-3 py-1.5 text-xs font-bold text-emerald-300 transition cursor-pointer disabled:opacity-50"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                <span>{isPostingSap ? 'Posting BAPI...' : latestPostedVoucher ? 'Post Ulang BAPI' : 'Post ke SAP S/4HANA'}</span>
+              </button>
+            )}
+
             <div className="bg-slate-900 p-0.5 rounded-lg border border-slate-800 text-xs flex">
               <button
                 onClick={() => setActiveView('voucher')}
@@ -180,6 +148,15 @@ export default function SapAccountingVoucherModal({ isOpen, onClose }) {
                 BAPI RFC JSON
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={handleDownloadCsv}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-800 transition cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Unduh CSV</span>
+            </button>
 
             <button
               onClick={handleCopyBapi}
@@ -262,6 +239,43 @@ export default function SapAccountingVoucherModal({ isOpen, onClose }) {
                   <span className="text-[10px] text-emerald-700 font-mono">BALANCE (DEBIT = CREDIT)</span>
                 </h3>
 
+                {/* Closed-Loop Status Banner */}
+                <div className={`p-3 rounded-xl border text-xs flex flex-wrap items-center justify-between gap-2 ${
+                  closedLoop.isBdgResolved
+                    ? 'border-emerald-300 bg-emerald-50/80 text-emerald-950'
+                    : 'border-amber-300 bg-amber-50/80 text-amber-950'
+                }`}>
+                  <div>
+                    <strong>Status Sinkronisasi Closed-Loop (FOP &rarr; BA-RE &rarr; SAP FI-CO):</strong>{' '}
+                    {closedLoop.isBdgResolved
+                      ? 'Item 004 & 005 (Nota Kredit Restitusi BDG-DGO-P04 senilai Rp 3.824.640) telah ditambahkan otomatis ke Buku Besar.'
+                      : 'Menunggu penyelesaian WO FOP pada site BDG-DGO-P04 untuk memposting jurnal restitusi Nota Kredit Rp 3.824.640.'}
+                  </div>
+                  <div className="flex items-center gap-2 print:hidden">
+                    {!closedLoop.isBdgResolved && onResolveSiteAnomaly && (
+                      <button
+                        type="button"
+                        onClick={() => onResolveSiteAnomaly('BDG-DGO-P04')}
+                        className="px-3 py-1 rounded-lg bg-[#ED0226] hover:bg-red-700 text-white font-bold text-xs cursor-pointer"
+                      >
+                        Sinkronkan Resolusi FOP Sekarang
+                      </button>
+                    )}
+                    {onOpenOfficialBaRe && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenOfficialBaRe();
+                        }}
+                        className="px-3 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs cursor-pointer"
+                      >
+                        Lihat Dokumen BA-RE
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div className="overflow-x-auto rounded-lg border border-slate-300 text-[11px]">
                   <table className="w-full text-left font-mono">
                     <thead className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
@@ -275,8 +289,8 @@ export default function SapAccountingVoucherModal({ isOpen, onClose }) {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                      {SAP_JOURNAL_ITEMS.map((item) => (
-                        <tr key={item.item}>
+                      {journalItems.map((item) => (
+                        <tr key={item.item} className={Number(item.item) >= 4 ? 'bg-emerald-50/70' : ''}>
                           <td className="p-2 border-r border-slate-200">{item.item}</td>
                           <td className="p-2 border-r border-slate-200 font-bold">{item.postingKey}</td>
                           <td className="p-2 border-r border-slate-200 font-sans">
@@ -297,13 +311,13 @@ export default function SapAccountingVoucherModal({ isOpen, onClose }) {
                     <tfoot className="bg-slate-100 font-black border-t-2 border-slate-400">
                       <tr>
                         <td colSpan={4} className="p-2 border-r border-slate-300 text-right font-sans">
-                          TOTAL REKONSILIASI KEUANGAN:
+                          TOTAL REKONSILIASI KEUANGAN (DEBIT = CREDIT):
                         </td>
                         <td className="p-2 border-r border-slate-300 text-right text-slate-900">
-                          Rp 2.659.000.000
+                          Rp {closedLoop.totalDebit.toLocaleString('id-ID')}
                         </td>
                         <td className="p-2 text-right text-emerald-700">
-                          Rp 2.659.000.000
+                          Rp {closedLoop.totalCredit.toLocaleString('id-ID')}
                         </td>
                       </tr>
                     </tfoot>

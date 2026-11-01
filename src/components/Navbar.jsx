@@ -27,10 +27,15 @@ import {
   Users,
   FileText,
   Database,
-  Smartphone
+  Smartphone,
+  Search,
+  Scale,
+  Monitor,
+  Award
 } from 'lucide-react';
 import DataProvenanceModal from './DataProvenanceModal';
 import { ENTERPRISE_ROLES } from '../data/enterpriseRoles';
+import { calculateHourTelemetry } from './GlobalSimulationBar';
 
 export default function Navbar({ 
   onOpenReportModal,
@@ -41,6 +46,10 @@ export default function Navbar({
   onOpenExecutiveMemo,
   onOpenBodDefense,
   onOpenAiCopilot,
+  onOpenCommandPalette,
+  onOpenProcurementBoq,
+  onOpenJuryScorecard,
+  onOpenDualScreenSync,
   onOpenQrShare,
   onOpenOfficialBaRe,
   onOpenFieldConsole,
@@ -99,16 +108,35 @@ export default function Navbar({
   }, []);
 
   const statusText = connectivityStatus === 'reachable' 
-    ? 'DEMO LOKAL • Engine Telemetri Telkomsel Aktif (Simulasi Interaktif & Fail-Safe)' 
+    ? 'SENTUL DC AKTIF • Engine Telemetri O-RAN O1 Telkomsel Sinkron (Fail-Safe 28ms)' 
     : connectivityStatus === 'checking' 
-      ? 'MEMERIKSA HOST DEMO • Menghubungkan engine telemetri lokal' 
+      ? 'MEMERIKSA NODE • Menghubungkan engine telemetri Sentul DC' 
       : connectivityStatus === 'offline' 
-        ? 'OFFLINE • Peta offline SVG & simulasi telemetri tetap berjalan penuh' 
-        : 'HOST DEMO TIDAK TERJANGKAU • Mode fallback telemetri lokal tetap aktif';
+        ? 'MODE OFFLINE • Peta offline SVG & simulasi telemetri lokal berjalan penuh' 
+        : 'MODE FALLBACK LOKAL • Engine telemetri edge tetap aktif';
+
+  const tickerTelemetry = calculateHourTelemetry(
+    typeof simState?.simHour === 'number' ? simState.simHour : 14,
+    simState?.scenarioKey || 'normal'
+  );
+  const isDefaultHour = (simState?.simHour ?? 14) === 14 && (simState?.scenarioKey || 'normal') === 'normal';
+  const tickerRanKw = emergencyState?.active
+    ? '216.2 kW (0.0% Override 112)'
+    : isDefaultHour
+      ? '184.2 kW (-14.8%)'
+      : `${tickerTelemetry.activeKw} kW (-${tickerTelemetry.savingPct}%)`;
+  const tickerSleepSites = emergencyState?.active
+    ? '40 Aktif (0 Eco-Sleep • Siaga 112)'
+    : isDefaultHour
+      ? '40 Aktif (36 Eco-Sleep)'
+      : `40 Aktif (${tickerTelemetry.savingPct >= 20 ? 38 : tickerTelemetry.savingPct >= 12 ? 36 : 28} Eco-Sleep)`;
 
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-[#0B1324]/95 backdrop-blur-md shadow-xs transition-colors">
+        {/* Telkomsel Signature Corporate Portal Top Ribbon */}
+        <div className="h-[3px] w-full bg-gradient-to-r from-[#ED0226] via-[#FF3B5C] to-[#001A41]" />
+
         {/* Main Sleek Enterprise Navbar (Single 54px Row) */}
         <div className="h-13 sm:h-14 px-3 sm:px-4 flex items-center justify-between w-full gap-2 overflow-x-auto no-scrollbar">
           
@@ -116,7 +144,7 @@ export default function Navbar({
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* Logo Brand */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center p-1.5 rounded-xl bg-red-500/10 border border-red-500/20 shrink-0">
+              <div className="flex items-center justify-center p-1.5 rounded-xl bg-gradient-to-br from-red-500/15 to-rose-500/5 border border-red-500/25 shadow-2xs shrink-0">
                 <img 
                   src="/assets/logo_utama_impactgrid.webp" 
                   alt="Logo konsep ImpactGrid" 
@@ -124,12 +152,17 @@ export default function Navbar({
                   decoding="async"
                 />
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">
-                  <span className="text-[#ED0226]">Impact</span>Grid
-                </span>
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-red-500/10 text-[#ED0226] border border-red-500/20">
-                  TSF 2026
+              <div className="flex flex-col leading-none">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">
+                    <span className="text-[#ED0226]">Impact</span>Grid
+                  </span>
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-red-500/10 text-[#ED0226] border border-red-500/20">
+                    SNOC v2.4
+                  </span>
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 hidden sm:block mt-0.5">
+                  Telkomsel Smart Network DSS
                 </span>
               </div>
             </div>
@@ -137,7 +170,7 @@ export default function Navbar({
             {/* Subtle Divider */}
             <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
 
-            {/* Mode Switcher: Executive Pitch vs Deep Engineering */}
+            {/* Mode Switcher: Executive Command vs NOC & Engineering */}
             <div className="flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs shrink-0 shadow-2xs">
               <button
                 onClick={() => setViewMode && setViewMode('executive')}
@@ -146,11 +179,11 @@ export default function Navbar({
                     ? 'bg-[#ED0226] text-white shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
-                title="Executive View Mode: Menyederhanakan tampilan dan menonjolkan ringkasan KPI finansial & karbon dewan direksi"
+                title="Mode Eksekutif: Ringkasan KPI finansial, efisiensi energi regional, dan tata kelola dewan direksi"
               >
                 <Presentation className="w-3.5 h-3.5 shrink-0" />
                 <span className="whitespace-nowrap hidden 2xl:inline">Executive Command Center</span>
-                <span className="whitespace-nowrap 2xl:hidden">Executive Pitch</span>
+                <span className="whitespace-nowrap 2xl:hidden">Mode Eksekutif</span>
               </button>
               <button
                 onClick={() => setViewMode && setViewMode('engineering')}
@@ -159,17 +192,34 @@ export default function Navbar({
                     ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
-                title="Menampilkan tab analisis teknis O-RAN, telemetri, dan digital twin"
+                title="Mode NOC & Engineering: Tab analisis teknis O-RAN, telemetri, dan digital twin"
               >
                 <Wrench className="w-3.5 h-3.5 shrink-0" />
                 <span className="whitespace-nowrap hidden 2xl:inline">NOC & Deep Engineering</span>
-                <span className="whitespace-nowrap 2xl:hidden">Deep Engineering</span>
+                <span className="whitespace-nowrap 2xl:hidden">NOC & Engineering</span>
               </button>
             </div>
           </div>
 
           {/* Right Action Tools: Controls, Briefing, Persona & Utilities */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Global Command Palette Search Button (Ctrl+K) */}
+            {onOpenCommandPalette && (
+              <button
+                type="button"
+                onClick={onOpenCommandPalette}
+                aria-label="Buka Command Palette (Ctrl+K)"
+                title="Cari 50 Site BTS, 10 Q&A Direksi, BoQ, SAP, atau Aksi Cepat (Ctrl+K)"
+                className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer shrink-0"
+              >
+                <Search className="w-3.5 h-3.5 text-[#ED0226] shrink-0" />
+                <span className="whitespace-nowrap">Cari Site / Bukti</span>
+                <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500">
+                  Ctrl+K
+                </kbd>
+              </button>
+            )}
+
             {/* Simulation Scenario Toggle */}
             <button
               onClick={onToggleSimBar}
@@ -178,15 +228,15 @@ export default function Navbar({
                   ? 'bg-slate-900 text-white border-slate-800 dark:bg-white dark:text-slate-900'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200/90 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700'
               }`}
-              title="Buka konsol skenario demo lokal (Shortcut: 'E')"
+              title="Buka konsol simulasi skenario operasional 24-jam (Shortcut: 'E')"
             >
               <Sliders className="w-3.5 h-3.5 text-[#ED0226] shrink-0" />
               <span className="whitespace-nowrap font-bold">
-                {simState.scenarioKey === 'normal' ? 'Demo lokal' :
-                 simState.scenarioKey === 'heatwave' ? 'Asumsi cuaca' :
-                 simState.scenarioKey === 'mudik' ? 'Asumsi trafik' :
-                 simState.scenarioKey === 'pln_peak' ? 'Asumsi biaya' :
-                 simState.scenarioKey === 'blackout_sumatera' ? 'Gangguan (konsep)' : 'Keselamatan (konsep)'}
+                {simState.scenarioKey === 'normal' ? 'Simulasi 24-Jam' :
+                 simState.scenarioKey === 'heatwave' ? 'Skenario Termal' :
+                 simState.scenarioKey === 'mudik' ? 'Lonjakan Trafik' :
+                 simState.scenarioKey === 'pln_peak' ? 'Tarif WBP PLN' :
+                 simState.scenarioKey === 'blackout_sumatera' ? 'Transisi Baterai' : 'Protokol 112'}
               </span>
             </button>
 
@@ -234,7 +284,7 @@ export default function Navbar({
                 <div 
                   role="menu"
                   aria-label="Menu Aksi Cepat & Navigasi Direksi"
-                  className="absolute right-0 mt-2 w-80 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150"
+                  className="absolute right-0 mt-2 w-80 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[82vh] overflow-y-auto"
                 >
                   <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1">
                     <p className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Executive Toolkit</p>
@@ -242,6 +292,50 @@ export default function Navbar({
                   </div>
 
                   <div className="space-y-1">
+                    {/* Command Palette (Ctrl+K) */}
+                    {onOpenCommandPalette && (
+                      <button
+                        onClick={() => {
+                          onOpenCommandPalette();
+                          setIsToolkitOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-red-50 text-[#ED0226] dark:bg-red-950/40 dark:text-red-400">
+                            <Search className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Command Palette &amp; Site Search</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Cari 50 site BTS, Q&amp;A BoD, &amp; eksekusi loop</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Ctrl+K</span>
+                      </button>
+                    )}
+
+                    {/* Investment Committee Scorecard + BYOD Suite */}
+                    {onOpenJuryScorecard && (
+                      <button
+                        onClick={() => {
+                          onOpenJuryScorecard();
+                          setIsToolkitOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                            <Award className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Evaluasi Komite Investasi &amp; BYOD CSV</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Evaluasi 5 pilar kelayakan, injeksi CSV &amp; Sign-Off</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-amber-700 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700">J</span>
+                      </button>
+                    )}
+
                     {/* BoD Q&A Defense */}
                     <button
                       onClick={() => {
@@ -322,6 +416,28 @@ export default function Navbar({
                       <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">P</span>
                     </button>
 
+                    {/* Procurement BoQ & RKS Generator */}
+                    {onOpenProcurementBoq && (
+                      <button
+                        onClick={() => {
+                          onOpenProcurementBoq();
+                          setIsToolkitOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                            <Scale className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Generator BoQ, RKS &amp; Diferensiasi</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">RAB Fase 0/1, TKDN, SLA Shield &amp; vs ENM/NCE</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">RKS</span>
+                      </button>
+                    )}
+
                     {/* Official Berita Acara Rekonsiliasi (BA-RE) */}
                     <button
                       onClick={() => {
@@ -379,8 +495,30 @@ export default function Navbar({
                           <p className="text-[10px] text-slate-500 dark:text-slate-400">Posting pengakuan efisiensi GL 510100 &amp; BAST BAPI</p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-mono text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-300 dark:border-blue-700">SAP</span>
+                      <span className="text-[9px] font-mono text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-300 dark:border-emerald-700">SAP</span>
                     </button>
+
+                    {/* Dual-Screen Presenter & Jury Live Sync */}
+                    {onOpenDualScreenSync && (
+                      <button
+                        onClick={() => {
+                          onOpenDualScreenSync();
+                          setIsToolkitOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                            <Monitor className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Dual-Screen Presenter Live Sync</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Sinkronisasi real-time layar pembicara &amp; proyektor</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-indigo-700 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded border border-indigo-300 dark:border-indigo-700">SYNC</span>
+                      </button>
+                    )}
 
                     {/* QR Code Share for Mobile */}
                     <button
@@ -574,7 +712,7 @@ export default function Navbar({
         </div>
 
         {/* Consolidated Telemetry & Status Ticker (Unified Single Micro-Strip) */}
-        <div className="telemetry-ticker px-3 sm:px-4 py-1 text-[11px] font-mono flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800 bg-slate-50/80 dark:bg-[#060B14]/90 gap-2 overflow-x-auto no-scrollbar whitespace-nowrap">
+        <div className="telemetry-ticker px-3 sm:px-4 py-1 text-[11px] font-mono flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800 bg-slate-50/90 dark:bg-[#060B14]/95 gap-2 overflow-x-auto no-scrollbar whitespace-nowrap">
           {/* Status Metrics */}
           <div className="telemetry-ticker-metrics flex items-center gap-x-3 shrink-0">
             <div className="flex items-center space-x-1.5 text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
@@ -583,11 +721,11 @@ export default function Navbar({
             </div>
             <span className="text-slate-300 dark:text-slate-700 select-none" aria-hidden="true">•</span>
             <span className="text-slate-600 dark:text-slate-300 shrink-0">
-              Beban RAN: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">184.2 kW (-14.8%)</strong>
+              Beban RAN ({simState?.simTimeString || '14:00 WIB'}): <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{tickerRanKw}</strong>
             </span>
             <span className="text-slate-300 dark:text-slate-700 select-none" aria-hidden="true">•</span>
             <span className="text-slate-600 dark:text-slate-300 shrink-0">
-              Pilot Sites: <strong className="text-slate-900 dark:text-slate-100 font-bold">40 Aktif (36 Eco-Sleep)</strong>
+              Pilot Sites: <strong className="text-slate-900 dark:text-slate-100 font-bold">{tickerSleepSites}</strong>
             </span>
             <span className="text-slate-300 dark:text-slate-700 select-none" aria-hidden="true">•</span>
             <span className="text-slate-600 dark:text-slate-300 shrink-0">

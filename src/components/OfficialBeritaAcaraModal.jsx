@@ -16,6 +16,7 @@ import {
   Zap
 } from 'lucide-react';
 import { renderQrSvgString } from '../utils/qrCodeGenerator';
+import { computeClosedLoopReconciliation } from '../utils/enterpriseCommandAndClosedLoopEngine';
 
 const BA_RE_METADATA = {
   docNumber: 'BA-RE/TSEL-NOPS/REG3/X/2026/0894',
@@ -35,57 +36,40 @@ const BA_RE_METADATA = {
   ]
 };
 
-const SAMPLE_RECON_DATA = [
-  {
-    siteId: 'JKT-SEL-P01',
-    siteName: 'Kebayoran Baru Macro BTS',
-    towerCo: 'Mitratel (Owned)',
-    plnMeterKwh: 2966.4,
-    rectifierDcKwh: 2556.0,
-    ossRadioKwh: 2462.4,
-    auxLossKwh: 410.4,
-    variancePct: 1.2,
-    phantomLossRp: 0,
-    status: 'SEIMBANG (VALID)',
-    notes: 'Deviasi dalam batas toleransi (<3.0%)'
-  },
-  {
-    siteId: 'BDG-DGO-P04',
-    siteName: 'Dago Atas Macro Hub',
-    towerCo: 'Mitratel (Leased)',
-    plnMeterKwh: 2772.0,
-    rectifierDcKwh: 2174.4,
-    ossRadioKwh: 2073.6,
-    auxLossKwh: 597.6,
-    variancePct: 10.4,
-    phantomLossRp: 3824640,
-    status: 'ANOMALI (DISPUTE)',
-    notes: 'Kebocoran daya +10.4% (>8% threshold). Investigasi AC shelter & rectifier fan.'
-  },
-  {
-    siteId: 'SBY-RKT-C02',
-    siteName: 'Rungkut Industri (Control)',
-    towerCo: 'Protelindo',
-    plnMeterKwh: 3744.0,
-    rectifierDcKwh: 3348.0,
-    ossRadioKwh: 3225.6,
-    auxLossKwh: 396.0,
-    variancePct: 0.8,
-    phantomLossRp: 0,
-    status: 'SEIMBANG (VALID)',
-    notes: 'Deviasi stabil, baseline kontrol operasional.'
-  }
-];
-
-export default function OfficialBeritaAcaraModal({ isOpen, onClose }) {
+export default function OfficialBeritaAcaraModal({
+  isOpen,
+  onClose,
+  resolvedSites = [],
+  customByodSites = [],
+  onResolveSiteAnomaly,
+  onOpenSapVoucher,
+  onOpenFieldConsole,
+  operationalState,
+  onSignBareDocument
+}) {
   const [copiedText, setCopiedText] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
-  const [showFullHash, setShowFullHash] = useState(false);
+  const [isSigningServer, setIsSigningServer] = useState(false);
 
   if (!isOpen) return null;
 
+  const closedLoop = computeClosedLoopReconciliation(resolvedSites, customByodSites);
+  const latestSignedBare = operationalState?.bareDocuments?.[0] || null;
+  const activeDigest = latestSignedBare?.sha256Digest || closedLoop.sha256Digest;
+  const reconRows = closedLoop.reconciliationSites;
+
+  const handleServerSignBare = async () => {
+    if (!onSignBareDocument) return;
+    setIsSigningServer(true);
+    try {
+      await onSignBareDocument({ siteId: 'BDG-DGO-P04' });
+    } finally {
+      setIsSigningServer(false);
+    }
+  };
+
   const qrSvgString = renderQrSvgString(
-    `TSEL-BARE-2026|DOC:${BA_RE_METADATA.docNumber}|HASH:${BA_RE_METADATA.sha256Digest}|DATE:20261030|STATUS:LEGALLY_SIGNED`,
+    `TSEL-BARE-2026|DOC:${BA_RE_METADATA.docNumber}|HASH:${activeDigest}|DATE:20261030|STATUS:${closedLoop.isBdgResolved ? 'FOP_SETTLED' : 'LEGALLY_SIGNED'}`,
     120
   );
 
@@ -102,9 +86,9 @@ PIHAK-PIHAK YANG BERSEPAKAT:
 
 POKOK KESEPAKATAN:
 1. Rekonsiliasi Triangulasi 3-Arah (Meter PLN AMR, Submeter DC Rectifier Kelas 0.5s, dan O-RAN Radio Telemetry).
-2. Temuan Anomali Phantom Power pada site BDG-DGO-P04 sebesar +10.4% (Discrepancy kerugian tak tertelusuri Rp 3.824.640,- per bulan).
+2. Status Site BDG-DGO-P04: ${closedLoop.isBdgResolved ? 'TERKALIBRASI FOP (+0.7% Valid) — Nota Kredit Restitusi Rp 3.824.640,- telah diterbitkan ke Jurnal SAP S/4HANA' : 'Temuan Anomali Phantom Power +10.4% (Discrepancy kerugian tak tertelusuri Rp 3.824.640,- per bulan)'}.
 3. Penerbitan Nota Kredit (Credit Note Adjustment) pengurangan beban tagihan berjalan sebesar nilai anomali terbukti.
-4. Integritas data dijamin SHA-256 Ledger: ${BA_RE_METADATA.sha256Digest}
+4. Integritas data dijamin SHA-256 Ledger: ${activeDigest}
 
 Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Tahun 2022.`;
 
@@ -116,18 +100,12 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
   const handleDownloadJson = () => {
     const payload = {
       standard: 'TM Forum TMF628 Energy Reconciliation v4.1',
-      document: BA_RE_METADATA,
-      reconciliationSites: SAMPLE_RECON_DATA,
-      summary: {
-        totalSitesAudited: 50,
-        balancedSites: 48,
-        anomalousSites: 2,
-        totalAdjustedCreditNoteRp: 7649280,
-        energySavedKwhCluster: 14820.5
-      },
+      document: { ...BA_RE_METADATA, sha256Digest: activeDigest },
+      reconciliationSites: reconRows,
+      summary: closedLoop.clusterSummary,
       cryptography: {
         algorithm: 'SHA-256',
-        hash: BA_RE_METADATA.sha256Digest,
+        hash: activeDigest,
         signedBy: [
           { role: 'TSEL_VP_NETWORK', name: 'Ir. Bambang Sugiarto, M.T.', nik: '8810429' },
           { role: 'PLN_UID_SR_MGR', name: 'Ir. H. Dedi Kurniawan, IPM', nip: '19780412' },
@@ -149,6 +127,31 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
     setTimeout(() => setCopiedJson(false), 2500);
   };
 
+  const handleDownloadCsv = () => {
+    const headers = ['Site_ID', 'IDPEL_PLN', 'Cluster', 'PLN_AMR_kWh', 'DC_Rectifier_kWh', 'ORAN_Model_kWh', 'Discrepancy_Pct', 'Status_Audit', 'Financial_Exposure_IDR'];
+    const rows = reconRows.map((r) => [
+      r.siteId,
+      r.idpel,
+      `"${r.cluster || 'Jawa Barat'}"`,
+      r.plnBilledKwh,
+      r.dcRectifierKwh,
+      r.oranModeledKwh,
+      r.discrepancyPct,
+      `"${r.status}"`,
+      r.monthlyLossIDR || 0
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BA-RE_TSEL_PLN_REKONSILIASI_${BA_RE_METADATA.docNumber.replace(/[\/\\]/g, '_')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/85 p-2 sm:p-4 print:p-0 print:bg-white backdrop-blur-xs">
       <div className="my-6 w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 shadow-2xl print:my-0 print:rounded-none print:border-0 print:shadow-none print:max-w-none">
@@ -163,16 +166,37 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-extrabold tracking-tight">Berita Acara Rekonsiliasi Energi Resmi (BA-RE)</h2>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-[10px] font-bold text-emerald-400">
-                  Tanda Tangan Kriptografis Sah
+                  {latestSignedBare ? `Tersimpan di Server (${latestSignedBare.docNumber.slice(-4)})` : 'Tanda Tangan Kriptografis Sah'}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-mono">
-                No: {BA_RE_METADATA.docNumber} • Telkomsel &amp; PLN UID
+                No: {latestSignedBare?.docNumber || BA_RE_METADATA.docNumber} • Telkomsel &amp; PLN UID
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {onSignBareDocument && (
+              <button
+                type="button"
+                disabled={isSigningServer}
+                onClick={handleServerSignBare}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-600/60 bg-emerald-950/80 hover:bg-emerald-900 px-3 py-1.5 text-xs font-bold text-emerald-300 transition cursor-pointer disabled:opacity-50"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                <span>{isSigningServer ? 'Menyimpan...' : latestSignedBare ? 'Sahkan Ulang BA-RE' : 'Sahkan & Simpan ke DB'}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleDownloadCsv}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-800 transition cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Unduh CSV</span>
+            </button>
+
             <button
               onClick={handleCopyText}
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-800 transition cursor-pointer"
@@ -323,7 +347,7 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {SAMPLE_RECON_DATA.map((s) => (
+                  {reconRows.map((s) => (
                     <tr key={s.siteId} className={s.variancePct > 3.0 ? 'bg-amber-50/70 font-semibold' : ''}>
                       <td className="p-2 border-r border-slate-200">
                         <span className="font-mono font-bold block">{s.siteId}</span>
@@ -334,7 +358,7 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
                       <td className="p-2 border-r border-slate-200 text-right font-mono">{s.rectifierDcKwh.toFixed(1)} kWh</td>
                       <td className="p-2 border-r border-slate-200 text-right font-mono">{s.ossRadioKwh.toFixed(1)} kWh</td>
                       <td className="p-2 border-r border-slate-200 text-right font-mono">
-                        <span className={s.variancePct > 3.0 ? 'text-red-600 font-bold' : 'text-emerald-700'}>
+                        <span className={s.variancePct > 3.0 ? 'text-red-600 font-bold' : 'text-emerald-700 font-bold'}>
                           +{s.variancePct}%
                         </span>
                       </td>
@@ -347,7 +371,7 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            Sah Seimbang
+                            {s.status}
                           </span>
                         )}
                       </td>
@@ -357,9 +381,54 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
               </table>
             </div>
 
-            <div className="p-2.5 rounded-lg border border-red-200 bg-red-50/70 text-[11px] font-sans text-red-950 space-y-1">
-              <strong>Temuan Khusus Site BDG-DGO-P04:</strong> Ditemukan disparitas energi tak tertelusuri sebesar <strong>10,4%</strong> di atas batas toleransi teknis 3,0%. Analisis model termal membuktikan adanya penurunan COP (Coefficient of Performance) inverter pendingin shelter dan beban parasitik ilegal senilai <strong>Rp 3.824.640,-</strong>.
-            </div>
+            {closedLoop.isBdgResolved ? (
+              <div className="p-3 rounded-lg border border-emerald-300 bg-emerald-50/80 text-[11px] font-sans text-emerald-950 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <strong>Closed-Loop FOP Selesai (Site BDG-DGO-P04):</strong> Teknisi FOP (Ir. Andi Pratama) telah menyelesaikan WO-2026-TSEL-MT-00492. Deviasi turun dari 10,4% ke <strong>+0,7% (Valid)</strong> dan Nota Kredit Restitusi <strong>Rp 3.824.640,-</strong> siap diposting ke SAP S/4HANA.
+                </div>
+                {onOpenSapVoucher && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenSapVoucher();
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer print:hidden shrink-0"
+                  >
+                    Buka Jurnal SAP S/4HANA &rarr;
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="p-3 rounded-lg border border-red-200 bg-red-50/70 text-[11px] font-sans text-red-950 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex-1">
+                  <strong>Temuan Khusus Site BDG-DGO-P04:</strong> Ditemukan disparitas energi tak tertelusuri sebesar <strong>10,4%</strong> di atas batas toleransi teknis 3,0% senilai <strong>Rp 3.824.640,-</strong>.
+                </div>
+                <div className="flex items-center gap-2 print:hidden shrink-0">
+                  {onOpenFieldConsole && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenFieldConsole();
+                      }}
+                      className="px-3 py-1.5 rounded-lg border border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-xs cursor-pointer"
+                    >
+                      Buka FOP Mobile e-WO
+                    </button>
+                  )}
+                  {onResolveSiteAnomaly && (
+                    <button
+                      type="button"
+                      onClick={() => onResolveSiteAnomaly('BDG-DGO-P04')}
+                      className="px-3 py-1.5 rounded-lg bg-[#ED0226] hover:bg-red-700 text-white font-bold text-xs cursor-pointer"
+                    >
+                      Simulasikan Resolusi FOP Instan
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* PASAL 3: KESEPAKATAN BILLING & PENYESUAIAN KREDIT */}
@@ -393,7 +462,7 @@ Ditandatangani secara elektronik sesuai UU No. 1 Tahun 2024 dan UU PDP No. 27 Ta
                 </span>
               </div>
               <div className="break-all font-bold text-slate-900 bg-white p-2 rounded border border-slate-200">
-                {BA_RE_METADATA.sha256Digest}
+                {activeDigest}
               </div>
             </div>
           </section>

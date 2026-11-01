@@ -144,6 +144,9 @@ export function calculateHourTelemetry(hour, scenarioKey = 'normal') {
   const bessDischargeKw = bessActive ? 18.5 : 0;
   const bessTotalKw = +(bessDischargeKw * 40).toFixed(1);
 
+  const carrierSleepActive = !emergencyActive && savingPct >= 10;
+  const cdrPct = emergencyActive ? '0.01' : isWbp ? '0.07' : '0.05';
+
   return {
     hour,
     timeString: `${String(hour).padStart(2, '0')}:00 WIB`,
@@ -154,9 +157,12 @@ export function calculateHourTelemetry(hour, scenarioKey = 'normal') {
     tempC: +tempC.toFixed(1),
     baselineKw,
     activeKw,
+    powerKw: activeKw,
     savedKw,
     savingPct,
     carrierAction,
+    carrierSleepActive,
+    cdrPct,
     hourlyAvoidedCost,
     hourlyAvoidedCo2Kg,
     bessActive,
@@ -338,14 +344,14 @@ export default function GlobalSimulationBar({
             {/* Play/Pause Button */}
             <button
               onClick={togglePlay}
-              className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
                 isPlaying 
                   ? 'bg-amber-500 text-slate-950 font-black' 
                   : 'bg-emerald-600 hover:bg-emerald-500 text-white'
               }`}
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-              <span>{isPlaying ? 'Pause' : 'Putar jam demo'}</span>
+              <span>{isPlaying ? 'Jeda Siklus' : 'Putar Siklus 24J'}</span>
             </button>
 
             {/* Speed Toggle */}

@@ -24,7 +24,15 @@ import {
   Server
 } from 'lucide-react';
 
-export default function AgentOrchestratorTab() {
+export default function AgentOrchestratorTab({
+  simState,
+  operationalSummary,
+  resolvedSites = [],
+  onDispatchOranPolicy,
+  onBatchResolveAnomalies,
+  onOpenOfficialBaRe,
+  onOpenSapVoucher
+}) {
   const [selectedScenario, setSelectedScenario] = useState('midnight');
   const [activeOrchestratorSection, setActiveOrchestratorSection] = useState('scenarios'); // 'scenarios' | 'arbitration' | 'feature_io'
   const [selectedConflict, setSelectedConflict] = useState('112_priority');
@@ -32,7 +40,50 @@ export default function AgentOrchestratorTab() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [terminalLogs, setTerminalLogs] = useState([]);
+  const [batchActionNotice, setBatchActionNotice] = useState(null);
   const simulationTimers = useRef([]);
+
+  const handleBatchDispatchOran = () => {
+    const activeCount = operationalSummary?.siteCount || 50;
+    if (onDispatchOranPolicy) {
+      void onDispatchOranPolicy({
+        cluster: 'JAMALI-MULTI-VENDOR',
+        mode: 'NON_RT_RIC_A1_BATCH',
+        targetTempC: 26.0
+      });
+    }
+    const nowTime = new Date().toLocaleTimeString('id-ID', { hour12: false });
+    setTerminalLogs((prev) => [
+      ...prev,
+      {
+        time: nowTime,
+        agent: 'Prophet-RAN & Sentinel-SLA',
+        type: 'success',
+        text: `BATCH DISPATCH O-RAN O1/A1: Kebijakan Carrier Sleep & Setpoint HVAC 26°C dikirim serentak ke ${activeCount} site (Ericsson ENM, Huawei MAE, ZTE NetNumen).`
+      }
+    ]);
+    setBatchActionNotice(`Batch Dispatch O-RAN O1/A1 berhasil dieksekusi pada ${activeCount} site multi-vendor.`);
+    setTimeout(() => setBatchActionNotice(null), 4500);
+  };
+
+  const handleBatchFopFromAgent = () => {
+    const targetIds = ['BDG-DGO-P04', 'JAB-SITE-05', 'JKT-SEL-P03', 'BKS-MET-P06'];
+    if (onBatchResolveAnomalies) {
+      onBatchResolveAnomalies(targetIds);
+    }
+    const nowTime = new Date().toLocaleTimeString('id-ID', { hour12: false });
+    setTerminalLogs((prev) => [
+      ...prev,
+      {
+        time: nowTime,
+        agent: 'GreenLedger',
+        type: 'success',
+        text: `BATCH FOP CLOSED-LOOP: ${targetIds.length} site anomali (${targetIds.join(', ')}) terkalibrasi. BA-RE PLN & Jurnal SAP S/4HANA tersinkron.`
+      }
+    ]);
+    setBatchActionNotice(`Batch FOP Closed-Loop selesai (${targetIds.length} site terkalibrasi).`);
+    setTimeout(() => setBatchActionNotice(null), 4500);
+  };
 
   // 4 AI Agents powering the O-RAN Non-RT RIC Architecture
   const agents = [
@@ -289,7 +340,23 @@ export default function AgentOrchestratorTab() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleBatchDispatchOran}
+              className="px-3.5 py-2 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>Batch Dispatch O-RAN O1</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleBatchFopFromAgent}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Batch Tiket FOP ({resolvedSites.length} Selesai)</span>
+            </button>
             <button
               type="button"
               onClick={() => setIsExplainModalOpen(true)}
@@ -298,12 +365,26 @@ export default function AgentOrchestratorTab() {
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Inspeksi Logika AI (XAI)</span>
             </button>
-            <div className="flex items-center space-x-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-2 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>4 Agents Siaga (Loop 300ms)</span>
-            </div>
           </div>
         </div>
+
+        {batchActionNotice && (
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-4 py-2.5 text-xs font-bold text-emerald-800 dark:text-emerald-200 flex flex-wrap items-center justify-between gap-2">
+            <span>{batchActionNotice}</span>
+            <div className="flex items-center gap-3">
+              {onOpenOfficialBaRe && (
+                <button type="button" onClick={onOpenOfficialBaRe} className="underline font-extrabold cursor-pointer">
+                  Buka BA-RE PLN
+                </button>
+              )}
+              {onOpenSapVoucher && (
+                <button type="button" onClick={onOpenSapVoucher} className="underline font-extrabold cursor-pointer">
+                  Buka Jurnal SAP S/4HANA
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 4 Agent Cards Showcase */}
@@ -346,7 +427,7 @@ export default function AgentOrchestratorTab() {
         })}
       </div>
 
-      {/* MULTI-VENDOR RAN GOVERNANCE & COORDINATION MATRIX (ERICSSON vs HUAWEI) */}
+      {/* MULTI-VENDOR RAN GOVERNANCE & COORDINATION MATRIX (ERICSSON, HUAWEI, ZTE) */}
       <div className="p-6 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
@@ -355,7 +436,7 @@ export default function AgentOrchestratorTab() {
             </div>
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-                Matriks Interoperabilitas & Tata Kelola Multi-Vendor (Ericsson ENM vs Huawei MAE)
+                Matriks Interoperabilitas &amp; Koordinasi Multi-Vendor RAN (Ericsson ENM • Huawei MAE • ZTE NetNumen)
               </h2>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Arsitektur vendor-agnostic O-RAN O1/A1 menyatukan koordinasi carrier sleep di wilayah perbatasan kluster tanpa blind-spot
@@ -363,51 +444,50 @@ export default function AgentOrchestratorTab() {
             </div>
           </div>
           <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-mono text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
-            ✓ Koordinasi Batas Seluler Aktif
+            ✓ 3 Vendor RAN Tersinkron ({simState?.simHour ?? 14}:00 WIB)
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          {/* Vendor A */}
           <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-900 dark:text-slate-100">Kluster Barat: Ericsson</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">1. Ericsson (ENM 24.x)</span>
               <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-[10px] font-mono font-bold">Jabodetabek / Jabar</span>
             </div>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-              Interface O-RAN O1 terhubung ke Ericsson ENM OSS via REST/NETCONF. Menerima kebijakan A1 untuk Carrier Sleep B3 (1800 MHz) saat off-peak.
+              Interface O-RAN O1 terhubung ke Ericsson ENM OSS via REST/NETCONF (Radio 4415 / AIR 6419). Mendukung Micro-Sleep TX &amp; Deep Carrier Sleep B1/B3/B8.
             </p>
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-slate-500 font-mono">
-              Status O1: Connected (22 sites)
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-slate-500 font-mono flex justify-between">
+              <span>Pilot: 20 Site (Jamali: 2.150)</span>
+              <span className="text-emerald-600 font-bold">Wake-up 24ms</span>
             </div>
           </div>
 
-          {/* Central O-RAN Non-RT RIC */}
-          <div className="p-4 rounded-xl border-2 border-red-500 bg-red-50/20 dark:bg-red-950/10 space-y-2 relative">
-            <div className="flex items-center justify-between">
-              <span className="font-extrabold text-[#ED0226] dark:text-red-400">ImpactGrid Non-RT RIC</span>
-              <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 text-[10px] font-mono font-bold">Orkestrator Pusat</span>
-            </div>
-            <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-              Mengorkestrasi kebijakan hemat energi lintas batas vendor. Mencegah coverage hole di perbatasan wilayah (misal Cirebon-Brebes) dengan sinkronisasi inter-cell handover.
-            </p>
-            <div className="pt-2 border-t border-red-200 dark:border-red-900/60 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Nol Coverage Hole Lintas Vendor</span>
-            </div>
-          </div>
-
-          {/* Vendor B */}
           <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-900 dark:text-slate-100">Kluster Timur: Huawei</span>
-              <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-[10px] font-mono font-bold">Jateng / Jatim</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">2. Huawei (iMaster MAE)</span>
+              <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-[10px] font-mono font-bold">Jabar / Jatim</span>
             </div>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-              Interface O-RAN O1 terhubung ke Huawei MAE / U2020. Sinkronisasi parameter RF transmit power dan dynamic symbol shutdown terpantau terpusat.
+              Interface O-RAN O1 terhubung ke Huawei iMaster MAE (AAU5613 / BBU5900). Sinkronisasi Symbol Power Saving, Channel Shutoff, &amp; busbar SmartLi 48V.
             </p>
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-slate-500 font-mono">
-              Status O1: Connected (28 sites)
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-slate-500 font-mono flex justify-between">
+              <span>Pilot: 18 Site (Jamali: 2.050)</span>
+              <span className="text-emerald-600 font-bold">Wake-up 28ms</span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 dark:text-slate-100">3. ZTE (ZenIC NetNumen U31)</span>
+              <span className="px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 text-[10px] font-mono font-bold">Jateng / Bali-Nusra</span>
+            </div>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+              Interface O-RAN O1 terhubung ke ZTE NetNumen U31 &amp; PowerPilot Pro (UniSite R8892E). Mendukung PA Bias Dynamic Muting &amp; rectifier ZXDU88.
+            </p>
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-slate-500 font-mono flex justify-between">
+              <span>Pilot: 12 Site (Jamali: 800)</span>
+              <span className="text-emerald-600 font-bold">Wake-up 27ms</span>
             </div>
           </div>
         </div>

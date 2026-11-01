@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
+import SafeResponsiveContainer from './SafeResponsiveContainer';
 import { Activity, ShieldCheck, AlertTriangle, Layers, Sliders, CheckCircle2, TrendingDown, Info } from 'lucide-react';
 
 // Monthly timeline: T-6 to T+9 (6 months baseline pre-intervention, 9 months pilot post-intervention)
@@ -227,8 +228,8 @@ export default function DifferenceInDifferencesVisualizer() {
           </div>
 
           {/* DiD Line Chart */}
-          <div className="h-72 w-full pt-2">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-72 w-full min-w-[280px] min-h-[260px] pt-2">
+            <SafeResponsiveContainer defaultHeight={260}>
               <LineChart data={didChartData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
                 <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 10 }} />
@@ -256,7 +257,7 @@ export default function DifferenceInDifferencesVisualizer() {
                   <Line type="monotone" dataKey="counterfactual" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" name="counterfactual" dot={false} />
                 )}
               </LineChart>
-            </ResponsiveContainer>
+            </SafeResponsiveContainer>
           </div>
 
           <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">

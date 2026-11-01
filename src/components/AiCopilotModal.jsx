@@ -151,7 +151,8 @@ export default function AiCopilotModal({
   activeTab = 'overview',
   simState,
   selectedScale = 'pilot',
-  activeLens = 'all'
+  activeLens = 'all',
+  operationalSummary = null
 }) {
   const [messages, setMessages] = useState([
     {
@@ -163,10 +164,10 @@ export default function AiCopilotModal({
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   
-  // Optional server-side AI; credentials remain on the server.
+  // Server-side Gemini proxy enabled by default; falls back to local deterministic engine when unconfigured.
   const [showSettings, setShowSettings] = useState(false);
-  const [useProxy, setUseProxy] = useState(false);
-  const selectedModel = 'gemini-2.5-flash';
+  const [useProxy, setUseProxy] = useState(true);
+  const selectedModel = 'gemini-3.8-flash';
 
   const chatBottomRef = useRef(null);
   const localReplyTimer = useRef(null);
@@ -187,17 +188,22 @@ export default function AiCopilotModal({
       const scenName = simState?.scenarioKey === 'blackout_sumatera' ? 'Blackout Kelistrikan Sumatera' :
                        simState?.scenarioKey === 'concert' ? 'Lonjakan Trafik Konser' :
                        simState?.scenarioKey === 'heatwave' ? 'Gelombang Panas Ekstrem' : 'Operasional Normal';
+      const dbMetricsLine = operationalSummary
+        ? `\n• **Database Operasional Aktif:** ${operationalSummary.siteCount} Site BTS (Total Beban ${operationalSummary.totalPlnKwh} kW, Hemat ${operationalSummary.totalPotentialSavingsKwh} kW / ${operationalSummary.overallSavingsPct}%)\n` +
+          `• **Status Closed-Loop FOP & SAP:** ${operationalSummary.resolvedSitesCount} Site Terkalibrasi FOP • ${operationalSummary.postedSapVouchersCount} Voucher SAP FI-CO Terposting`
+        : '';
       return {
-        title: "Status Telemetri & Simulasi Aktif Saat Ini",
-        answer: `Data pembacaan langsung dari simulasi dashboard:\n\n` +
+        title: "Status Telemetri & Database Operasional Saat Ini",
+        answer: `Data pembacaan langsung dari database operasional & simulasi dashboard:\n\n` +
           `• **Skenario Aktif:** ${scenName}\n` +
           `• **Tab Terbuka:** ${activeTab.toUpperCase()}\n` +
           `• **Beban Trafik PRB:** ${simState?.trafficLoad ?? 32}%\n` +
           `• **Suhu Shelter:** ${simState?.tempAmbient ?? 27.5}°C\n` +
           `• **Skala Pemodelan:** ${String(selectedScale).toUpperCase()}\n` +
           `• **Status Guardrail SLA:** ${simState?.emergencyActive ? '⚠️ Interlock Aktif (Rollback Otomatis)' : '✅ Aman (>99.99%)'}\n` +
-          `• **Efisiensi Energi (Est):** ~${simState?.energyEfficiency ?? 14.8}%\n\n` +
-          `AI memperbarui evaluasi dampak secara adaptif mengikuti parameter yang Anda ubah di slider bar.`,
+          `• **Efisiensi Energi (Est):** ~${operationalSummary?.overallSavingsPct ?? simState?.energyEfficiency ?? 14.8}%` +
+          dbMetricsLine + `\n\n` +
+          `AI memperbarui evaluasi dampak secara adaptif mengikuti data aktual BTS dan parameter yang Anda ubah.`,
         suggestedTab: 'scenariolab',
         suggestedTabLabel: 'Buka Scenario Lab untuk Uji Parameter'
       };

@@ -17,7 +17,14 @@ import {
 import { ENTERPRISE_ROLES } from '../data/enterpriseRoles';
 import { saveStoredSsoSession } from '../utils/storageEngine';
 
-export default function TelkomselSsoModal({ isOpen, onClose, onLoginSuccess, currentSession }) {
+export default function TelkomselSsoModal({
+  isOpen,
+  onClose,
+  onLoginSuccess,
+  currentSession,
+  onAuthenticateSso,
+  divisionAccounts = []
+}) {
   const [nik, setNik] = useState(currentSession?.nik || '8810429');
   const [email, setEmail] = useState(currentSession?.email || 'bambang.hariyanto@telkomsel.co.id');
   const [selectedRoleId, setSelectedRoleId] = useState(currentSession?.roleId || 'vp_network');
@@ -30,10 +37,43 @@ export default function TelkomselSsoModal({ isOpen, onClose, onLoginSuccess, cur
 
   const activeRoleObj = ENTERPRISE_ROLES.find(r => r.id === selectedRoleId) || ENTERPRISE_ROLES[0];
 
-  const handleSimulateSsoLogin = (e) => {
+  const handleRoleSelectChange = (nextRoleId) => {
+    setSelectedRoleId(nextRoleId);
+    const matchingAccount = divisionAccounts.find((acc) => acc.roleId === nextRoleId);
+    if (matchingAccount) {
+      setNik(matchingAccount.nik);
+      setEmail(matchingAccount.email);
+    }
+  };
+
+  const handleSimulateSsoLogin = async (e) => {
     e?.preventDefault();
     setIsAuthenticating(true);
     setAuthStage('verifying_credentials');
+
+    try {
+      if (onAuthenticateSso) {
+        setAuthStage('exchanging_token');
+        const serverSession = await onAuthenticateSso({
+          roleId: selectedRoleId,
+          nik,
+          email,
+          otpCode
+        });
+        if (serverSession) {
+          saveStoredSsoSession(serverSession);
+          setAuthStage('success');
+          setIsAuthenticating(false);
+          setTimeout(() => {
+            if (onLoginSuccess) onLoginSuccess(serverSession);
+            onClose();
+          }, 450);
+          return;
+        }
+      }
+    } catch {
+      // Fallback to local OIDC token generation if offline
+    }
 
     setTimeout(() => {
       setAuthStage('exchanging_token');
@@ -136,7 +176,7 @@ export default function TelkomselSsoModal({ isOpen, onClose, onLoginSuccess, cur
             </label>
             <select
               value={selectedRoleId}
-              onChange={(e) => setSelectedRoleId(e.target.value)}
+              onChange={(e) => handleRoleSelectChange(e.target.value)}
               className="w-full text-xs font-bold rounded-xl px-3 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white cursor-pointer focus:ring-2 focus:ring-red-500/20"
             >
               {ENTERPRISE_ROLES.map((role) => (

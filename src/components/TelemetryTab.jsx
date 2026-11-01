@@ -102,14 +102,64 @@ const SIMULATED_BTS_FEEDS = [
   }
 ];
 
-export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, resolvedSites = [] }) {
+export default function TelemetryTab({
+  onOpenOfficialBaRe,
+  onOpenFieldConsole,
+  onOpenSapVoucher,
+  resolvedSites = [],
+  operationalState,
+  operationalSummary,
+  onSelectDatasetPreset,
+  onIngestRecords,
+  onIngestTelemetryRecords,
+  onUpsertSite,
+  onUpsertBtsSite,
+  onDeleteSite,
+  onDeleteBtsSite,
+  onUpdateSlaThresholds,
+  onDispatchOranPolicy,
+  onResolveSiteAnomaly,
+  onBatchResolveAnomalies
+}) {
   const [activeView, setActiveView] = useState('all'); // 'all', 'ingestion', 'reconciliation', 'live_stream'
+  const [batchFeedback, setBatchFeedback] = useState(null);
+  const handleIngest = onIngestRecords || onIngestTelemetryRecords;
+  const handleUpsert = onUpsertSite || onUpsertBtsSite;
+  const handleDelete = onDeleteSite || onDeleteBtsSite;
+  const annualSavedMwh = operationalSummary?.annualizedSavedMwh ?? 200;
+  const annualSavedIdrMillions = operationalSummary?.annualizedSavedIdr
+    ? Math.round(operationalSummary.annualizedSavedIdr / 1_000_000)
+    : 240;
+  const activeSiteCount = operationalSummary?.siteCount ?? 50;
+
+  const handleBatchFopClick = () => {
+    const targetIds = ['BDG-DGO-P04', 'JAB-SITE-05', 'JKT-SEL-P03', 'BKS-MET-P06'];
+    if (onBatchResolveAnomalies) {
+      onBatchResolveAnomalies(targetIds);
+    } else if (onResolveSiteAnomaly) {
+      targetIds.forEach((id) => onResolveSiteAnomaly(id));
+    }
+    setBatchFeedback(`Batch Kalibrasi FOP selesai untuk ${targetIds.length} site anomali (${targetIds.join(', ')}). Dokumen BA-RE PLN & Jurnal SAP S/4HANA telah diperbarui.`);
+    setTimeout(() => setBatchFeedback(null), 5000);
+  };
+
+  const handleBatchOranClick = () => {
+    if (onDispatchOranPolicy) {
+      void onDispatchOranPolicy({
+        cluster: 'JAMALI-PILOT-50',
+        mode: 'ADAPTIVE_CARRIER_SLEEP_O1',
+        targetTempC: 26.0
+      });
+    }
+    setBatchFeedback(`Kebijakan Batch O-RAN O1 (Adaptive Carrier Sleep + Setpoint HVAC 26°C) dikirim ke ${activeSiteCount} menara BTS multi-vendor (Ericsson/Huawei/ZTE).`);
+    setTimeout(() => setBatchFeedback(null), 5000);
+  };
 
   return (
     <div className="space-y-6">
       
       {/* Executive Header */}
-      <header className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 shadow-xs">
+      <header className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-cyan-800 dark:text-cyan-400 text-xs font-bold">
             <Radio className="h-4 w-4" />
@@ -117,22 +167,71 @@ export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, r
           </div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Konektor O-RAN O1 & Meter Kelas 0.5s Aktif</span>
+              <span>Konektor O-RAN O1 &amp; Meter Kelas 0.5s Aktif ({activeSiteCount} Site Tersinkron · {resolvedSites.length} Terkalibrasi FOP)</span>
             </span>
           </div>
         </div>
 
-        <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-          Konsolidasi Data Telemetri Energi & Jaringan Telkomsel
-        </h1>
-        <p className="mt-2 max-w-4xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-          Mengintegrasikan aliran data konsumsi listrik PLN, telemetri RF RAN O-RAN O1, submeter shelter, dan korelasi trafik untuk membuktikan penghematan energi secara ilmiah tanpa mengorbankan kualitas layanan pelanggan Telkomsel.
-        </p>
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            Konsolidasi Data Telemetri Energi, Otomasi Batch FOP &amp; Rekonsiliasi 3-Arah Telkomsel
+          </h1>
+          <p className="mt-1.5 max-w-4xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+            Mengintegrasikan aliran data konsumsi listrik PLN, telemetri RF RAN O-RAN O1 (Ericsson, Huawei, ZTE), dan submeter DC shelter, dilengkapi eksekusi massal (<em>Batch Operations</em>) untuk tiket FOP dan sinkronisasi jurnal SAP S/4HANA.
+          </p>
+        </div>
+
+        {/* Batch Operations Bar */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/70 p-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs">
+            <span className="font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Konsol Eksekusi Massal (Batch SNOC):</span>
+            <span className="ml-2 text-slate-600 dark:text-slate-400">Jalankan kalibrasi FOP serentak atau kirim kebijakan O-RAN O1 ke seluruh kluster.</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleBatchFopClick}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer shadow-2xs"
+            >
+              Eksekusi Batch Kalibrasi FOP (Semua Anomali)
+            </button>
+            <button
+              type="button"
+              onClick={handleBatchOranClick}
+              className="px-3 py-1.5 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white text-xs font-bold transition cursor-pointer shadow-2xs"
+            >
+              Batch Dispatch O-RAN O1 ({activeSiteCount} Site)
+            </button>
+            {onOpenOfficialBaRe && (
+              <button
+                type="button"
+                onClick={onOpenOfficialBaRe}
+                className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 text-white text-xs font-bold transition cursor-pointer"
+              >
+                Buka BA-RE PLN
+              </button>
+            )}
+            {onOpenSapVoucher && (
+              <button
+                type="button"
+                onClick={onOpenSapVoucher}
+                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer"
+              >
+                Jurnal SAP S/4HANA
+              </button>
+            )}
+          </div>
+        </div>
+
+        {batchFeedback && (
+          <div className="rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 px-4 py-2.5 text-xs font-bold text-emerald-800 dark:text-emerald-200 flex items-center justify-between">
+            <span>{batchFeedback}</span>
+          </div>
+        )}
 
         {/* View Switcher Bar */}
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs">
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs">
             <button
               onClick={() => setActiveView('all')}
               className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
@@ -153,7 +252,7 @@ export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, r
               }`}
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Ingestion CSV Mandiri</span>
+              <span>Ingestion CSV &amp; CRUD Site</span>
             </button>
             <button
               onClick={() => setActiveView('reconciliation')}
@@ -186,12 +285,12 @@ export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, r
               }`}
             >
               <Cpu className="w-3.5 h-3.5" />
-              <span>AI Data Quality & MLOps Drift</span>
+              <span>AI Data Quality &amp; MLOps Drift</span>
             </button>
           </div>
 
           <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-            Standard: O-RAN WG1 & IPMVP Option B
+            Standard: O-RAN WG1 &amp; IPMVP Option B
           </span>
         </div>
       </header>
@@ -205,7 +304,7 @@ export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, r
               <Zap className="h-4 w-4" />
             </div>
           </div>
-          <p className="mt-3 text-2xl font-black text-slate-900 dark:text-white tracking-tight font-mono">1.885.417.875,2 kWh</p>
+          <p className="mt-3 text-2xl font-black text-slate-900 dark:text-white tracking-tight font-mono tabular-nums">1.885.417.875,2 kWh</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Total konsumsi listrik jaringan Telkomsel (Sustainability Report 2025).</p>
         </article>
 
@@ -216,26 +315,35 @@ export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, r
               <Activity className="h-4 w-4" />
             </div>
           </div>
-          <p className="mt-3 text-2xl font-black text-slate-900 dark:text-white tracking-tight font-mono">1.721.967,7 tCO₂e</p>
+          <p className="mt-3 text-2xl font-black text-slate-900 dark:text-white tracking-tight font-mono tabular-nums">1.721.967,7 tCO₂e</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Menyumbang 63,6% dari total emisi gas rumah kaca korporat.</p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Penghematan Pilot Usulan</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Penghematan Kluster Aktif</span>
             <div className="p-2 rounded-xl bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600">
               <Database className="h-4 w-4" />
             </div>
           </div>
-          <p className="mt-3 text-2xl font-black text-emerald-700 dark:text-emerald-400 tracking-tight font-mono">~200 MWh/thn</p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Potensi penghematan kas neto Rp 240 Juta/thn (40 Site Pilot).</p>
+          <p className="mt-3 text-2xl font-black text-emerald-700 dark:text-emerald-400 tracking-tight font-mono tabular-nums">~{annualSavedMwh} MWh/thn</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Potensi penghematan kas neto Rp {annualSavedIdrMillions.toLocaleString('id-ID')} Juta/thn ({activeSiteCount} Site Aktif).</p>
         </article>
       </section>
 
-      {/* Feature 1: Enterprise BTS CSV Data Ingestion Hub */}
+      {/* Feature 1: Enterprise BTS CSV Data Ingestion Hub & CRUD Manager */}
       {(activeView === 'all' || activeView === 'ingestion') && (
         <section className="animate-fade-in">
-          <BtsDataIngestionHub />
+          <BtsDataIngestionHub
+            operationalState={operationalState}
+            onSelectDatasetPreset={onSelectDatasetPreset}
+            onIngestRecords={handleIngest}
+            onUpsertSite={handleUpsert}
+            onDeleteSite={handleDelete}
+            onUpdateSlaThresholds={onUpdateSlaThresholds}
+            onDispatchOranPolicy={onDispatchOranPolicy}
+            onResolveSiteAnomaly={onResolveSiteAnomaly}
+          />
         </section>
       )}
 
@@ -245,6 +353,8 @@ export default function TelemetryTab({ onOpenOfficialBaRe, onOpenFieldConsole, r
           <TelemetryReconciliationMatrix 
             onOpenOfficialBaRe={onOpenOfficialBaRe} 
             onOpenFieldConsole={onOpenFieldConsole}
+            onOpenSapVoucher={onOpenSapVoucher}
+            onResolveSiteAnomaly={onResolveSiteAnomaly}
             resolvedSites={resolvedSites}
           />
         </section>

@@ -39,18 +39,19 @@ COPY --from=builder --chown=65532:65532 /app/package.json ./package.json
 # Copy compiled frontend distribution
 COPY --from=builder --chown=65532:65532 /app/dist ./dist
 
-# Copy enterprise server core and proxy
+# Copy enterprise server core, proxy and entrypoint
 COPY --from=builder --chown=65532:65532 /app/server ./server
+COPY --from=builder --chown=65532:65532 /app/server.js ./server.js
 
-# Expose internal application and telemetry ports
-EXPOSE 3001
+# Expose application port (3000 for standard dev/prod, 8080 for Cloud Run)
+EXPOSE 3000 8080
 
 # Production Environment Variables
 ENV NODE_ENV=production \
-    PORT=3001 \
+    PORT=3000 \
     HOST=0.0.0.0 \
     DATA_CENTER_PRIMARY=telkom-dc-sentul \
     DATA_CENTER_DR=telkom-dc-surabaya
 
-# Entrypoint executes hardened proxy server
-CMD ["server/proxyServer.js"]
+# Entrypoint executes hardened full-stack server
+CMD ["server.js"]
