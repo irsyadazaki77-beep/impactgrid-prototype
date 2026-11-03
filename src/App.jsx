@@ -19,17 +19,19 @@ import {
 } from './utils/enterpriseCommandAndClosedLoopEngine';
 import { DEFAULT_BYOD_REGIONAL_PRESET } from './utils/telkomselNextGenOperationsEngine';
 
-const KpiStatRow = memo(lazy(() => import('./components/KpiStatRow')));
-const OverviewTab = memo(lazy(() => import('./components/OverviewTab')));
-const PilotValidationCenterTab = memo(lazy(() => import('./components/PilotValidationCenterTab')));
-const DigitalTwinTab = memo(lazy(() => import('./components/DigitalTwinTab')));
-const AgentOrchestratorTab = memo(lazy(() => import('./components/AgentOrchestratorTab')));
-const TelemetryTab = memo(lazy(() => import('./components/TelemetryTab')));
-const ScenarioLabTab = memo(lazy(() => import('./components/ScenarioLabTab')));
-const OptimizationTab = memo(lazy(() => import('./components/OptimizationTab')));
-const ESGComplianceTab = memo(lazy(() => import('./components/ESGComplianceTab')));
-const FinancialModelTab = memo(lazy(() => import('./components/FinancialModelTab')));
-const ArchitectureTab = memo(lazy(() => import('./components/ArchitectureTab')));
+import KpiStatRow from './components/KpiStatRow';
+import RoleBasedWorkspaceBanner from './components/RoleBasedWorkspaceBanner';
+import OverviewTab from './components/OverviewTab';
+import TelemetryTab from './components/TelemetryTab';
+import ArchitectureTab from './components/ArchitectureTab';
+import DigitalTwinTab from './components/DigitalTwinTab';
+import ESGComplianceTab from './components/ESGComplianceTab';
+import FinancialModelTab from './components/FinancialModelTab';
+
+const PilotValidationCenterTab = lazy(() => import('./components/PilotValidationCenterTab'));
+const AgentOrchestratorTab = lazy(() => import('./components/AgentOrchestratorTab'));
+const ScenarioLabTab = lazy(() => import('./components/ScenarioLabTab'));
+const OptimizationTab = lazy(() => import('./components/OptimizationTab'));
 const ReportModal = lazy(() => import('./components/ReportModal'));
 const DirectorTourModal = lazy(() => import('./components/DirectorTourModal'));
 const EmergencyStressModal = lazy(() => import('./components/EmergencyStressModal'));
@@ -46,6 +48,7 @@ const CommandPaletteModal = lazy(() => import('./components/CommandPaletteModal'
 const ProcurementBoqModal = lazy(() => import('./components/ProcurementBoqModal'));
 const DualScreenSyncModal = lazy(() => import('./components/DualScreenSyncModal'));
 const JuryScorecardModal = lazy(() => import('./components/JuryScorecardModal'));
+import LiveTechnicalInspectorDrawer from './components/LiveTechnicalInspectorDrawer';
 
 const TAB_IDS = ['overview', 'pilotvalidation', 'digitaltwin', 'agents', 'telemetry', 'scenariolab', 'optimization', 'esg', 'financial', 'architecture'];
 const PRESENTATION_PREFLIGHT_ITEMS = [
@@ -87,6 +90,7 @@ export default function App() {
   const [isProcurementBoqOpen, setIsProcurementBoqOpen] = useState(false);
   const [isDualScreenSyncOpen, setIsDualScreenSyncOpen] = useState(false);
   const [isJuryScorecardOpen, setIsJuryScorecardOpen] = useState(false);
+  const [isTechInspectorOpen, setIsTechInspectorOpen] = useState(false);
   const [resolvedSites, setResolvedSites] = useState([]);
   const [customByodSites, setCustomByodSites] = useState([]);
   const [syncRole, setSyncRole] = useState(() => {
@@ -230,10 +234,15 @@ export default function App() {
   }, []);
 
   const navigateToTab = useCallback((tabId) => {
-    const nextTab = resolveTabForMode(tabId, viewMode);
+    const isEngineeringTab = ['digitaltwin', 'agents', 'telemetry', 'optimization', 'architecture'].includes(tabId);
+    const effectiveMode = isEngineeringTab && viewMode === 'executive' ? 'engineering' : viewMode;
+    if (effectiveMode !== viewMode) {
+      setViewMode(effectiveMode);
+    }
+    const nextTab = resolveTabForMode(tabId, effectiveMode);
     setActiveTab(nextTab);
     setLoadedTabs((tabs) => new Set(tabs).add(nextTab));
-    broadcastSyncEvent('TAB_CHANGE', { tab: nextTab, viewMode });
+    broadcastSyncEvent('TAB_CHANGE', { tab: nextTab, viewMode: effectiveMode });
   }, [viewMode, broadcastSyncEvent]);
 
   const changeViewMode = useCallback((nextMode) => {
@@ -467,6 +476,7 @@ export default function App() {
         onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
         onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
         onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+        onOpenTechInspector={() => setIsTechInspectorOpen(true)}
         emergencyState={emergencyState}
         selectedScale={selectedScale}
         setSelectedScale={setSelectedScale}
@@ -519,6 +529,23 @@ export default function App() {
 
         {/* Dynamic Content Viewport */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto overflow-y-auto transition-all duration-300">
+          <RoleBasedWorkspaceBanner
+            currentRole={currentRole}
+            onRoleChange={handleRoleChange}
+            selectedScale={selectedScale}
+            resolvedSites={resolvedSites}
+            emergencyState={emergencyState}
+            onNavigateTab={navigateToTab}
+            onOpenModal={(modalKey) => {
+              if (modalKey === 'memo') setIsExecutiveMemoOpen(true);
+              else if (modalKey === 'boq') setIsProcurementBoqOpen(true);
+              else if (modalKey === 'bare') setIsOfficialBaReOpen(true);
+              else if (modalKey === 'sap') setIsSapVoucherOpen(true);
+              else if (modalKey === 'jury') setIsJuryScorecardOpen(true);
+              else if (modalKey === 'emergency') setIsEmergencyModalOpen(true);
+              else if (modalKey === 'fop') setIsFieldConsoleOpen(true);
+            }}
+          />
           {TAB_IDS.map((tabId) => loadedTabs.has(tabId) && (
             <section className="tab-panel" key={`${tabId}-${resetVersion}`} hidden={activeTab !== tabId} aria-hidden={activeTab !== tabId}>
               <AppErrorBoundary key={`boundary-${tabId}-${resetVersion}`}>
@@ -529,6 +556,7 @@ export default function App() {
                         simState={simState}
                         selectedScale={selectedScale}
                         operationalSummary={operationalSummary}
+                        emergencyState={emergencyState}
                       />
                       <OverviewTab
                         setActiveTab={navigateToTab}
@@ -577,6 +605,7 @@ export default function App() {
                   {tabId === 'digitaltwin' && (
                     <DigitalTwinTab
                       simState={simState}
+                      emergencyState={emergencyState}
                       operationalState={operationalState}
                       operationalSummary={operationalSummary}
                       resolvedSites={resolvedSites}
@@ -602,6 +631,8 @@ export default function App() {
                       onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)} 
                       onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
                       onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
+                      simState={simState}
+                      selectedScale={selectedScale}
                       resolvedSites={resolvedSites}
                       operationalState={operationalState}
                       operationalSummary={operationalSummary}
@@ -707,6 +738,9 @@ export default function App() {
               isOpen={isReportModalOpen} 
               onClose={() => setIsReportModalOpen(false)}
               simState={simState}
+              selectedScale={selectedScale}
+              operationalSummary={operationalSummary}
+              resolvedSites={resolvedSites}
             />
           </Suspense>
         </AppErrorBoundary>
@@ -720,6 +754,10 @@ export default function App() {
               isOpen={isDirectorTourOpen}
               onClose={() => setIsDirectorTourOpen(false)}
               onNavigateTab={navigateToTab}
+              simState={simState}
+              selectedScale={selectedScale}
+              operationalSummary={operationalSummary}
+              resolvedSites={resolvedSites}
             />
           </Suspense>
         </AppErrorBoundary>
@@ -746,6 +784,10 @@ export default function App() {
             <ExecutiveMemoModal
               isOpen={isExecutiveMemoOpen}
               onClose={() => setIsExecutiveMemoOpen(false)}
+              simState={simState}
+              selectedScale={selectedScale}
+              operationalSummary={operationalSummary}
+              resolvedSites={resolvedSites}
             />
           </Suspense>
         </AppErrorBoundary>
@@ -758,6 +800,12 @@ export default function App() {
             <BodDefenseModal
               isOpen={isBodDefenseOpen}
               onClose={() => setIsBodDefenseOpen(false)}
+              onNavigateTab={navigateToTab}
+              simState={simState}
+              selectedScale={selectedScale}
+              operationalSummary={operationalSummary}
+              resolvedSites={resolvedSites}
+              onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
             />
           </Suspense>
         </AppErrorBoundary>
@@ -963,6 +1011,19 @@ export default function App() {
         </AppErrorBoundary>
       )}
 
+      {/* Telkomsel IT, RAN & SecOps Live Technical Inspector Drawer */}
+      {isTechInspectorOpen && (
+        <AppErrorBoundary key={`tech-inspector-${resetVersion}`}>
+          <Suspense fallback={<ModalLoadingState />}>
+            <LiveTechnicalInspectorDrawer
+              isOpen={isTechInspectorOpen}
+              onClose={() => setIsTechInspectorOpen(false)}
+              ssoSession={ssoSession}
+            />
+          </Suspense>
+        </AppErrorBoundary>
+      )}
+
       {/* Presentation Preflight Modal */}
       {isPreflightOpen && (
         <div
@@ -1036,6 +1097,7 @@ export default function App() {
         onNavigateTab={navigateToTab}
         onNotesExpandedChange={setPitchNotesExpanded}
         onRestartPresentation={startPresentation}
+        onOpenDualScreenSync={() => setIsDualScreenSyncOpen(true)}
       />
     </div>
   );

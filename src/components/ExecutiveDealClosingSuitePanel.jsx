@@ -13,7 +13,8 @@ import {
   Zap,
   School,
   Scale,
-  DollarSign
+  DollarSign,
+  FileDown
 } from 'lucide-react';
 import {
   RUBRIC_EVIDENCE_NAVIGATOR_ITEMS,
@@ -65,6 +66,16 @@ export default function ExecutiveDealClosingSuitePanel({
     navigator.clipboard?.writeText(JSON.stringify(masterPack, null, 2));
     setCopiedMasterPack(true);
     setTimeout(() => setCopiedMasterPack(false), 2000);
+  };
+
+  const handleDownloadMasterPackJson = () => {
+    const blob = new Blob([JSON.stringify(masterPack, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Telkomsel_Master_Handover_Pack_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -430,11 +441,19 @@ export default function ExecutiveDealClosingSuitePanel({
                 Bundel Serah-Terima Eksekutif (5 Dokumen Resmi Saling Mengunci SHA-256)
               </h3>
               <p className="text-xs text-slate-300">
-                Siap dicetak atau diekspor dalam 1 klik untuk lampiran keputusan Rapat Direksi (BoD) &amp; Penilaian Akhir Dewan Juri.
+                Siap dicetak atau diekspor dalam 1 klik untuk lampiran keputusan Rapat Dewan Direksi (BoD) &amp; Persetujuan Akhir Komite Investasi Telkomsel.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadMasterPackJson}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-600/70 bg-emerald-900/50 hover:bg-emerald-800/70 text-xs font-bold text-emerald-200 transition cursor-pointer"
+              >
+                <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Unduh Berkas JSON</span>
+              </button>
               <button
                 type="button"
                 onClick={handleCopyMasterPack}

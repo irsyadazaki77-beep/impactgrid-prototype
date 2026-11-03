@@ -19,7 +19,8 @@ import {
   Lock,
   Layers,
   Check,
-  X
+  X,
+  FileDown
 } from 'lucide-react';
 import { 
   INVESTMENT_PORTFOLIO_RECOMMENDATIONS 
@@ -176,14 +177,45 @@ export default function OptimizationTab({
   const isOverBudget = totalAllocatedCapEx > budgetLimitIDR;
   const combinedPayback = totalNetBenefitYear > 0 ? (totalAllocatedCapEx / totalNetBenefitYear).toFixed(2) : 'N/A';
 
+  const handleExportKnapsackCsv = () => {
+    const headers = ['ID_Paket', 'Nama_Intervensi', 'Terpilih', 'CapEx_IDR', 'Manfaat_Bersih_Thn_IDR', 'Reduksi_Karbon_tCO2e', 'Skala_Multiplier'];
+    const rows = INVESTMENT_PORTFOLIO_RECOMMENDATIONS.map((item) => [
+      item.id,
+      `"${(item.title || item.name || '').replace(/"/g, '""')}"`,
+      selectedPortfolios.includes(item.id) ? 'YA' : 'TIDAK',
+      item.capexIDR * scaleMultiplier,
+      item.annualNetBenefitIDR * scaleMultiplier,
+      item.carbonReducedTon * scaleMultiplier,
+      selectedScale.toUpperCase()
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Telkomsel_Knapsack_Portfolio_${selectedScale}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
       <header className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200/80 dark:border-red-900/50 text-xs font-bold text-[#ED0226] dark:text-red-400">
-            <Briefcase className="h-4 w-4" />
-            <span>Modul 3: Investment Prioritizer (0-1 Knapsack Solver)</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200/80 dark:border-red-900/50 text-xs font-bold text-[#ED0226] dark:text-red-400">
+              <Briefcase className="h-4 w-4" />
+              <span>Modul Optimasi Portofolio (0-1 Knapsack Solver &amp; WBP BESS)</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleExportKnapsackCsv}
+              className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              <span>Ekspor Portofolio (CSV)</span>
+            </button>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs">

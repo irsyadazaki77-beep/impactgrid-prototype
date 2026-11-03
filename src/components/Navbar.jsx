@@ -54,6 +54,7 @@ export default function Navbar({
   onOpenOfficialBaRe,
   onOpenFieldConsole,
   onOpenSapVoucher,
+  onOpenTechInspector,
   emergencyState = { active: false },
   selectedScale,
   setSelectedScale,
@@ -103,9 +104,19 @@ export default function Navbar({
         setIsRoleDropdownOpen(false);
       }
     }
+    function handleKeyDown(event) {
+      if (event.altKey && (event.key === 'i' || event.key === 'I')) {
+        event.preventDefault();
+        onOpenTechInspector?.();
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onOpenTechInspector]);
 
   const statusText = connectivityStatus === 'reachable' 
     ? 'SENTUL DC AKTIF • Engine Telemetri O-RAN O1 Telkomsel Sinkron (Fail-Safe 28ms)' 
@@ -147,7 +158,7 @@ export default function Navbar({
               <div className="flex items-center justify-center p-1.5 rounded-xl bg-gradient-to-br from-red-500/15 to-rose-500/5 border border-red-500/25 shadow-2xs shrink-0">
                 <img 
                   src="/assets/logo_utama_impactgrid.webp" 
-                  alt="Logo konsep ImpactGrid" 
+                  alt="Logo ImpactGrid Telkomsel Enterprise" 
                   className="h-5 sm:h-6 w-auto object-contain" 
                   decoding="async"
                 />
@@ -202,7 +213,7 @@ export default function Navbar({
           </div>
 
           {/* Right Action Tools: Controls, Briefing, Persona & Utilities */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {/* Global Command Palette Search Button (Ctrl+K) */}
             {onOpenCommandPalette && (
               <button
@@ -213,9 +224,26 @@ export default function Navbar({
                 className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer shrink-0"
               >
                 <Search className="w-3.5 h-3.5 text-[#ED0226] shrink-0" />
-                <span className="whitespace-nowrap">Cari Site / Bukti</span>
-                <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500">
+                <span className="whitespace-nowrap">Cari Site</span>
+                <kbd className="text-[9px] font-mono px-1 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500">
                   Ctrl+K
+                </kbd>
+              </button>
+            )}
+
+            {/* Telkomsel IT, RAN & SecOps Live Technical Inspector Button (Alt+I) */}
+            {onOpenTechInspector && (
+              <button
+                type="button"
+                onClick={onOpenTechInspector}
+                aria-label="IT Inspector - Buka IT Technical Inspector (Alt+I)"
+                title="Buka Live Technical Inspector: Bukti HTTP DevTools, OpenAPI 3.1, WebCrypto SHA-256 & CLI Vendor (Alt+I)"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold transition cursor-pointer shrink-0"
+              >
+                <Cpu className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="whitespace-nowrap">IT Inspector</span>
+                <kbd className="hidden sm:inline text-[9px] font-mono px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-emerald-300">
+                  Alt+I
                 </kbd>
               </button>
             )}
@@ -243,7 +271,7 @@ export default function Navbar({
             {/* Start Presentation 7 menit */}
             <button
               onClick={onTogglePitchWalkthrough}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-xs font-black transition cursor-pointer border shrink-0 btn-bounce ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black transition cursor-pointer border shrink-0 btn-bounce ${
                 isPitchWalkthroughActive 
                   ? 'bg-gradient-to-r from-red-600 to-[#ED0226] text-white border-red-500 ring-2 ring-red-500/50 shadow-md' 
                   : 'bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 hover:from-red-700 hover:to-red-600 text-white border-red-500/80 shadow-xs hover:shadow-md'
@@ -252,313 +280,282 @@ export default function Navbar({
               title={isPitchWalkthroughActive ? 'Tutup briefing (W)' : 'Mulai Executive Briefing 7 menit (W)'}
             >
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              <span className="whitespace-nowrap hidden 2xl:inline">Executive Briefing (7 Menit)</span>
-              <span className="whitespace-nowrap 2xl:hidden hidden sm:inline">Executive Briefing</span>
-              <span className="whitespace-nowrap sm:hidden">Briefing</span>
+              <span className="whitespace-nowrap hidden 2xl:inline">Executive Briefing</span>
+              <span className="whitespace-nowrap 2xl:hidden">Briefing</span>
             </button>
 
-            {/* Consolidated Dropdown: Executive & Defense Toolkit */}
+            {/* Consolidated Dropdown: Pusat Dokumen & Alat (Executive & Defense Toolkit) */}
             <div className="relative shrink-0" ref={toolkitRef}>
               <button
                 onClick={() => setIsToolkitOpen(prev => !prev)}
                 aria-expanded={isToolkitOpen}
                 aria-haspopup="menu"
-                aria-label="Executive & Defense Toolkit"
+                aria-label="Pusat Dokumen & Alat (Executive & Defense Toolkit)"
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
                   isToolkitOpen
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-500/30 shadow-md'
+                    ? 'bg-slate-900 text-white border-slate-800 dark:bg-white dark:text-slate-900 shadow-md'
                     : emergencyState.active
                       ? 'bg-red-100 text-red-700 border-red-400 animate-pulse dark:bg-red-950/60 dark:text-red-300'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200/90 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700'
                 }`}
-                title="Akses Seluruh Modal Aksi Direksi, Q&A Defense, Drill Darurat, dan Memo Eksekutif"
+                title="Buka Pusat Dokumen Resmi (BA-RE PLN, Jurnal SAP S/4HANA, BoQ/RKS) & Alat Operasional"
               >
-                <Zap className={`w-3.5 h-3.5 shrink-0 ${isToolkitOpen ? 'text-slate-950 fill-slate-950' : 'text-amber-500'}`} />
-                <span className="whitespace-nowrap hidden 2xl:inline">Executive & Defense Toolkit</span>
-                <span className="whitespace-nowrap 2xl:hidden hidden md:inline">Toolkit</span>
+                <Briefcase className={`w-3.5 h-3.5 shrink-0 ${isToolkitOpen ? 'text-amber-400 dark:text-[#ED0226]' : 'text-[#ED0226]'}`} />
+                <span className="whitespace-nowrap hidden md:inline">Pusat Dokumen &amp; Alat</span>
                 <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isToolkitOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Dropdown Menu */}
+              {/* Categorized Dropdown Menu */}
               {isToolkitOpen && (
                 <div 
                   role="menu"
-                  aria-label="Menu Aksi Cepat & Navigasi Direksi"
-                  className="absolute right-0 mt-2 w-80 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[82vh] overflow-y-auto"
+                  aria-label="Pusat Dokumen Resmi dan Alat Operasional"
+                  className="absolute right-0 mt-2 w-84 sm:w-92 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-2xl z-50 p-2.5 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[84vh] overflow-y-auto space-y-2.5"
                 >
-                  <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Executive Toolkit</p>
-                    <p className="text-[11px] text-slate-500">Shortcut instrumen pengawasan direksi</p>
-                  </div>
-
-                  <div className="space-y-1">
-                    {/* Command Palette (Ctrl+K) */}
-                    {onOpenCommandPalette && (
+                  {/* Group 1: Official Documents & Financial Proof */}
+                  <div>
+                    <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 mb-1">
+                      <p className="text-[10px] font-black text-[#ED0226] dark:text-red-400 uppercase tracking-wider">
+                        1. Dokumen Resmi, Kontrak &amp; Akuntansi
+                      </p>
+                    </div>
+                    <div className="space-y-0.5">
                       <button
-                        onClick={() => {
-                          onOpenCommandPalette();
-                          setIsToolkitOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                        onClick={() => { onOpenOfficialBaRe?.(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       >
                         <div className="flex items-center space-x-2.5">
-                          <div className="p-1.5 rounded-lg bg-red-50 text-[#ED0226] dark:bg-red-950/40 dark:text-red-400">
-                            <Search className="w-4 h-4" />
+                          <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                            <FileText className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-slate-900 dark:text-white">Command Palette &amp; Site Search</p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Cari 50 site BTS, Q&amp;A BoD, &amp; eksekusi loop</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Berita Acara Rekonsiliasi (BA-RE)</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Dokumen resmi Telkomsel &amp; PLN UID + CSV</p>
                           </div>
                         </div>
-                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Ctrl+K</span>
+                        <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">BA-RE</span>
                       </button>
-                    )}
 
-                    {/* Investment Committee Scorecard + BYOD Suite */}
-                    {onOpenJuryScorecard && (
                       <button
-                        onClick={() => {
-                          onOpenJuryScorecard();
-                          setIsToolkitOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                        onClick={() => { onOpenSapVoucher?.(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                            <Database className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Jurnal Akuntansi SAP S/4HANA</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Voucher kredit GL 510100 &amp; ekspor CSV</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-300 dark:border-blue-700">SAP</span>
+                      </button>
+
+                      {onOpenProcurementBoq && (
+                        <button
+                          onClick={() => { onOpenProcurementBoq(); setIsToolkitOpen(false); }}
+                          className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                              <Scale className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-900 dark:text-white">BoQ, RKS &amp; Diferensiasi Vendor</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400">RAB Fase 0/1, TKDN &amp; komparasi ENM/NCE</p>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">RKS</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => { onOpenExecutiveMemo(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400">
+                            <Printer className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Executive Memo A4</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Cetak lembar ringkasan investasi direksi</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">P</span>
+                      </button>
+
+                      <button
+                        onClick={() => { onOpenReportModal(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                            <FileDown className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Lihat Lembar Kerja Asumsi</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Sensitivitas finansial &amp; metodologi</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">LEMBAR</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Group 2: Operational Console & Executive Evaluation */}
+                  <div>
+                    <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 mb-1">
+                      <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        2. Alat Operasional &amp; Evaluasi Direksi
+                      </p>
+                    </div>
+                    <div className="space-y-0.5">
+                      <button
+                        onClick={() => { onOpenFieldConsole?.(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       >
                         <div className="flex items-center space-x-2.5">
                           <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
-                            <Award className="w-4 h-4" />
+                            <Wrench className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-slate-900 dark:text-white">Evaluasi Komite Investasi &amp; BYOD CSV</p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Evaluasi 5 pilar kelayakan, injeksi CSV &amp; Sign-Off</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Konsol Teknisi FOP Lapangan</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Eksekusi e-WO shelter &amp; kalibrasi AC</p>
                           </div>
                         </div>
-                        <span className="text-[9px] font-mono text-amber-700 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700">J</span>
+                        <span className="text-[9px] font-mono text-amber-800 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700">FOP</span>
                       </button>
-                    )}
 
-                    {/* BoD Q&A Defense */}
-                    <button
-                      onClick={() => {
-                        onOpenBodDefense();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
-                          <HelpCircle className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Q&A Defense Direksi</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">10 Jawaban kritis pertanyaan direksi & CISO</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Q</span>
-                    </button>
-
-                    {/* AI Reasoning Copilot */}
-                    <button
-                      onClick={() => {
-                        onOpenAiCopilot();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
-                          <Bot className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">AI Strategy Copilot</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Asisten penalaran operasional & data</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">A</span>
-                    </button>
-
-                    {/* Emergency Stress Drill */}
-                    <button
-                      onClick={() => {
-                        onOpenEmergencyModal();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
-                          <ShieldAlert className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Drill Darurat & Fail-Safe</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Uji skenario QoS dan lonjakan trafik</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">S</span>
-                    </button>
-
-                    {/* Executive Memo A4 */}
-                    <button
-                      onClick={() => {
-                        onOpenExecutiveMemo();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400">
-                          <Printer className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Executive Memo A4</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Cetak lembar ringkasan direksi</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">P</span>
-                    </button>
-
-                    {/* Procurement BoQ & RKS Generator */}
-                    {onOpenProcurementBoq && (
                       <button
-                        onClick={() => {
-                          onOpenProcurementBoq();
-                          setIsToolkitOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                        onClick={() => { onOpenBodDefense(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       >
                         <div className="flex items-center space-x-2.5">
-                          <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                            <Scale className="w-4 h-4" />
+                          <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                            <HelpCircle className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-slate-900 dark:text-white">Generator BoQ, RKS &amp; Diferensiasi</p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">RAB Fase 0/1, TKDN, SLA Shield &amp; vs ENM/NCE</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Q&amp;A Defense Direksi</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Jawaban kritis pertanyaan direksi &amp; CISO</p>
                           </div>
                         </div>
-                        <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">RKS</span>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Q</span>
                       </button>
-                    )}
 
-                    {/* Official Berita Acara Rekonsiliasi (BA-RE) */}
-                    <button
-                      onClick={() => {
-                        onOpenOfficialBaRe?.();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-                          <FileText className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Berita Acara Rekonsiliasi (BA-RE)</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Kop resmi Telkomsel &amp; PLN UID Jabar + QR SHA-256</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">BA-RE</span>
-                    </button>
-
-                    {/* Field Operations (FOP) Mobile Console */}
-                    <button
-                      onClick={() => {
-                        onOpenFieldConsole?.();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
-                          <Wrench className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Konsol Teknisi FOP Lapangan</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">PWA servis shelter, scan QR gerbang &amp; tutup tiket</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-amber-800 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700">FOP</span>
-                    </button>
-
-                    {/* SAP S/4HANA Accounting Journal Voucher */}
-                    <button
-                      onClick={() => {
-                        onOpenSapVoucher?.();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-                          <Database className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Jurnal Akuntansi SAP S/4HANA</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Posting pengakuan efisiensi GL 510100 &amp; BAST BAPI</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-blue-700 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-300 dark:border-emerald-700">SAP</span>
-                    </button>
-
-                    {/* Dual-Screen Presenter & Jury Live Sync */}
-                    {onOpenDualScreenSync && (
                       <button
-                        onClick={() => {
-                          onOpenDualScreenSync();
-                          setIsToolkitOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                        onClick={() => { onOpenAiCopilot(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       >
                         <div className="flex items-center space-x-2.5">
-                          <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
-                            <Monitor className="w-4 h-4" />
+                          <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
+                            <Bot className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-slate-900 dark:text-white">Dual-Screen Presenter Live Sync</p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Sinkronisasi real-time layar pembicara &amp; proyektor</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">AI Strategy Copilot</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Asisten penalaran operasional &amp; data</p>
                           </div>
                         </div>
-                        <span className="text-[9px] font-mono text-indigo-700 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded border border-indigo-300 dark:border-indigo-700">SYNC</span>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">A</span>
                       </button>
-                    )}
 
-                    {/* QR Code Share for Mobile */}
-                    <button
-                      onClick={() => {
-                        onOpenQrShare?.();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-rose-50 text-[#ED0226] dark:bg-rose-950/40 dark:text-red-400">
-                          <QrCode className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Akses Konsol Mobile / Tablet</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Buka tautan supervisi di perangkat mobile</p>
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">QR</span>
-                    </button>
+                      {onOpenJuryScorecard && (
+                        <button
+                          onClick={() => { onOpenJuryScorecard(); setIsToolkitOpen(false); }}
+                          className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                              <Award className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-900 dark:text-white">Evaluasi Komite Investasi &amp; BYOD</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400">Skor kelayakan 5 pilar &amp; injeksi CSV</p>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-mono text-amber-700 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700">J</span>
+                        </button>
+                      )}
 
-                    {/* Planning Assumptions */}
-                    <button
-                      onClick={() => {
-                        onOpenReportModal();
-                        setIsToolkitOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-                          <FileDown className="w-4 h-4" />
+                      <button
+                        onClick={() => { onOpenEmergencyModal(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+                            <ShieldAlert className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Drill Darurat &amp; Fail-Safe 112</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Uji skenario QoS dan lonjakan trafik</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Lihat Lembar Kerja Asumsi</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Sensitivitas finansial & metodologi</p>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">S</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Group 3: Corporate SSO, Mobile QR & Multi-Screen Sync */}
+                  <div>
+                    <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 mb-1">
+                      <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        3. Otorisasi IAM SSO &amp; Sinkronisasi Layar
+                      </p>
+                    </div>
+                    <div className="space-y-0.5">
+                      <button
+                        onClick={() => { onOpenSsoModal?.(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-red-50 text-[#ED0226] dark:bg-red-950/40 dark:text-red-400">
+                            <Lock className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Portal Login SSO Telkomsel</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                              {ssoSession?.name ? `Aktif: ${ssoSession.name} (${ssoSession.nik})` : 'Otentikasi OIDC / OAuth2 PKCE'}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">LEMBAR</span>
-                    </button>
+                        <span className="text-[9px] font-mono text-[#ED0226] bg-red-50 dark:bg-red-950/50 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-800">SSO</span>
+                      </button>
+
+                      {onOpenDualScreenSync && (
+                        <button
+                          onClick={() => { onOpenDualScreenSync(); setIsToolkitOpen(false); }}
+                          className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                              <Monitor className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-900 dark:text-white">Dual-Screen Presenter Sync</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400">Sinkronisasi layar pembicara &amp; proyektor</p>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-mono text-indigo-700 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded border border-indigo-300 dark:border-indigo-700">SYNC</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => { onOpenQrShare?.(); setIsToolkitOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-rose-50 text-[#ED0226] dark:bg-rose-950/40 dark:text-red-400">
+                            <QrCode className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Akses Konsol Mobile / Tablet</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Tautan QR untuk pengawasan lapangan</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">QR</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -654,32 +651,18 @@ export default function Navbar({
               )}
             </div>
 
-            {/* Telkomsel IAM SSO Portal Button */}
-            <button
-              type="button"
-              onClick={onOpenSsoModal}
-              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-xl border border-red-500/30 bg-red-50 dark:bg-red-950/40 text-xs font-bold text-[#ED0226] hover:bg-red-100 dark:hover:bg-red-900/60 transition cursor-pointer shrink-0"
-              title="Buka Portal Telkomsel IAM SSO (OAuth2 / PKCE Login)"
-            >
-              <Lock className="w-3.5 h-3.5 text-[#ED0226] shrink-0" />
-              <span className="hidden xl:inline font-mono text-[11px]">
-                {ssoSession?.name ? `${ssoSession.name.split(' ')[0]} (${ssoSession.nik})` : 'SSO Telkomsel'}
-              </span>
-              <span className="xl:hidden font-mono text-[11px]">SSO</span>
-            </button>
-
             {/* Quick Utility Icon Group */}
             <div className="flex items-center gap-1 shrink-0">
-              {/* Reset Demo */}
+              {/* Reset Baseline */}
               <button 
                 type="button" 
                 onClick={onResetDemo} 
-                aria-label="Reset seluruh simulasi" 
-                title="Kembalikan seluruh state demo ke awal" 
+                aria-label="Reset seluruh parameter ke baseline" 
+                title="Kembalikan seluruh parameter simulasi ke baseline standar" 
                 className="w-7 h-7 sm:w-8 sm:h-8 inline-flex items-center justify-center rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold cursor-pointer shrink-0 transition"
               >
                 <RotateCcw size={13} />
-                <span className="sr-only">Reset demo</span>
+                <span className="sr-only">Reset baseline</span>
               </button>
 
               {/* Theme Toggle */}
@@ -692,18 +675,6 @@ export default function Navbar({
               >
                 {theme === 'light' ? <Moon size={13} /> : <Sun size={13} />}
                 <span className="sr-only">{theme === 'light' ? 'Gelap' : 'Terang'}</span>
-              </button>
-
-              {/* Scan QR for Mobile Button */}
-              <button
-                type="button"
-                onClick={onOpenQrShare}
-                className="hidden lg:inline-flex w-7 h-7 sm:w-8 sm:h-8 items-center justify-center rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer shrink-0"
-                title="Akses Konsol Pengawasan Mobile / Tablet Lapangan"
-                aria-label="Akses Mobile"
-              >
-                <QrCode className="w-3.5 h-3.5 text-[#ED0226]" />
-                <span className="sr-only">Akses Mobile</span>
               </button>
             </div>
 

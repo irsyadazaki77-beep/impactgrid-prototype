@@ -23,7 +23,8 @@ import {
   ArrowRight,
   TrendingUp,
   Check,
-  Scale
+  Scale,
+  FileDown
 } from 'lucide-react';
 import NetconfDeploymentModal from './NetconfDeploymentModal';
 import ItEnterpriseIntegrationHub from './ItEnterpriseIntegrationHub';
@@ -116,7 +117,7 @@ export default function ArchitectureTab({
       title: 'Gambar 3: Arsitektur Ekosistem 4 Modul ImpactGrid',
       subtitle: 'Integrasi terpadu: Telemetri IoT, O-RAN RIC rApps, Knapsack Optimizer, dan ESG Ledger',
       image: '/assets/diagram3-arsitektur.svg',
-      caption: 'Arsitektur sistem end-to-end yang menjembatani OSS multi-vendor (Ericsson & Huawei) dengan kontrak sewa TowerCo dan pelaporan ESG otomatis.',
+      caption: 'Arsitektur sistem end-to-end yang menjembatani OSS multi-vendor (Ericsson, Huawei & ZTE) dengan kontrak sewa TowerCo dan pelaporan ESG otomatis.',
       rubricMapping: 'Spesifikasi Arsitektur Sistem Enterprise'
     },
     {
@@ -143,6 +144,27 @@ export default function ArchitectureTab({
     ? STAKEHOLDER_VALUE_MAPPING 
     : STAKEHOLDER_VALUE_MAPPING.filter(s => s.id === selectedStakeholder);
 
+  const handleExportArchitectureSpec = () => {
+    const payload = {
+      platform: 'ImpactGrid Enterprise - PT Telekomunikasi Selular',
+      exportedAt: new Date().toISOString(),
+      selectedScale,
+      activeSites: operationalSummary?.siteCount || 50,
+      calibratedSites: resolvedSites.length,
+      oranLayers,
+      multiVendorComparison: MULTI_VENDOR_RAN_COMPARISON,
+      raciMatrix: STAKEHOLDER_VALUE_MAPPING,
+      riskMatrix: RISK_ASSESSMENT_MATRIX
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Telkomsel_Architecture_Spec_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* 1. Header Banner */}
@@ -152,16 +174,26 @@ export default function ArchitectureTab({
             <Layers className="w-3.5 h-3.5 text-[#ED0226] dark:text-red-400" />
             <span>Spesifikasi Arsitektur Sistem Terintegrasi • ImpactGrid Enterprise</span>
           </div>
-          <span className="text-[11px] font-semibold text-slate-500">
-            Platform Operasional: PT Telekomunikasi Selular (Telkomsel)
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportArchitectureSpec}
+              className="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              <span>Unduh Blueprint JSON</span>
+            </button>
+            <span className="text-[11px] font-semibold text-slate-500">
+              Platform Operasional: PT Telekomunikasi Selular (Telkomsel)
+            </span>
+          </div>
         </div>
 
         <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-          Blueprint Strategis, Diagram Solusi & Matriks Tata Kelola
+          Blueprint Strategis, Diagram Solusi &amp; Matriks Tata Kelola Multi-Vendor
         </h1>
         <p className="text-xs text-slate-600 dark:text-slate-400 max-w-4xl font-normal leading-relaxed">
-          Spesifikasi teknis arsitektur 4 modul ImpactGrid, protokol antarmuka O-RAN O1/A1, integrasi OSS multi-vendor (Ericsson & Huawei), tata kelola RACI, dan mitigasi risiko operasional.
+          Spesifikasi teknis arsitektur 4 modul ImpactGrid, protokol antarmuka O-RAN O1/A1, integrasi OSS multi-vendor (Ericsson ENM, Huawei iMaster MAE, &amp; ZTE NetNumen), kepatuhan PP 71/2019 (DC Sentul &amp; Surabaya), tata kelola RACI, dan mitigasi risiko operasional.
         </p>
 
         {/* Sub-View Navigation Bar */}
@@ -175,7 +207,7 @@ export default function ArchitectureTab({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-[#ED0226] dark:text-red-400" />
-            <span>IT MAX: Open API, 11 Regional &amp; Chaos Lab</span>
+            <span>IT MAX: Open API, 3GPP/Modbus, CLI &amp; 11 Regional</span>
           </button>
 
           <button

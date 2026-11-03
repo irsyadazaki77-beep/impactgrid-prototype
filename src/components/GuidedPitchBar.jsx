@@ -23,7 +23,8 @@ export default function GuidedPitchBar({
   onNavigateTab,
   shortcutsEnabled = true,
   onNotesExpandedChange,
-  onRestartPresentation
+  onRestartPresentation,
+  onOpenDualScreenSync
 }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
@@ -84,48 +85,13 @@ export default function GuidedPitchBar({
   }, []);
 
   const openPresenterConsole = useCallback(() => {
-    const win = window.open('', 'ImpactGridPresenterConsole', 'width=800,height=650,menubar=no,toolbar=no');
-    if (!win) return;
-    win.document.title = 'ImpactGrid Executive Walkthrough · Telkomsel Energy Operations';
-    win.document.body.style.margin = '0';
-    win.document.body.style.fontFamily = 'system-ui, sans-serif';
-    win.document.body.style.backgroundColor = '#0b1324';
-    win.document.body.style.color = '#f8fafc';
-    win.document.body.style.padding = '24px';
-    win.document.body.innerHTML = `
-      <div style="max-width: 720px; margin: 0 auto; line-height: 1.5;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ef4444; padding-bottom: 12px;">
-          <div>
-            <span style="font-size: 11px; font-weight: 800; color: #ef4444; text-transform: uppercase;">Executive Console · Telkomsel Operations</span>
-            <h1 style="margin: 4px 0 0; font-size: 20px; font-weight: 900;">${current.title}</h1>
-          </div>
-          <div style="font-size: 24px; font-weight: 900; font-family: monospace; background: #1e293b; padding: 6px 14px; border-radius: 10px; color: #f59e0b;">
-            ${formatTime(remainingSeconds)}
-          </div>
-        </div>
-
-        <div style="margin-top: 18px; padding: 18px; background: #1e293b; border-radius: 16px; border: 1px solid #334155;">
-          <span style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase;">Pokok Telaah Eksekutif · ${current.timing}</span>
-          <p style="margin: 8px 0 0; font-size: 17px; font-weight: 600; line-height: 1.6; color: #ffffff;">“${current.script}”</p>
-        </div>
-
-        <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
-          <div style="padding: 12px; background: #0f172a; border-radius: 12px; border: 1px solid #1e293b;">
-            <strong style="color: #94a3b8; display: block; font-size: 10px; text-transform: uppercase;">Visual Cue di Panggung</strong>
-            <span style="color: #f1f5f9; margin-top: 4px; display: block;">${current.visual}</span>
-          </div>
-          <div style="padding: 12px; background: #0f172a; border-radius: 12px; border: 1px solid #1e293b;">
-            <strong style="color: #94a3b8; display: block; font-size: 10px; text-transform: uppercase;">Evidence & Batas Klaim</strong>
-            <span style="color: #f59e0b; margin-top: 4px; display: block;">${current.evidence}</span>
-          </div>
-        </div>
-
-        <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b; text-align: center;">
-          Gunakan tombol di jendela utama untuk berpindah tahap otomatis.
-        </div>
-      </div>
-    `;
-  }, [current, remainingSeconds]);
+    if (onOpenDualScreenSync) {
+      onOpenDualScreenSync();
+    } else {
+      setIsNotesExpanded(true);
+      onNotesExpandedChange?.(true);
+    }
+  }, [onOpenDualScreenSync, onNotesExpandedChange]);
 
   const toggleFullscreen = useCallback(async () => {
     try {
@@ -174,7 +140,7 @@ export default function GuidedPitchBar({
       <div className="presentation-dock-inner">
         <div className="presentation-topline">
           <div className="presentation-heading">
-            <span className="presentation-kicker">PRESENTASI DIREKSI · DEMO</span>
+            <span className="presentation-kicker">BRIEFING EKSEKUTIF DIREKSI · LIVE</span>
             <span className="presentation-stage-number" aria-label={`Tahap ${stageStatus}`}>{stageStatus}</span>
             <h2 key={current.step} className="presentation-title">{current.title}</h2>
           </div>
@@ -187,10 +153,10 @@ export default function GuidedPitchBar({
             <button type="button" className="presentation-icon-button" onClick={() => setIsTimerRunning((running) => !running)} aria-label={isTimerRunning ? 'Jeda timer' : 'Lanjutkan timer'} title={isTimerRunning ? 'Jeda timer' : 'Lanjutkan timer'}>
               {isTimerRunning ? <Pause size={17} /> : <Play size={17} />}
             </button>
-            <button type="button" className="presentation-icon-button" onClick={onRestartPresentation || resetPresentation} aria-label="Ulangi presentasi dari awal" title="Ulangi presentasi dan preset demo dari awal">
+            <button type="button" className="presentation-icon-button" onClick={onRestartPresentation || resetPresentation} aria-label="Ulangi presentasi dari awal" title="Ulangi presentasi dan sinkronisasi baseline dari awal">
               <RotateCcw size={17} />
             </button>
-            <button type="button" className="presentation-icon-button" onClick={openPresenterConsole} aria-label="Buka Layar Presenter Terpisah" title="Buka Layar Presenter Terpisah (Dual-Screen)">
+            <button type="button" className="presentation-icon-button" onClick={openPresenterConsole} aria-label="Sinkronisasi Multi-Layar Presenter" title="Buka Konsol Sinkronisasi Multi-Layar (Dual-Screen)">
               <ExternalLink size={17} />
             </button>
             <button type="button" className="presentation-icon-button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Keluar layar penuh' : 'Layar penuh'} title={isFullscreen ? 'Keluar layar penuh (F)' : 'Layar penuh (F)'}>

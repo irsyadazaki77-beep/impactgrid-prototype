@@ -372,12 +372,12 @@ export function generateMasterHandoverPackDossier({
     },
     {
       docOrder: 5,
-      docCode: 'DOC-05 / JURY-ESG-3T-SIGN-OFF',
+      docCode: 'DOC-05 / IC-ESG-3T-SIGN-OFF',
       title: 'Sertifikat Komite Investasi, Valuasi IDXCarbon SPE-GRK & Blueprint Sekolah 3T Jaga Cita',
-      authority: 'Komite Investasi Modal, Dewan Juri & Komite ESG Telkomsel',
+      authority: 'Komite Investasi Modal, Dewan Direksi & Komite ESG Telkomsel',
       status: Number(weightedScore) >= 85 ? 'GO_DECISION_UNANIMOUS' : 'CONDITIONAL_GO',
       keyMetric: `Skor Kelayakan: ${weightedScore}/100 • Reduksi Pilot: ${carbonAnd3T.annualCo2ReducedTons} tCO2e/thn (Nasional 11 Reg: ${nationalRollout.totalScope2AbatedTons.toLocaleString('id-ID')} tCO2e/thn) • Siswa 3T: ${carbonAnd3T.totalStudentsImpacted} Siswa`,
-      crossRefHash: 'SHA256-JURY-ESG3T-D427'
+      crossRefHash: 'SHA256-IC-ESG3T-D427'
     }
   ];
 

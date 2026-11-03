@@ -1,7 +1,7 @@
 {
   "version": "2.5.0-enterprise",
   "datasetKey": "jamali50",
-  "lastUpdated": "2026-11-01T06:06:50.560Z",
+  "lastUpdated": "2026-11-03T14:20:31.643Z",
   "slaThresholds": {
     "maxPrbSleepPct": 70,
     "maxShelterTempC": 32,
@@ -1140,6 +1140,136 @@
     }
   ],
   "auditLedger": [
+    {
+      "id": "AUD-1793715631643-OJTT",
+      "timestamp": "2026-11-03T14:20:31.643Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "aae99608c7477ab3938072023176752de6bc78b0cdd4ab66e977e69dc6aace86",
+      "currentHash": "d37379bec1d560e4c88dc97e161feea3fa3491f62ff6c2c8f347e30e8032f147"
+    },
+    {
+      "id": "AUD-1793715531951-99BV",
+      "timestamp": "2026-11-03T14:18:51.951Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "85b85a28faca70418b3198c89f3d01d39513ec82ebf63289c0cad2341ad83f2d",
+      "currentHash": "aae99608c7477ab3938072023176752de6bc78b0cdd4ab66e977e69dc6aace86"
+    },
+    {
+      "id": "AUD-1793715273161-S2ML",
+      "timestamp": "2026-11-03T14:14:33.161Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "8b60171252ac0f17d1c6f89280e330b7dbdc782c6625b9a7c592a47e1a5ecd0e",
+      "currentHash": "85b85a28faca70418b3198c89f3d01d39513ec82ebf63289c0cad2341ad83f2d"
+    },
+    {
+      "id": "AUD-1793715130000-LCLV",
+      "timestamp": "2026-11-03T14:12:10.000Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "3e02cb18898cd015bc30f2adbc05c1f0027b0b11bb4f0a05535704f8e8361d69",
+      "currentHash": "8b60171252ac0f17d1c6f89280e330b7dbdc782c6625b9a7c592a47e1a5ecd0e"
+    },
+    {
+      "id": "AUD-1793714931351-A77T",
+      "timestamp": "2026-11-03T14:08:51.351Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "7786880367541f8bb73575d7efe9636d0982db90838816da317685e02cc45b0f",
+      "currentHash": "3e02cb18898cd015bc30f2adbc05c1f0027b0b11bb4f0a05535704f8e8361d69"
+    },
+    {
+      "id": "AUD-1793714589347-VYW8",
+      "timestamp": "2026-11-03T14:03:09.347Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "b07b9826660c6472899da2db1096198568d27e5530d8bd784340a834fb609a72",
+      "currentHash": "7786880367541f8bb73575d7efe9636d0982db90838816da317685e02cc45b0f"
+    },
+    {
+      "id": "AUD-1793714589281-RTRT",
+      "timestamp": "2026-11-03T14:03:09.280Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "0afd144e8c3bc8d16fcab821069193a0565b46f2d0cfd4dfd9c27aee2127b971",
+      "currentHash": "b07b9826660c6472899da2db1096198568d27e5530d8bd784340a834fb609a72"
+    },
+    {
+      "id": "AUD-1793714434769-Q6DM",
+      "timestamp": "2026-11-03T14:00:34.769Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "951dbf7b4d9401e1bf80666beffb42619e8f33a2d7bfc856db65115ab62ec70d",
+      "currentHash": "0afd144e8c3bc8d16fcab821069193a0565b46f2d0cfd4dfd9c27aee2127b971"
+    },
+    {
+      "id": "AUD-1793714434754-H9G0",
+      "timestamp": "2026-11-03T14:00:34.754Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "923292aa71d110e12de266ddcbc1b99eaa3b762fba5dfc36fab326006ca2aa00",
+      "currentHash": "951dbf7b4d9401e1bf80666beffb42619e8f33a2d7bfc856db65115ab62ec70d"
+    },
+    {
+      "id": "AUD-1793713933888-3MQG",
+      "timestamp": "2026-11-03T13:52:13.888Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "09dcac3fd1f76485f923dbba5683c57d2ee09ea67bc8b08cf7b6116b03f72d42",
+      "currentHash": "923292aa71d110e12de266ddcbc1b99eaa3b762fba5dfc36fab326006ca2aa00"
+    },
+    {
+      "id": "AUD-1793713933866-KI6B",
+      "timestamp": "2026-11-03T13:52:13.866Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "f85617a6dd1a971a60d8f99d43dba7b790c193e4fca7a395ac82ab74df61bf0c",
+      "currentHash": "09dcac3fd1f76485f923dbba5683c57d2ee09ea67bc8b08cf7b6116b03f72d42"
+    },
+    {
+      "id": "AUD-1793713767346-8FJM",
+      "timestamp": "2026-11-03T13:49:27.346Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "1e074f95b03cb26ce4cef6c6d7b54c94d8f010c579b29fbcc11fbfc92fea3a72",
+      "currentHash": "f85617a6dd1a971a60d8f99d43dba7b790c193e4fca7a395ac82ab74df61bf0c"
+    },
+    {
+      "id": "AUD-1793713767343-2Q08",
+      "timestamp": "2026-11-03T13:49:27.343Z",
+      "action": "APIGEE_GATEWAY_TMF628_TELEMETRY",
+      "actor": "Tim Audit IT Telkomsel",
+      "category": "INTEGRATION",
+      "detail": "Eksekusi HTTP Live TM Forum TMF628 v4.1.0 + IEC 62056 DLMS/COSEM -> ImpactGrid ClickHouse Telemetry Hub (Telkom DC Sentul) (HMAC-SHA256: 3f997597b369bded...)",
+      "prevHash": "ede06920d179f775e163f5bea6b12fc8c437ba6448005f725b3a11f7ede73459",
+      "currentHash": "1e074f95b03cb26ce4cef6c6d7b54c94d8f010c579b29fbcc11fbfc92fea3a72"
+    },
     {
       "id": "AUD-1793513210560-BNI7",
       "timestamp": "2026-11-01T06:06:50.560Z",

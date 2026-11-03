@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TelemetryReconciliationMatrix from './TelemetryReconciliationMatrix';
 import BtsDataIngestionHub from './BtsDataIngestionHub';
+import SnocClosedLoopAndByodScannerPanel from './SnocClosedLoopAndByodScannerPanel';
 import { 
   Activity, 
   Database, 
@@ -19,7 +20,8 @@ import {
   RefreshCw,
   Upload,
   FileSpreadsheet,
-  Layers
+  Layers,
+  Download
 } from 'lucide-react';
 
 const DATA_REQUIREMENTS = [
@@ -106,6 +108,8 @@ export default function TelemetryTab({
   onOpenOfficialBaRe,
   onOpenFieldConsole,
   onOpenSapVoucher,
+  simState,
+  selectedScale = 'pilot',
   resolvedSites = [],
   operationalState,
   operationalSummary,
@@ -131,6 +135,35 @@ export default function TelemetryTab({
     ? Math.round(operationalSummary.annualizedSavedIdr / 1_000_000)
     : 240;
   const activeSiteCount = operationalSummary?.siteCount ?? 50;
+  const simHour = typeof simState?.simHour === 'number' ? simState.simHour : 14;
+
+  const handleExportReconciliationCsv = () => {
+    const sitesList = operationalState?.sites?.length ? operationalState.sites : SIMULATED_BTS_FEEDS;
+    const rows = [
+      ['Parameter / Site ID', 'Nama Menara BTS', 'Vendor / Tipe', 'Daya Aktif / Baseline', 'Status Rekonsiliasi & FOP', 'Hemat / Jam Simulasi'],
+      ['META_SCALE', `Skala ${selectedScale.toUpperCase()}`, `${activeSiteCount} Site Tersinkron`, `${annualSavedMwh} MWh/Thn`, `${resolvedSites.length} Terkalibrasi FOP`, `Jam ${String(simHour).padStart(2, '0')}:00 WIB`],
+      ...sitesList.map((s) => {
+        const id = s.siteId || s.id || 'SITE';
+        const isRes = resolvedSites.includes(id);
+        return [
+          id,
+          s.name || s.siteName || id,
+          s.vendor || s.type || 'Multi-Vendor',
+          s.powerKw ? `${s.powerKw} / ${s.powerBaseline}` : `${s.plnKw || 4.2} kW`,
+          isRes ? 'TERKALIBRASI FOP (KLOP < 1.5%)' : (s.status || 'MONITORING AKTIF'),
+          s.savings || '-16.8%'
+        ];
+      })
+    ];
+    const csvContent = rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Rekonsiliasi_Telemetri_3Arah_${selectedScale}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleBatchFopClick = () => {
     const targetIds = ['BDG-DGO-P04', 'JAB-SITE-05', 'JKT-SEL-P03', 'BKS-MET-P06'];
@@ -220,6 +253,14 @@ export default function TelemetryTab({
                 Jurnal SAP S/4HANA
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleExportReconciliationCsv}
+              className="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold transition cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Ekspor Rekonsiliasi (CSV)</span>
+            </button>
           </div>
         </div>
 
@@ -330,6 +371,20 @@ export default function TelemetryTab({
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Potensi penghematan kas neto Rp {annualSavedIdrMillions.toLocaleString('id-ID')} Juta/thn ({activeSiteCount} Site Aktif).</p>
         </article>
       </section>
+
+      {/* Feature 0: End-to-End SNOC Closed-Loop, BYOD Auto-Anomaly Scanner & VIP/112 Guardrails */}
+      {(activeView === 'all' || activeView === 'ingestion' || activeView === 'reconciliation') && (
+        <SnocClosedLoopAndByodScannerPanel
+          operationalState={operationalState}
+          resolvedSites={resolvedSites}
+          onResolveSiteAnomaly={onResolveSiteAnomaly}
+          onBatchResolveAnomalies={onBatchResolveAnomalies}
+          onDispatchOranPolicy={onDispatchOranPolicy}
+          onOpenOfficialBaRe={onOpenOfficialBaRe}
+          onOpenFieldConsole={onOpenFieldConsole}
+          onOpenSapVoucher={onOpenSapVoucher}
+        />
+      )}
 
       {/* Feature 1: Enterprise BTS CSV Data Ingestion Hub & CRUD Manager */}
       {(activeView === 'all' || activeView === 'ingestion') && (

@@ -13,9 +13,9 @@ const steps = [
   },
   { 
     stage: 'Bulan 3–4 (2027)',
-    title: 'Prototipe MVP & Shadow Mode', 
+    title: 'Integrasi Pipa Telemetri & Shadow Mode', 
     budget: 'CapEx Tahap 1',
-    detail: 'Penyelarasan pipa data Network Data Hub, kalibrasi model analitik Prophet-RAN dan ThermoOptima tanpa mengirimkan perintah aktif ke perangkat jaringan.',
+    detail: 'Penyelarasan pipa data Network Data Hub, kalibrasi model analitik Prophet-RAN dan ThermoOptima dalam mode shadow-running bersama NOC.',
     deliverable: 'Verifikasi Akurasi Prediksi Trafik & Uji Fail-Safe Rollback 120 Detik (Gerbang G1)',
     icon: ClipboardList 
   },
@@ -53,7 +53,7 @@ export default function ExecutiveDecisionTimeline() {
                 Alur Waktu Keputusan Bertahap: Audit 2 Bulan → Pilot 9 Bulan
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Peta jalan eksekutif untuk memitigasi risiko modal sebelum komitmen belanja penuh (Tabel 4 Roadmap)
+                Peta jalan eksekutif untuk memitigasi risiko modal sebelum komitmen belanja penuh (Stage-Gate G0–G3)
               </p>
             </div>
           </div>

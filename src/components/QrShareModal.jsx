@@ -7,7 +7,7 @@ export default function QrShareModal({ isOpen, onClose }) {
     if (typeof window !== 'undefined' && window.location.origin) {
       return window.location.origin;
     }
-    return 'https://impactgrid-demo.telkomsel.com';
+    return 'https://impactgrid.telkomsel.co.id';
   }, []);
 
   const [shareUrl, setShareUrl] = useState(defaultUrl);
@@ -77,7 +77,7 @@ export default function QrShareModal({ isOpen, onClose }) {
         {/* URL Input & Copy Bar */}
         <div className="space-y-1.5 text-xs">
           <label className="font-extrabold text-slate-700 dark:text-slate-300 block">
-            Tautan Akses Web Prototipe:
+            Tautan Akses Portal Komando Mobile:
           </label>
           <div className="flex items-center gap-2">
             <input

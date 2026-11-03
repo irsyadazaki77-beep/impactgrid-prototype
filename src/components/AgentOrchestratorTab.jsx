@@ -385,6 +385,54 @@ export default function AgentOrchestratorTab({
             </div>
           </div>
         )}
+
+        {/* Live Telemetry & Closed-Loop Sync Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-slate-400 block">Jam &amp; Skenario Aktif</span>
+            <strong className="font-mono text-slate-900 dark:text-white">
+              {simState?.simTimeString || '14:00 WIB'} · {(simState?.scenarioKey || 'normal').toUpperCase()}
+            </strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-slate-400 block">Beban PRB &amp; Suhu Shelter</span>
+            <strong className="font-mono text-sky-600 dark:text-sky-400">
+              PRB {simState?.trafficLoad ?? 32}% · {simState?.tempAmbient ?? 27.5}°C
+            </strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-slate-400 block">Cakupan Multi-Vendor</span>
+            <strong className="font-mono text-emerald-600 dark:text-emerald-400">
+              {operationalSummary?.siteCount || 50} BTS (Ericsson/Huawei/ZTE)
+            </strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
+            <div>
+              <span className="text-[10px] font-bold uppercase text-slate-400 block">Dokumen Hilir</span>
+              <strong className="font-mono text-slate-900 dark:text-white">{resolvedSites.length} Terkalibrasi</strong>
+            </div>
+            <div className="flex items-center gap-1">
+              {onOpenOfficialBaRe && (
+                <button
+                  type="button"
+                  onClick={onOpenOfficialBaRe}
+                  className="px-2 py-1 rounded-lg bg-slate-900 dark:bg-slate-700 text-white text-[10px] font-bold cursor-pointer"
+                >
+                  BA-RE
+                </button>
+              )}
+              {onOpenSapVoucher && (
+                <button
+                  type="button"
+                  onClick={onOpenSapVoucher}
+                  className="px-2 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold cursor-pointer"
+                >
+                  SAP
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 4 Agent Cards Showcase */}

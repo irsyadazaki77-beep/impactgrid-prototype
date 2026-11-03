@@ -1,139 +1,141 @@
-# Pembaruan Fase 2 ImpactGrid Enterprise DSS — Standar Ekspansi Regional Jamali & Integrasi Lintas Modul Telkomsel
+# Penyempurnaan ImpactGrid Enterprise DSS: Unified Role-Based Workspace untuk Tim Bisnis & Operasional Telkomsel
 
-Melanjutkan penyempurnaan Fase 1 pada halaman utama dan matriks telemetri, **Fase 2** mentransformasikan seluruh **9 tab sekunder dan modal pendukung** menjadi ekosistem komando jaringan yang terhubung secara dinamis (*real-time cross-tab synchronization*), mendukung simulasi ekspansi **Skala Regional Jamali (5.000 Site)**, menyediakan **Batch Dispatch O-RAN O1 & Tiket FOP Massal**, serta membersihkan sisa istilah studi kasus lomba di seluruh sudut aplikasi.
+Menyempurnakan platform **ImpactGrid** menjadi sistem pendukung keputusan (*Decision Support System*) dan konsol eksekusi operasional yang terintegrasi penuh, bebas dari tumpang-tindih antarmuka, serta dirancang khusus untuk memaksimalkan produktivitas harian **Tim Bisnis/Finansial** (BoD, VP Finance, Procurement, ESG) dan **Tim Operasional** (SNOC 24/7, RAN/O-RAN Engineering, Teknisi Lapangan FOP) Telkomsel.
 
 ---
 
-## User Review & Critical Decisions
+### User Review & Critical Decisions
 
 > [!IMPORTANT]
-> Seluruh keputusan arsitektur dan produk pada rencana Fase 2 ini disusun berdasarkan konfirmasi Anda pada tahap klarifikasi:
+> Berdasarkan konfirmasi prioritas pada tahap klarifikasi, rencana penyempurnaan ini mengintegrasikan **seluruh kapabilitas strategis Bisnis & Finansial** serta **alur kerja teknis SNOC & FOP** ke dalam satu arsitektur **Role-Based Workspace (Ruang Kerja Berbasis Peran)** yang bersih, terstruktur, dan saling terhubung secara *real-time*.
 
-- **Keputusan 1 — Cakupan Penyempurnaan Menyeluruh (9 Tab Sekunder & Modal)**: Merombak tata letak, alur kerja, dan kedalaman fitur pada seluruh tab Eksekutif (*Validasi Pilot, Simulasi Skenario, Dampak Finansial, Dampak ESG*) dan tab Teknis NOC (*Digital Twin, Orkestrasi Agen, Telemetri, Optimasi, Arsitektur*) beserta modal dokumen korporat.
-- **Keputusan 2 — Sinkronisasi Data & State Real-Time Lintas Tab**: Setiap perubahan pada daftar site BTS (tambah/ubah/hapus/kalibrasi FOP), jam simulasi 24-jam, skenario cuaca/trafik, maupun pemilihan skala proyek akan langsung memperbarui perhitungan kW, kWh, penghematan Rupiah, NPV, dan reduksi emisi $\text{tCO}_2\text{e}$ di seluruh tab tanpa nilai statis yang terputus.
-- **Keputusan 3 — Simulasi Ekspansi Skala Regional Jamali (5.000 Site) & Multi-Kluster**: Menambahkan selector skala proyek interaktif (*Pilot 50 Site*, *Metro 250 Site*, *Regional Jamali 5.000 Site*, dan *Nasional 10.000+ Site*) yang mengalirkan parameter ke simulasi Monte Carlo, proyeksi arus kas 5 tahun, dan alokasi solver *0-1 Knapsack*.
-- **Keputusan 4 — Otomasi Batch Dispatch O-RAN O1 & Tiket e-WO FOP Massal**: Menghadirkan konsol eksekusi massal (*Batch Operations*) untuk mengirim kebijakan *Carrier Sleep* O-RAN O1/A1 ke puluhan kluster sekaligus dan menerbitkan tiket *Field Operations (FOP)* massal bagi seluruh site berstatus *Phantom Load* atau deviasi termal.
-- **Keputusan 5 — Standarisasi Korporat, Multi-Vendor RAN & Ekspor Dokumen Resmi**: Menghapus tuntas sisa istilah studi kasus lomba (*Key Question*, *Sub-Question*, *BCC TSF 2026*, *Rubrik Juri*) termasuk pada metadata HTML, merampingkan halaman tab sekunder yang terlalu panjang menjadi sub-modul terstruktur, memperkaya matriks komparasi multi-vendor RAN (**Ericsson ENM, Huawei U2020/iMaster MAE, ZTE NetNumen**), dan menyempurnakan fitur cetak/unduh dokumen resmi (**BA-RE PLN, BoQ Pengadaan, Jurnal SAP S/4HANA**).
+- **Keputusan Terkonfirmasi 1 — Fokus Tim Bisnis & Finansial Telkomsel**:
+  1. **Kalkulator ROI & Anggaran Dinamis**: Simulasi interaktif CapEx/OpEx, bagi-hasil kontrak sewa *TowerCo* (Mitratel/Protelindo), serta proyeksi DCF 5-tahun (NPV, IRR, Payback) lintas skala (*Pilot 50 Site*, *Regional 5.000 Site*, *Nasional 10.000+ Site*).
+  2. **Otomatisasi Dokumen & Settlement**: Alur persetujuan satu klik dari temuan anomali menuju penerbitan Berita Acara Rekonsiliasi Energi (**BA-RE PLN**), jurnal *Credit Note* **SAP S/4HANA**, dan paket keputusan eksekutif.
+  3. **Benchmark Finansial & Energi Antar-Regional**: Komparasi *real-time* performa penghematan kWh, deviasi tagihan, dan efisiensi biaya per kluster regional Telkomsel (Jabodetabek, Jabar, Jateng, Jatim, Bali-Nusra, Sumatera, Kalimantan, Sulawesi).
+  4. **Kepatuhan ESG, Pajak Karbon & Green BTS**: Pelacakan reduksi emisi *Scope 2* (tCO₂e), kalkulasi eksposur nilai ekonomi karbon/pajak karbon, alokasi *Social Dividend* 15% untuk BTS 3T, dan kesiapan sertifikasi *Green BTS* (POJK 51/2017 & ISO 14064).
 
----
+- **Keputusan Terkonfirmasi 2 — Fokus Tim Operasional SNOC, RAN & FOP Lapangan**:
+  1. **End-to-End Closed-Loop Workflow**: Integrasi langsung dari alarm triase SNOC $\rightarrow$ penerbitan tiket kerja elektronik (*e-Work Order*) FOP lapangan $\rightarrow$ eksekusi kebijakan radio **NETCONF/YANG O-RAN O1** $\rightarrow$ verifikasi hasil kalibrasi.
+  2. **Ingest Data BYOD Riil & Deteksi Anomali Otomatis**: Kemampuan unggah data operasional riil (CSV/JSON) dengan mesin deteksi otomatis untuk mengidentifikasi *meter drift*, kebocoran beban termal AC shelter, atau selisih tagihan PLN > 5%.
+  3. **Mode Siaga Bencana (Emergency 112), Guard Trafik VIP & Fail-Safe**: Sakelar intervensi darurat instan (< 50ms) yang membatalkan *carrier sleep* demi menjaga 100% kapasitas PRB dan memproteksi trafik prioritas tanpa risiko degradasi QoS.
+  4. **Inspeksi Teknis Mendalam per Site (Digital Twin & 3GPP)**: Penelusuran *drill-down* per menara BTS untuk memantau profil termal *Physics-Informed Neural Network* (PINN), status *sub-carrier sleep* 3GPP Rel-18, dan rekonsiliasi 3-arah (PLN vs Sub-meter DC vs Estimasi RAN).
 
-## 1. Overview & Core Concept
-
-- **Apa yang Dihadirkan di Fase 2**:
-  1. **Unified Telemetry & Financial State Engine**: Satu sumber kebenaran (*Single Source of Truth*) yang menghubungkan database operasional site BTS, status kalibrasi lapangan FOP, dan jam simulasi diurnal (00:00–23:00 WIB) ke seluruh kalkulator di tab *Digital Twin*, *Simulasi Skenario*, *Dampak Finansial*, *Optimasi*, dan *Dampak ESG*.
-  2. **Regional Jamali 5.000-Site Scaling Workbench**: Kemampuan bagi tim *Network Planning* dan *Corporate Finance* untuk menguji transisi dari fase Pilot (40+10 site) menuju ekspansi Metro (250 site) dan Regional Jawa-Madura-Bali (5.000 site) per kluster regional (Jabodetabek, Jabar, Jateng-DIY, Jatim, Bali-Nusra).
-  3. **Batch O-RAN O1 Policy & Mass FOP Dispatch**: Alur kerja *NOC Engineering* untuk mengeksekusi perintah *Netconf/YANG* lintas vendor (Ericsson, Huawei, ZTE) dan menyelesaikan anomali kelistrikan banyak site secara serentak (*Batch Closed-Loop*).
-  4. **Official Corporate Print & Export Engine**: Pembuatan dokumen siap cetak A4 dan ekspor berkas terstruktur untuk Berita Acara Rekonsiliasi Energi (BA-RE PLN), Rincian Anggaran BoQ, dan Voucher Jurnal Akuntansi SAP S/4HANA.
-- **Target Pengguna / Persona**:
-  - **Direksi & VP Finance / ESG Telkomsel**: Meninjau kelayakan ekspansi 5.000 site Jamali, sensitivitas tarif PLN WBP/LWBP, kepatuhan pelaporan keberlanjutan *IFRS S2 / PSPK 1 & 2*, dan pengesahan anggaran CapEx swadana.
-  - **Tim SNOC, RAN Engineering & FOP Regional**: Mengelola parameter termal *Digital Twin* per site, mengeksekusi *batch policy* O-RAN rApp, membandingkan performa perangkat Ericsson/Huawei/ZTE, dan menutup tiket anomali meteran PLN secara massal.
+- **Keputusan Terkonfirmasi 3 — Pendekatan UX & Tata Kelola Utama**:
+  - **Penyederhanaan UI Berbasis Peran (*Role-Based Workspace*) dengan Alur Kerja Terpadu**: Mengurangi kepadatan elemen visual (*visual clutter*) dengan menghadirkan **Role Action Launcher Bar** kontekstual dan mengelompokkan alur kerja sesuai profil pengguna aktif tanpa menghilangkan akses lintas modul.
 
 ---
 
-## 2. User Experience & Visual Design
+### 1. Overview & Core Concept
 
-### A. Alur Pengguna Utama (Key User Flows)
+- **Apa yang Dilakukan Penyempurnaan Ini**:
+  Menyatukan seluruh modul analitik bisnis dan instrumen kendali teknis yang sebelumnya tersebar di berbagai panel menjadi sebuah **Unified Command & Business Workspace**. Ketika seorang pemangku kepentingan memilih peran mereka (misalnya *VP Network/Finance*, *NOC Incident Commander*, *O-RAN Engineer*, *Head of ESG*, atau *Internal Auditor*), antarmuka secara cerdas menampilkan **Ringkasan KPI Prioritas**, **Alur Kerja Terpadu 4-Langkah (Detect $\rightarrow$ Execute $\rightarrow$ Settle $\rightarrow$ Approve)**, serta akses cepat ke instrumen yang relevan dengan tugas harian mereka.
 
-1. **Alur 1 — Sinkronisasi Real-Time Lintas Tab (Dari Telemetri & Jam Simulasi ke Digital Twin, Finansial & ESG)**:
-   - Pengguna menggeser waktu operasional pada *Global Simulation Bar* (misal ke pukul **19:00 WIB Puncak WBP** atau **02:00 WIB Off-Peak Deep Sleep**) atau mengkalibrasi site anomali di tab **Telemetri**.
-   - Saat berpindah ke tab **Digital Twin**, daftar site menampilkan seluruh site aktif (termasuk site yang baru ditambahkan atau dikalibrasi) dengan beban trafik PRB dan suhu shelter yang otomatis mengikuti jam simulasi aktif, lengkap dengan tombol **Terapkan Kebijakan ke Site Ini**.
-   - Saat membuka tab **Dampak Finansial** dan **Dampak ESG**, angka penghematan energi aktual, nilai klaim restitusi PLN yang telah diselesaikan FOP, dan total reduksi emisi $\text{tCO}_2\text{e}$ langsung tercermin pada kartu ringkasan atas dan tabel arus kas.
+- **Target Pengguna / Persona Utama**:
+  1. **Tim Bisnis & Eksekutif Telkomsel (Direksi, VP Finance, VP Procurement, TowerCo Partnership)**: Membutuhkan kepastian angka ROI/NPV, pengendalian plafon anggaran *Stage-Gate* (G0–G3), negosiasi kontrak sewa menara *TowerCo*, dan bukti penghematan teraudit di SAP S/4HANA.
+  2. **Tim Keberlanjutan & Tata Kelola (Head of ESG & Corporate Auditor)**: Membutuhkan pelacakan dekarbonisasi *Scope 2*, valuasi kredit/pajak karbon, transparansi jejak audit kriptografis (SHA-256), dan kepatuhan regulasi.
+  3. **Tim Operasional & Teknis (SNOC 24/7, RAN/O-RAN Engineer, Teknisi FOP)**: Membutuhkan deteksi anomali cepat dari data telemetri/BYOD, disposisi tiket lapangan, eksekusi *script* NETCONF multi-vendor (Ericsson, Huawei, ZTE), dan jaminan keamanan *fail-safe* 112.
 
-2. **Alur 2 — Simulasi Ekspansi Skala Regional Jamali 5.000 Site & Multi-Kluster**:
-   - Pada tab **Simulasi Skenario** dan **Dampak Finansial**, pengguna dapat memilih cakupan skala secara instan melalui tombol prasetel:
-     - **Fase 1: Pilot (40 Intervensi + 10 Kontrol)**
-     - **Fase 1.5: Kluster Metro Prioritas (250 Site)**
-     - **Fase 2: Regional Jamali (5.000 Site — Jabodetabek, Jabar, Jateng, Jatim, Bali)**
-     - **Fase 3: Skala Nasional (10.000+ Site)**
-   - Memilih **Regional Jamali 5.000 Site** secara otomatis menyesuaikan parameter konsumsi baseline (GWh/tahun), proyeksi penghematan kas bersih, distribusi probabilitas *Monte Carlo 1.000 Iterasi*, serta rincian alokasi per kluster regional.
-
-3. **Alur 3 — Otomasi Batch Dispatch Perintah O-RAN O1 & Tiket FOP Massal**:
-   - Di tab **Telemetri**, **Orkestrasi Agen**, dan **Optimasi**, operator NOC dapat memilih beberapa site atau seluruh kluster anomalik sekaligus, lalu menekan tombol **Eksekusi Batch Kalibrasi FOP & BA-RE** atau **Batch Dispatch O-RAN O1 Policy**.
-   - Sistem memproses seluruh site terpilih, memperbarui status disparitas meteran menjadi *Terkalibrasi (< 1,0%)*, mengakumulasi nilai Nota Kredit Restitusi PLN pada **Jurnal SAP S/4HANA**, dan mencatat hash transaksi kolektif ke buku besar audit SHA-256.
-
-4. **Alur 4 — Komparasi Multi-Vendor RAN (Ericsson, Huawei, ZTE) & Ekspor Dokumen Resmi**:
-   - Di tab **Arsitektur** dan **Digital Twin**, pengguna dapat memfilter dan membandingkan telemetri serta dukungan komando *O-RAN O1 / Netconf YANG* pada tiga ekosistem vendor utama Telkomsel: **Ericsson (ENM / Radio 4415)**, **Huawei (iMaster MAE / AAU5613)**, dan **ZTE (NetNumen U31 / UniSite)**.
-   - Dari modal **BA-RE PLN**, **BoQ Pengadaan**, maupun **Jurnal SAP S/4HANA**, pengguna dapat menekan tombol **Cetak Dokumen Resmi A4** atau **Unduh Berkas CSV/JSON** dengan kop surat standar *PT Telekomunikasi Selular*.
-
-### B. Identitas Visual, Tata Letak & Disiplin Tipografi
-
-- **Perampingan Tab Sekunder (Zero Visual Bloating)**:
-  - Tab yang sebelumnya menumpuk banyak seksi panjang ke bawah (**Dampak Finansial**, **Dampak ESG**, **Optimasi**, dan **Arsitektur**) dirampingkan menggunakan navigasi sub-modul (*segmented workspace tabs*) sehingga setiap layar memiliki tepat satu fokus utama (*Single Focal Anchor*) di area *above-the-fold*.
-- **Palet Warna & Kontras Korporat Telkomsel (60-30-10)**:
-  - **60% Kanvas Netral**: Putih bersih (`#FFFFFF` / `#F8FAFC`) pada mode terang dan biru-abu gelap presisi (`#0B1324` / `#0F172A`) pada mode gelap.
-  - **30% Permukaan Struktural**: Garis pembatas tipis 1px (`border-slate-200 dark:border-slate-800`) tanpa tumpukan kartu di dalam kartu.
-  - **10% Aksen Korporat**: Merah Telkomsel (`#ED0226`) untuk aksi utama dan status aktif, dipadukan indikator semantik hijau (`#16A34A` nominal/terkalibrasi), amber (`#D97706` peringatan WBP/termal), dan merah (`#DC2626` anomali kritis/112).
-- **Tipografi & Disiplin Angka Tabular**:
-  - Tajuk utama menggunakan `Outfit` / `Plus Jakarta Sans`, teks operasional menggunakan `Plus Jakarta Sans`, dan seluruh metrik daya (kW, kWh, GWh), nilai finansial (Rp), latensi (ms), serta persentase menggunakan `JetBrains Mono` dengan `tabular-nums` agar rata kanan/desimal secara presisi.
-- **Pembersihan Total Istilah Lomba & Metadata**:
-  - Memperbarui `<title>` dan `<meta name="description">` pada halaman utama serta seluruh teks di tab **Arsitektur** (*Key Question / Sub-Question* diubah menjadi **Matriks Kepatuhan Tata Kelola & Strategi Dekarbonisasi Jaringan Telkomsel**), modal **Pertahanan Direksi**, dan **Lembar Kerja Validasi**.
+- **Nilai Tambah Utama (*Key Value*)**:
+  - **Zero Friction Collaboration**: Setiap tindakan teknis di lapangan (misal: kalibrasi FOP pada site anomali atau eksekusi *batch* O-RAN) secara instan memperbarui angka penghematan finansial (Rupiah), menurunkan deviasi tagihan PLN, mengkalkulasi ulang NPV/Payback di modul Finansial, dan memperbarui capaian emisi ESG secara *real-time*.
 
 ---
 
-## 3. Key Product Decisions & Trade-Offs
+### 2. User Experience & Visual Design
 
-- **Keputusan 1: Arsitektur Sub-Tab Terfokus pada Tab Sekunder vs. Halaman Gulir Panjang**
-  - *Pendekatan Terpilih*: Mengelompokkan konten pada tab **Dampak Finansial** (3 sub-tab: *Model NPV & Sensitivitas*, *Ekspansi 4-Horizon & Jamali 5.000 Site*, *Kontrak TowerCo & Akuisisi*), **Dampak ESG** (3 sub-tab: *Inventarisasi Scope 2 & Kepatuhan*, *Valuasi Karbon & Dividen Sosial 3T*, *Ledger Kriptografi SHA-256*), **Optimasi** (3 sub-tab: *Solver CapEx 0-1 Knapsack*, *Kurva Pareto & Batch Closed-Loop*, *Manajemen WBP PLN & BESS*), dan **Arsitektur** (4 sub-tab: *Topologi O-RAN & Multi-Vendor*, *Integrasi IT Enterprise SAP/ServiceNow*, *Tata Kelola & Mitigasi Risiko*, *Benchmarking Komparatif*).
-  - *Alasan*: Menghilangkan kelelahan gulir (*scroll fatigue*) saat rapat tinjauan teknis maupun direksi, sambil memastikan **100% fitur dan analisis tetap tersedia utuh** tanpa ada informasi yang dihapus.
+- **Alur Kerja Utama Pengguna (*Key User Flows*)**:
+  1. **Alur Kerja Tim Bisnis (Simulasi Investasi $\rightarrow$ Benchmark Regional $\rightarrow$ Settlement BA-RE & SAP)**:
+     - Pengguna memilih profil **Bisnis / Eksekutif** atau membuka tab **Ringkasan / Dampak Finansial**.
+     - Menggunakan **Interactive Business ROI & TowerCo Studio** untuk mengubah parameter tarif listrik PLN, target efisiensi, jumlah site, skema bagi-hasil *TowerCo*, dan melihat perubahan instan pada NPV 5-tahun, IRR, Payback Period, serta tabel sensitivitas.
+     - Membandingkan performa efisiensi antar wilayah pada **Matriks Benchmark Regional Real-Time** dan mengekspor laporan kesiapan komite investasi atau memicu penerbitan **BA-RE PLN & Jurnal SAP S/4HANA**.
+  2. **Alur Kerja Tim Operasional (Ingest BYOD & Deteksi Anomali $\rightarrow$ Eksekusi O-RAN / FOP $\rightarrow$ Verifikasi 3-Arah)**:
+     - Pengguna memilih profil **NOC Commander / O-RAN Engineer** atau membuka tab **Telemetri / Digital Twin / Optimasi**.
+     - Mengunggah dataset telemetri (CSV/JSON) atau memuat *preset* kluster regional; sistem secara otomatis menandai site dengan anomali selisih meteran PLN vs Sub-meter DC atau suhu shelter kritis.
+     - Menjalankan **Closed-Loop Action**: mengirim kebijakan *Adaptive Carrier Sleep* via NETCONF O-RAN O1 atau menugaskan **Tiket e-WO Teknisi FOP** (baik per site maupun *Batch Calibration*), lengkap dengan perlindungan **Emergency 112 & VIP Traffic Guard**.
+     - Memeriksa pembaruan status teknis secara langsung pada **Inspektur Digital Twin 3D & Telemetri 3GPP** hingga status rekonsiliasi berubah menjadi *Verified (< 1.5% Drift)*.
 
-- **Keputusan 2: State Sinkronisasi Terpusat di Level Aplikasi (`App.jsx` + `useOperationalBackend`)**
-  - *Pendekatan Terpilih*: Mengalirkan `simState` (jam simulasi, skenario aktif, mode kalkulasi), `operationalState` (daftar site, ringkasan kW/kWh aktual, site terkalibrasi FOP), serta handler aksi massal (`onBatchResolveAnomalies`, `onBatchDispatchOranPolicy`) ke seluruh 9 tab sekunder.
-  - *Alasan*: Memastikan konsistensi penuh; ketika operator menyelesaikan seluruh anomali FOP atau memilih skenario *Regional Jamali 5.000 Site*, semua tab langsung menampilkan angka yang selaras.
+- **Identitas Visual & Tema (*SaaS & Enterprise Dashboard Discipline*)**:
+  - **Arah Estetika**: *Precision Enterprise Telemetry & Executive Financial Console* — memadukan ketegasan korporat Telkomsel dengan keterbacaan tingkat tinggi untuk ruang komando SNOC maupun ruang rapat Direksi.
+  - **Palet Warna & Kontras (60-30-10 Discipline)**:
+    - *60% Kanvas Netral*: Putih bersih (`#FFFFFF` / `slate-50`) pada mode terang untuk rapat eksekutif dan *Deep Slate* (`#0B1324` / `#0F172A`) pada mode gelap untuk pemantauan SNOC 24/7.
+    - *30% Permukaan Struktural*: Kartu dengan kedalaman satu lapis (*single-elevation depth*) menggunakan garis batas tipis (`1px solid border-slate-200 dark:border-slate-800`) tanpa tumpukan kartu di dalam kartu yang berlebihan.
+    - *10% Aksen Semantik & Korporat*: Merah Telkomsel (`#ED0226`) khusus untuk aksi utama dan status aktif; Hijau Emerald (`#16A34A`) untuk status *Verified / Optimal*; Amber (`#D97706`) untuk peringatan deviasi; Merah Crimson (`#DC2626`) untuk siaga darurat 112.
+  - **Tipografi & Disiplin Angka Tabular**:
+    - Hierarki tipografi yang tegas dengan ukuran judul bagian yang terkontrol dan keterbacaan teks utama yang nyaman.
+    - Seluruh angka finansial (Rp), metrik daya (kW/MWh), persentase efisiensi, waktu simulasi, dan nilai deviasi wajib menggunakan **`tabular-nums` (`font-mono`)** agar lurus secara vertikal di seluruh tabel dan kartu KPI.
+    - Metadata ditampilkan sebagai teks bersih dengan pemisah tipografis (`·` atau `/`) sesuai prinsip *Zero-Pill Metadata Discipline*.
+
+- **Umpan Balik Interaktif & Kelengkapan Status (*State Completeness*)**:
+  - Respons interaksi instan ($\le 200\text{ms}$) saat mengganti peran (*Role Switch*), mengubah slider parameter finansial, atau mengeksekusi kalibrasi *batch*.
+  - Setiap tabel dan matriks data memiliki status lengkap: *Populated State* (data kaya), *Filtered Empty State* (dengan tombol reset filter), serta umpan balik konfirmasi yang jelas setiap kali tindakan operasional berhasil disinkronkan ke basis data operasional.
 
 ---
 
-## 4. Technical Architecture & Data Strategy *(Technical Reference)*
+### 3. Key Product Decisions & Trade-Offs
 
-### A. Diagram Arsitektur & Aliran State Lintas Tab (Fase 2)
+- **Keputusan 1: Menambahkan *Unified Role-Based Action Bar & Workflow Hub* di Atas Workspace Tanpa Menghapus Modul Spesialis**
+  - *Pendekatan Terpilih*: Menyediakan bilah **Role-Based Quick Workspace** yang beradaptasi secara dinamis dengan 5 peran korporat Telkomsel (VP Network/Finance, NOC Commander, O-RAN Engineer, Head of ESG, Internal Auditor) sekaligus merapikan tata letak di dalam setiap tab agar alur *Bisnis* dan *Operasional* saling terhubung dengan 1 klik.
+  - *Alasan ("Why")*: Memudahkan tim bisnis langsung fokus pada kalkulator ROI, benchmark regional, BA-RE, dan ESG, sementara tim operasional langsung mendapatkan kontrol triase SNOC, ingest BYOD, *dispatch* O-RAN, dan tiket FOP tanpa tersesat di antara puluhan tombol.
+  - *Alternatif yang Dipertimbangkan*: Memisahkan aplikasi menjadi dua URL berbeda (satu khusus bisnis, satu khusus teknis). Ditolak karena justru memutus visibilitas *closed-loop* di mana tim bisnis perlu melihat bukti teknis secara langsung dan tim teknis perlu melihat dampak rupiah dari optimasi mereka.
+
+- **Keputusan 2: Sinkronisasi State *Real-Time* Lintas Modul Bisnis & Operasional melalui Full-Stack Operational Store**
+  - *Pendekatan Terpilih*: Memperkuat integrasi antara *state* simulasi, daftar site yang telah dikalibrasi FOP (`resolvedSites`), data BYOD yang diunggah, dan *backend operational store* sehingga setiap perubahan di sisi operasional langsung memperbarui kalkulasi finansial (kredit restitusi SAP, NPV, penghematan OPEX) dan metrik kepatuhan ESG.
+  - *Alasan ("Why")*: Menjamin konsistensi angka 100% di seluruh tab dan dokumen cetak (BA-RE, SAP Voucher, BoQ, Executive Memo) sehingga siap digunakan untuk simulasi operasional nyata maupun audit internal.
+
+---
+
+### 4. Technical Architecture & Data Strategy *(Technical Reference)*
+
+- **Diagram Arsitektur Sistem & Alur Kerja Terpadu**:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                UNIFIED ENTERPRISE STATE & OPERATIONAL STORE (App + Server)             │
-│  • Active Sites (50 Pilot + BYOD + Multi-Vendor Ericsson / Huawei / ZTE Metadata)      │
-│  • Diurnal Simulation Engine (00:00–23:00 WIB, Scenario Key, Scale Preset 50..5.000)   │
-│  • Closed-Loop Ledger (Resolved FOP Sites, BA-RE PLN Claims, SAP FI-CO Credit Notes)   │
-└───────────────┬────────────────────────────────────────────────────────┬───────────────┘
-                │                                                        │
-                ▼                                                        ▼
-┌───────────────────────────────────────────┐  ┌─────────────────────────────────────────┐
-│     MODUL EKSEKUTIF & PERENCANAAN MODAL   │  │     MODUL TEKNIS SNOC & O-RAN ENGINEERING│
-├───────────────────────────────────────────┤  ├─────────────────────────────────────────┤
-│ 1. Ringkasan (Executive & NOC Hub)        │  │ 6. Digital Twin (3D PINN + Live Site    │
-│ 2. Validasi Pilot (DiD Kausal + StageGate)│  │    Sync + Multi-Vendor Telemetry)       │
-│ 3. Simulasi Skenario (Prasetel Pilot 50,  │  │ 7. Orkestrasi Agen (4 rApp + Batch      │
-│    Metro 250, Jamali 5.000 + Monte Carlo) │  │    Policy Dispatch & Arbitrase Konflik) │
-│ 4. Dampak Finansial (NPV/IRR Dinamis +    │  │ 8. Telemetri (CRUD Site + Batch FOP     │
-│    Realisasi Restitusi BA-RE & SAP)       │  │    Calibration + 3-Way Matrix)          │
-│ 5. Dampak ESG (Scope 2 Real-Time +        │  │ 9. Optimasi (Knapsack Solver + Pareto + │
-│    IDXCarbon + SHA-256 Audit Verifier)    │  │    WBP/BESS Guard)                      │
-│                                           │  │10. Arsitektur (O-RAN Layer + Komparasi  │
-│                                           │  │    Ericsson/Huawei/ZTE + IT Hub)        │
-└─────────────────────┬─────────────────────┘  └────────────────────┬────────────────────┘
-                      │                                             │
-                      └──────────────────────┬──────────────────────┘
-                                             ▼
+│                     IMPACTGRID UNIFIED ROLE-BASED WORKSPACE HEADER                     │
+│  [Persona Switcher: Bisnis / SNOC / O-RAN / ESG / Audit] ──► [Contextual Action Strip] │
+│  [Global Sim & Emergency 112 Guardrail (<50ms)]          ──► [Multi-Screen Sync Bus]   │
+└───────────────────┬────────────────────────────────────────────────┬───────────────────┘
+                    │                                                │
+                    ▼                                                ▼
+┌───────────────────────────────────────┐        ┌───────────────────────────────────────┐
+│     TIM BISNIS & EKSEKUTIF SUITE      │        │    TIM OPERASIONAL SNOC & FOP SUITE   │
+├───────────────────────────────────────┤        ├───────────────────────────────────────┤
+│ 1. Kalkulator ROI, DCF & TowerCo      │◄──────►│ 1. Triase SNOC & Emergency 112 Guard  │
+│    (Simulasi CapEx/OpEx, WACC, Tarif, │ Sinkron│    (Deteksi Alarm, VIP Traffic Guard, │
+│     Bagi-Hasil Mitratel/Protelindo)   │  State │     Instant Override Carrier Sleep)   │
+│                                       │  Nyata │                                       │
+│ 2. Otomasi Settlement & Persetujuan   │◄──────►│ 2. Ingest BYOD & Rekonsiliasi 3-Arah  │
+│    (BA-RE PLN, Jurnal SAP S/4HANA     │        │    (Parser CSV/JSON, Deteksi Otomatis │
+│     Credit Note, BoQ & Memo BoD)      │        │     Anomali Meter >5% & Termal AC)    │
+│                                       │        │                                       │
+│ 3. Benchmark Finansial Antar-Regional │◄──────►│ 3. Closed-Loop FOP & NETCONF O-RAN O1 │
+│    (Komparasi Real-Time Kluster       │        │    (Disposisi e-WO Lapangan, Batch    │
+│     Jamali & Luar Jawa, Ranking ROI)  │        │     Calibration, Script Multi-Vendor) │
+│                                       │        │                                       │
+│ 4. Kepatuhan ESG & Pajak Karbon       │◄──────►│ 4. Inspektur Digital Twin & 3GPP      │
+│    (Scope 2 tCO₂e, Valuasi Pajak      │        │    (Drill-Down per Site, Termal PINN, │
+│     Karbon, Sertifikasi Green BTS)    │        │     Sub-Carrier Sleep & QoS Guard)    │
+└───────────────────┬───────────────────┘        └───────────────────┬───────────────────┘
+                    │                                                │
+                    └───────────────────────┬────────────────────────┘
+                                            ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│              OFFICIAL DOCUMENT & EXPORT SUITE (Cetak A4 / CSV / JSON / BAPI)           │
-│  • Berita Acara Rekonsiliasi Energi (BA-RE PLN)  • Voucher Jurnal SAP S/4HANA FI-CO    │
-│  • Rincian Pengadaan BoQ & Kontrak TowerCo       • Lembar Kerja Audit & Executive Memo │
+│             OPERATIONAL BACKEND STORE & CRYPTOGRAPHIC AUDIT ENGINE (SHA-256)           │
+│  • Sinkronisasi Status Site BTS, Kebijakan O-RAN O1, Tiket e-WO FOP & Dokumen BA-RE    │
+│  • Pencatatan Rantai Hash Audit Tidak Terbantahkan & Ekspor Dokumen Resmi (CSV/Print)  │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### B. Pemetaan Interaksi Komponen & Mutasi State
+- **Model Data & Strategi State Terpadu**:
+  1. **Role & Workspace Context State**: Menyimpan profil peran aktif (`currentRole`), mode tampilan (`executive` vs `engineering`), skala jaringan (`pilot`, `regional`, `national`), serta daftar rekomendasi tindakan prioritas untuk peran tersebut.
+  2. **Operational & BYOD Telemetry State**: Menggabungkan data bawaan 50 site pilot dengan data unggahan BYOD pengguna, menghitung selisih 3-arah (*PLN Billing* vs *Sub-meter DC* vs *RAN Telemetry*) secara otomatis, dan mengelompokkan site ke dalam status *Nominal*, *Warning*, *Critical Drift*, atau *FOP Verified*.
+  3. **Financial & ESG Dynamic Engine**: Menghitung ulang secara reaktif dampak penghematan energi (MWh), manfaat bersih tahunan (Rp), NPV 5-tahun, bagi-hasil *TowerCo*, nilai ekonomi karbon/pajak karbon, serta indeks kesiapan *Green BTS* berdasarkan jam simulasi, kebijakan O-RAN yang aktif, dan jumlah site anomali yang telah diselesaikan oleh FOP.
 
-1. **Sinkronisasi Tab `DigitalTwinTab` & `TelemetryTab`**:
-   - Menerima `operationalSites`, `simState`, `resolvedSites`, `onResolveSiteAnomaly`, dan `onBatchResolveAnomalies`.
-   - Operator dapat memilih site dari seluruh daftar operasional, menyinkronkan beban trafik PRB & suhu lingkungan dengan jam simulasi 24-jam aktif (`Sinkronkan dengan Jam Simulasi`), serta memfilter performa berdasarkan vendor RAN (**Ericsson, Huawei, ZTE**).
-   - Menambahkan tombol **Batch Kalibrasi FOP (Semua Site Anomali)** pada tab **Telemetri** untuk menyelesaikan seluruh site berstatus *Phantom Load* dalam satu klik sekaligus memperbarui BA-RE PLN dan Jurnal SAP.
-
-2. **Sinkronisasi Tab `ScenarioLabTab` & `FinancialModelTab` (Skala Regional Jamali 5.000 Site)**:
-   - Menambahkan pemilih skala cepat (*Quick Scale Presets*): **Pilot 40 Site**, **Metro 250 Site**, **Regional Jamali 5.000 Site**, dan **Nasional 10.000 Site** pada `ScenarioLabTab` yang memperbarui jumlah site, proyeksi penghematan kWh/MWh/GWh, simulasi *Monte Carlo 1.000 Iterasi*, serta rincian kluster regional Jawa-Madura-Bali.
-   - Menghubungkan `FinancialModelTab` dengan `operationalSummary` dan `resolvedSites` sehingga bagian atas menampilkan **Realisasi Penghematan Operasional Aktif & Restitusi BA-RE PLN Tersinkron** berdampingan dengan **Model Sensitivitas & Roadmap 4-Horizon** yang dikelompokkan ke dalam 3 sub-tab ringkas.
-
-3. **Sinkronisasi Tab `AgentOrchestratorTab`, `OptimizationTab` & `ArchitectureTab`**:
-   - Pada `AgentOrchestratorTab`, menambahkan aksi **Batch Dispatch Kebijakan O-RAN A1/O1 ke Kluster Aktif** yang mencatat eksekusi ke log terminal NOC dan jejak audit.
-   - Pada `OptimizationTab` dan `ESGComplianceTab`, merampingkan komponen ke dalam sub-tab yang rapi tanpa kehilangan satu pun analisis, serta menyinkronkan angka karbon dan anggaran CapEx dengan skala proyek aktif.
-   - Pada `ArchitectureTab` dan `mockData.js`, menambahkan matriks teknis **Komparasi Multi-Vendor RAN (Ericsson vs Huawei vs ZTE)** yang mencakup protokol O1/Netconf, latensi wake-up carrier sleep, dan integrasi submetering DC, serta mengganti seluruh istilah *Key Question / Sub-Question / Studi Kasus Lomba* menjadi nomenklatur tata kelola enterprise Telkomsel.
-
-4. **Penyempurnaan Fitur Ekspor & Cetak Dokumen Resmi (`OfficialBeritaAcaraModal`, `ProcurementBoqModal`, `SapAccountingVoucherModal`, `ReportModal`)**:
-   - Menambahkan fungsi unduh berkas (`CSV` / `JSON` / cetak format resmi A4) pada dokumen BA-RE PLN, BoQ Pengadaan, dan Jurnal SAP S/4HANA yang memuat rincian seluruh site anomali yang telah dikalibrasi oleh tim FOP.
+- **Pemetaan Interaksi Komponen & Handler Lengkap**:
+  1. **Role-Based Quick Action Banner (pada Ringkasan & Workspace Utama)**:
+     - Menampilkan misi utama peran aktif, KPI kunci peran tersebut, dan 3–4 tombol aksi langsung (misal untuk *Tim Bisnis*: "Simulasi Kalkulator ROI & TowerCo", "Terbitkan BA-RE & Jurnal SAP", "Benchmark Regional", "Audit Pajak Karbon ESG"; untuk *Tim Operasional*: "Triase Anomali & Tiket FOP", "Unggah Data BYOD CSV/JSON", "Batch Dispatch O-RAN O1", "Simulasi Siaga 112").
+  2. **Peningkatan Modul Finansial & Benchmark Bisnis**:
+     - Menambahkan kalkulator interaktif kontrak bagi-hasil *TowerCo* & sensitivitas anggaran CapEx/OpEx yang terhubung langsung dengan perbandingan efisiensi antar-regional Telkomsel dan tombol penerbitan cepat dokumen *settlement* (BA-RE PLN, SAP S/4HANA, dan BoQ Pengadaan).
+  3. **Peningkatan Modul ESG, Pajak Karbon & Sertifikasi Green BTS**:
+     - Menambahkan simulator eksposur Pajak Karbon / Nilai Ekonomi Karbon (Rp/tCO₂e) dan matriks kelayakan sertifikasi **Green BTS Telkomsel** per kluster regional.
+  4. **Peningkatan Modul Operasional SNOC, Ingest BYOD & Digital Twin**:
+     - Memperkuat *scanner* deteksi anomali otomatis saat ingest data BYOD, menyediakan kontrol *Guard Trafik VIP & Siaga 112* yang responsif, serta memperkaya panel inspeksi *drill-down* per site BTS (status *carrier sleep* 3GPP, kurva termal shelter, dan riwayat kalibrasi FOP).

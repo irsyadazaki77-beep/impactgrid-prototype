@@ -20,28 +20,28 @@ import {
 const executiveItems = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard, keyHint: '1' },
   { id: 'pilotvalidation', label: 'Validasi Pilot', icon: ShieldCheck, keyHint: '2' },
-  { id: 'scenariolab', label: 'Simulasi Skenario', icon: FlaskConical, keyHint: '6' },
-  { id: 'financial', label: 'Dampak Finansial', icon: ChartNoAxesCombined, keyHint: '9' },
-  { id: 'esg', label: 'Dampak ESG', icon: Leaf, keyHint: '8' },
+  { id: 'scenariolab', label: 'Simulasi Skenario', icon: FlaskConical, keyHint: '3' },
+  { id: 'financial', label: 'Dampak Finansial', icon: ChartNoAxesCombined, keyHint: '4' },
+  { id: 'esg', label: 'Dampak ESG', icon: Leaf, keyHint: '5' },
 ];
 
 const engineeringItems = [
-  { id: 'digitaltwin', label: 'Digital Twin', icon: Zap, keyHint: '3' },
-  { id: 'agents', label: 'Orkestrasi Agen', icon: Bot, keyHint: '4' },
-  { id: 'telemetry', label: 'Telemetri', icon: Radio, keyHint: '5' },
-  { id: 'optimization', label: 'Optimasi', icon: BriefcaseBusiness, keyHint: '7' },
+  { id: 'telemetry', label: 'Telemetri', icon: Radio, keyHint: '6' },
+  { id: 'digitaltwin', label: 'Digital Twin', icon: Zap, keyHint: '7' },
+  { id: 'agents', label: 'Orkestrasi Agen', icon: Bot, keyHint: '8' },
+  { id: 'optimization', label: 'Optimasi', icon: BriefcaseBusiness, keyHint: '9' },
   { id: 'architecture', label: 'Arsitektur', icon: Layers, keyHint: '0' },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, viewMode = 'executive' }) {
-  const [expanded, setExpanded] = useState({ 'Menu Operasi': true, 'Teknis & O-RAN': true });
+  const [expanded, setExpanded] = useState({ '1–5 Alur Eksekutif': true, '6–0 Teknis & O-RAN': true });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
 
-  const groups = [{ title: 'Menu Operasi', items: executiveItems }];
-  if (viewMode === 'engineering') {
-    groups.push({ title: 'Teknis & O-RAN', items: engineeringItems });
-  }
+  const groups = [
+    { title: '1–5 Alur Eksekutif', items: executiveItems },
+    { title: '6–0 Teknis & O-RAN', items: engineeringItems },
+  ];
 
   return (
     <>

@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import SafeResponsiveContainer from './SafeResponsiveContainer';
 import DataBadge from './DataBadge';
 import TowerCoCapexDetail from './TowerCoCapexDetail';
+import BusinessRoiAndRegionalBenchmarkPanel from './BusinessRoiAndRegionalBenchmarkPanel';
 import { deriveSimulationMetrics } from '../utils/simulationEngine';
 import { JAMALI_REGIONAL_CLUSTERS } from '../data/mockData';
 import { calculateHourTelemetry } from './GlobalSimulationBar';
@@ -16,7 +17,8 @@ import {
   Scale,
   Database,
   FileText,
-  Building2
+  Building2,
+  FileDown
 } from 'lucide-react';
 
 // Skenario Sensitivitas Finansial Resmi Telkomsel
@@ -203,6 +205,30 @@ export default function FinancialModelTab({
     }
   };
 
+  const handleExportFinancialCsv = () => {
+    const headers = ['Horizon', 'Nama_Fase', 'Jumlah_Site', 'CapEx', 'OpEx_Thn', 'Energi_Dihemat', 'Manfaat_Bersih_Thn', 'NPV_5Thn', 'Payback', 'Reduksi_Karbon'];
+    const rows = HORIZON_ROADMAP.map((h) => [
+      `"${h.horizon}"`,
+      `"${h.name}"`,
+      h.siteCount,
+      `"${h.capex}"`,
+      `"${h.opex}"`,
+      `"${h.energySaved}"`,
+      `"${h.netBenefit}"`,
+      `"${h.npv}"`,
+      `"${h.payback}"`,
+      `"${h.carbon}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Telkomsel_DCF_Roadmap_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -216,6 +242,15 @@ export default function FinancialModelTab({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportFinancialCsv}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <FileDown className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Ekspor DCF (CSV)</span>
+            </button>
+
             {onOpenOfficialBaRe && (
               <button
                 type="button"
@@ -503,6 +538,18 @@ export default function FinancialModelTab({
               </SafeResponsiveContainer>
             </div>
           </section>
+
+          <BusinessRoiAndRegionalBenchmarkPanel
+            siteCount={siteCount}
+            tariffPerKwh={tariff}
+            waccPct={discount}
+            capexPerSiteIdr={capexPerSite}
+            targetEfficiencyPct={targetEfficiency}
+            resolvedSites={resolvedSites}
+            onOpenOfficialBaRe={onOpenOfficialBaRe}
+            onOpenSapVoucher={onOpenSapVoucher}
+            onOpenProcurementBoq={onOpenProcurementBoq}
+          />
         </div>
       )}
 

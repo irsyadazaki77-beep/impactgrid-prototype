@@ -7,21 +7,22 @@ export default function ShortcutsModal({ isOpen, onClose }) {
   const shortcuts = [
     { key: 'Shift + ?', desc: 'Buka panduan pintasan keyboard ini' },
     { key: 'Cmd / Ctrl + K', desc: 'Buka Command Palette & Pencarian Global (50 Site / Q&A / Bukti)' },
+    { key: '1 - 5', desc: 'Navigasi Alur Eksekutif (1 Ringkasan, 2 Validasi, 3 Skenario, 4 Finansial, 5 ESG)' },
+    { key: '6 - 0', desc: 'Navigasi Modul Teknis & O-RAN (6 Telemetri, 7 Digital Twin, 8 Agen, 9 Optimasi, 0 Arsitektur)' },
     { key: 'B', desc: 'Buka Generator BoQ, RKS Pengadaan & Simulasi Penalti SLA' },
-    { key: 'J', desc: 'Buka Evaluasi Komite Investasi, Scorecard Juri & BYOD CSV Sandbox' },
-    { key: 'Cmd / Ctrl + E', desc: 'Buka modal ekspor lembar kerja asumsi / laporan' },
-    { key: 'Cmd / Ctrl + Shift + R', desc: 'Reset seluruh simulasi & tampilan demo' },
-    { key: 'Space', desc: 'Putar / jeda jam simulasi otomatis (Auto-Sim)' },
+    { key: 'J', desc: 'Buka Evaluasi Komite Investasi 5 Pilar & BYOD CSV Sandbox' },
+    { key: 'Cmd / Ctrl + E', desc: 'Buka modal ekspor lembar kerja asumsi / laporan resmi' },
+    { key: 'Cmd / Ctrl + Shift + R', desc: 'Reset seluruh parameter simulasi ke baseline standar' },
+    { key: 'Space', desc: 'Putar / jeda jam simulasi otomatis (Auto-Sim 24 Jam)' },
     { key: 'E', desc: 'Buka / tutup konsol simulasi & alihkan ke mode Eksekutif' },
-    { key: 'G', desc: 'Alihkan mode ke Deep Engineering' },
-    { key: '1 - 9', desc: 'Pindah tab navigasi sesuai mode aktif (Executive / Engineering)' },
-    { key: 'V', desc: 'Buka tab Validasi Pilot' },
-    { key: 'W', desc: 'Buka / tutup teleprompter presentasi 7 menit' },
-    { key: 'T', desc: 'Buka Tur Presentasi Direktur' },
-    { key: 'S', desc: 'Buka pengujian stres darurat / keselamatan' },
-    { key: 'P', desc: 'Buka Memo Eksekutif Dewan Direksi' },
-    { key: 'Q', desc: 'Buka cheat sheet tanya-jawab pertahanan Direksi' },
-    { key: 'A', desc: 'Buka asisten kecerdasan AI Copilot' },
+    { key: 'G', desc: 'Alihkan mode ke Deep Engineering & O-RAN' },
+    { key: 'V', desc: 'Buka tab Validasi Pilot & Kausalitas DiD' },
+    { key: 'W', desc: 'Buka / tutup teleprompter pemaparan Direksi 7 menit' },
+    { key: 'T', desc: 'Buka Tur Presentasi Eksekutif Direksi' },
+    { key: 'S', desc: 'Buka pengujian stres darurat 112 / keselamatan publik' },
+    { key: 'P', desc: 'Buka Memo Eksekutif Dewan Direksi (A4)' },
+    { key: 'Q', desc: 'Buka referensi tanya-jawab pertahanan Dewan Direksi (BoD Q&A)' },
+    { key: 'A', desc: 'Buka asisten analitik AI Strategy Copilot' },
   ];
 
   return (
@@ -42,9 +43,9 @@ export default function ShortcutsModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 id="shortcuts-modal-title" className="text-lg font-bold">
-                Panduan Pintasan Keyboard
+                Panduan Pintasan Keyboard Operasional
               </h2>
-              <p className="text-xs text-slate-400">Pintasan navigasi cepat demo & kendali simulasi</p>
+              <p className="text-xs text-slate-400">Pintasan navigasi cepat NOC, Komite Investasi &amp; kendali simulasi</p>
             </div>
           </div>
           <button

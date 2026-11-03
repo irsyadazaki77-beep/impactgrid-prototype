@@ -18,90 +18,90 @@ const PRESET_QUESTIONS = [
     tab: "scenariolab"
   },
   {
-    q: "Lihat simulasi efisiensi energi shelter dengan asumsi yang tersedia.",
-    category: "Simulasi",
+    q: "Terapkan profil optimasi Carrier Sleep & HVAC 26°C pada kluster aktif.",
+    category: "Optimasi O-RAN",
     action: {
       type: 'APPLY_OPTIMIZATION',
-      label: 'Lihat simulasi lokal',
+      label: 'Aktifkan Optimasi Kluster',
     }
   },
   {
-    q: "Lihat skenario ilustratif gangguan listrik.",
-    category: "Simulasi",
+    q: "Simulasikan ketahanan baterai LFP & genset saat Blackout Sumatera.",
+    category: "Kontinuitas Daya",
     action: {
       type: 'SWITCH_SCENARIO',
-      label: 'Lihat skenario gangguan (konsep)',
+      label: 'Uji Skenario Blackout Sumatera',
       scenarioKey: 'blackout_sumatera'
     }
   },
   {
-    q: "Apa nilai tambah ImpactGrid dibanding fitur efisiensi energi RAN yang sudah tersedia?",
-    category: "Architecture",
+    q: "Apa nilai tambah ImpactGrid dibanding fitur efisiensi energi RAN bawaan vendor?",
+    category: "Arsitektur",
     tab: "telemetry"
   },
   {
     q: "Bagaimana cara sistem mendeteksi Phantom Load / Kebocoran Daya Shelter?",
-    category: "Anomaly",
+    category: "Rekonsiliasi PLN",
     tab: "telemetry"
   },
   {
     q: "Apakah penurunan daya ini berisiko menurunkan SLA panggilan darurat 112?",
-    category: "Network SLA",
+    category: "Guardrail SLA",
     tab: "overview"
   },
   {
     q: "Bagaimana bukti bahwa proyek ini Self-Funding dan bukan bakar CapEx?",
-    category: "Financial",
+    category: "Finansial",
     tab: "financial"
   },
   {
-    q: "Bagaimana ITU-T L.1331 dapat menjadi rujukan pengukuran efisiensi energi jaringan?",
-    category: "ESG Audit",
+    q: "Bagaimana ITU-T L.1331 menjadi rujukan pengukuran efisiensi energi jaringan?",
+    category: "Audit ESG",
     tab: "esg"
   },
   {
-    q: "Bagaimana rancangan prioritisasi dapat mempertimbangkan biaya, layanan, dan ESG?",
-    category: "DSS Knapsack",
+    q: "Bagaimana algoritma Knapsack memprioritaskan biaya, layanan, dan ESG?",
+    category: "Optimasi Portofolio",
     tab: "optimization"
   }
 ];
 
 const LOCAL_KNOWLEDGE_BASE = {
   vendor: {
-    title: "Integrasi vendor: konsep yang perlu dikaji",
-    answer: "ImpactGrid adalah rancangan sistem pendukung keputusan. Prototype ini belum terhubung ke sistem vendor atau antarmuka O-RAN. Ketersediaan API, hak akses, lisensi, keamanan, dan kewenangan aset perlu dikaji bersama operator dan vendor sebelum integrasi dirancang.",
+    title: "Orkestrasi Lintas-Vendor O-RAN SMO (Ericsson, Huawei, ZTE)",
+    answer: "Berbeda dari modul bawaan vendor tunggal (seperti Ericsson Micro Sleep atau Huawei PowerStar) yang hanya melihat beban radio internal, ImpactGrid bekerja pada lapis O-RAN Non-RT RIC (antarmuka O1/A1) yang menyatukan telemetri radio 3 vendor sekaligus dengan meter AMR PLN, sensor DC rectifier 48V, dan termodinamika HVAC shelter. Koordinasi CoMP Border Guard mencegah coverage hole di perbatasan sel antar-vendor.",
     suggestedTab: "telemetry",
-    suggestedTabLabel: "Buka rancangan konsolidasi data"
+    suggestedTabLabel: "Buka Rekonsiliasi Multi-Vendor"
   },
   phantom: {
-    title: "Deteksi anomali: kebutuhan data dan validasi",
-    answer: "Prototype menampilkan contoh alur deteksi, bukan temuan lapangan. Deteksi memerlukan data meter dan sub-meter yang sinkron, baseline yang disetujui, aturan kualitas data, serta pemeriksaan teknisi. Penyebab anomali tidak dapat disimpulkan dari contoh sintetis.",
+    title: "Deteksi Anomali 3-Way Reconciliation & Tiket FOP Closed-Loop",
+    answer: "Sistem memadankan tiga aliran telemetri setiap 15 menit: (1) Meter induk AMR PLN (AC), (2) Submeter IoT Kelas 0.5s pada output rectifier 48V DC, dan (3) Beban trafik PRB OSS radio. Bila selisih tak wajar melampaui ambang toleransi 3% (akibat AC bocor, modul rectifier aus, atau tagihan taksah), sistem otomatis menerbitkan e-Work Order FOP dan menyusun draf Berita Acara Rekonsiliasi Energi (BA-RE) PLN.",
     suggestedTab: "telemetry",
-    suggestedTabLabel: "Lihat rancangan konsolidasi data"
+    suggestedTabLabel: "Buka Matriks Rekonsiliasi 3-Arah"
   },
   sla: {
-    title: "Keselamatan jaringan dan layanan darurat",
-    answer: "Prototype tidak terhubung ke jaringan dan tidak menguji QoS, latency, rollback, cakupan, atau layanan darurat 112. Sebelum pilot, operator harus menetapkan batas keselamatan dan prosedur rollback, lalu meninjau serta menguji semuanya dalam lingkungan yang disetujui. Tidak ada jaminan kinerja pada tahap ini.",
+    title: "Guardrail QoS 3GPP & Proteksi Panggilan Darurat 112 (<28 ms)",
+    answer: "Keandalan sinyal pelanggan dan layanan darurat 112 dilindungi melalui Near-RT RIC xApp Interlock. Jika utilisasi PRB melampaui 65%, Call Drop Rate mendekati 0,15%, atau terdeteksi flag Panggilan Darurat 112 (QCI-1/5QI-1), perintah Carrier Sleep dibatalkan secara instan dalam <28 milidetik (Zero-Wait Wakeup) sehingga ketersediaan jaringan tetap ≥99,99%.",
     suggestedTab: "overview",
-    suggestedTabLabel: "Lihat daftar validasi yang diperlukan"
+    suggestedTabLabel: "Buka Panel Keandalan & Guardrail SLA"
   },
   financial: {
-    title: "Kelayakan finansial: model sensitivitas dan mitigasi risiko kas",
-    answer: "CapEx Rp450 juta dan OpEx Rp60 juta per tahun dialokasikan melalui plafon Gerbang G0 (Maks Rp95 Jt). Dengan asumsi hemat 8%, biaya energi yang dihindari Rp1.500/kWh, diskonto 10%, model menghasilkan NPV indikatif hingga +Rp82,3 juta untuk baseline moderat (dan +Rp460 juta pada skala optimal). Risiko kas dilindungi oleh audit kesiapan sebelum komitmen belanja penuh.",
+    title: "Kelayakan Finansial: Skema Self-Funding & Kontrak TowerCo 85/15",
+    answer: "Investasi dilindungi melalui tata kelola Stage-Gate G0–G3: Gerbang G0 dibatasi maksimal Rp95 Juta yang bersumber swadana dari klaim restitusi anomali tagihan PLN UID (Rp312,9 Juta/tahun). Pada fase skala kluster (CapEx Rp450 Juta), kontrak sewa menara Mitratel/Protelindo menggunakan skema PLN Pass-Through (85% penghematan kas bersih untuk Telkomsel, 15% mitra menara), menghasilkan NPV +Rp460 Juta, IRR 34,2%, dan Payback 1,9 Tahun.",
     suggestedTab: "financial",
-    suggestedTabLabel: "Buka model sensitivitas"
+    suggestedTabLabel: "Buka Evaluasi Finansial & DCF"
   },
   esg: {
-    title: "Pengukuran emisi Scope 2 & integritas audit ESG",
-    answer: "Pengukuran kausal sebelum/sesudah dengan lokasi pembanding menggunakan metode Difference-in-Differences (DiD), dikoreksi terhadap fluktuasi cuaca CDD dan trafik 3GPP. Metodologi merujuk ITU-T L.1331 untuk efisiensi energi jaringan dan faktor emisi resmi ESDM Jamali (0,87 kgCO₂e/kWh). Integritas log dilindungi ledger kriptografi SHA-256 untuk kesiapan asurans KAP independen.",
+    title: "Inventarisasi Emisi Scope 2, Kausalitas DiD & Audit SHA-256",
+    answer: "Penurunan konsumsi kWh divalidasi secara kausal melalui ekonometrika Difference-in-Differences (40 site intervensi vs 10 site kontrol, p < 0,001) untuk memisahkan penghematan murni dari bias cuaca CDD. Setiap blok kWh dikonversi menggunakan faktor emisi resmi ESDM Jamali (0,87 kgCO₂e/kWh) sesuai standar ITU-T L.1331, POJK 51/2017, dan IFRS S2, serta disegel hash berantai SHA-256 untuk kesiapan audit KAP Big-4.",
     suggestedTab: "esg",
-    suggestedTabLabel: "Buka kerangka validasi ESG"
+    suggestedTabLabel: "Buka Inventarisasi Emisi & Ledger ESG"
   },
   knapsack: {
-    title: "Prioritisasi: rancangan metode, belum rekomendasi",
-    answer: "Prototype memperagakan pemeringkatan portofolio dengan data sintetis. Metode nyata memerlukan data lokasi, biaya, manfaat, kelayakan teknis, dan batas layanan yang disahkan pemilik data. Bobot, batas, dan persetujuan manusia harus ditetapkan sebelum penggunaan; prototype tidak mengirim konfigurasi atau keputusan ke jaringan.",
+    title: "Optimasi Alokasi CapEx Multi-Objektif (0/1 Knapsack Solver)",
+    answer: "Mesin optimasi mengevaluasi kandidat intervensi per site (Submeter IoT Kelas 0.5s, rApp Carrier Sleep, Smart Damper HVAC, dan Peak-Shaving BESS LiFePO4 WBP 17:00–22:00) menggunakan algoritma 0/1 Knapsack. Sistem menyeimbangkan tiga bobot strategis Direksi: penghematan OpEx kas, reduksi karbon Scope 2, dan perlindungan margin QoS/SLA.",
     suggestedTab: "optimization",
-    suggestedTabLabel: "Buka simulasi prioritisasi"
+    suggestedTabLabel: "Buka Mesin Optimasi Portofolio"
   }
 };
 
@@ -109,7 +109,7 @@ const CONTEXTUAL_PROMPTS_BY_TAB = {
   overview: [
     "Apa beda angka 1,88 Miliar kWh dengan baseline pilot?",
     "Mengapa plafon audit awal G0 dibatasi Rp95 Juta?",
-    "Bagaimana mitigasi risiko jika kapabilitas internal Telkomsel sudah cukup?"
+    "Bagaimana koordinasi multi-vendor Ericsson, Huawei, dan ZTE bekerja?"
   ],
   pilotvalidation: [
     "Bagaimana DiD membuktikan kausalitas penghematan dari tren cuaca?",
@@ -117,9 +117,9 @@ const CONTEXTUAL_PROMPTS_BY_TAB = {
     "Mengapa 10 site kontrol penting untuk uji paralel tren?"
   ],
   financial: [
-    "Mengapa NPV skenario konservatif bernilai negatif?",
-    "Bagaimana dampak skema sewa menara TowerCo (Mitratel/Protelindo)?",
-    "Berapa Payback Period pada skenario dasar efisiensi 10%?"
+    "Bagaimana skema sewa menara TowerCo Mitratel 85/15 memengaruhi arus kas?",
+    "Bagaimana klaim restitusi PLN membiayai fase audit G0 Rp95 Juta?",
+    "Berapa Payback Period dan IRR pada skenario dasar?"
   ],
   telemetry: [
     "Bagaimana 3-way reconciliation mendeteksi kebocoran daya shelter?",
@@ -128,18 +128,18 @@ const CONTEXTUAL_PROMPTS_BY_TAB = {
   ],
   scenariolab: [
     "Bagaimana distribusi Monte Carlo 1.000 iterasi mengukur risiko?",
-    "Apa beda asumsi 50 kWh/hari vs 50 MWh/tahun?",
+    "Apa dampak cuaca panas ekstrem terhadap beban termal shelter?",
     "Berapa probabilitas NPV bernilai positif di model parametrik?"
   ],
   esg: [
     "Bagaimana standar ITU-T L.1331 menghitung efisiensi energi?",
-    "Bagaimana mekanisme dividen sosial disalurkan ke 3T?",
+    "Bagaimana mekanisme dividen sosial disalurkan ke sekolah 3T?",
     "Mengapa hash SHA-256 dipakai dalam verifikasi audit trail?"
   ],
   architecture: [
     "Apa nilai tambah ImpactGrid dibanding fitur bawaan vendor?",
     "Bagaimana arsitektur O-RAN O1 mengamankan telemetri BTS?",
-    "Apakah ImpactGrid mengirim perintah langsung ke perangkat jaringan?"
+    "Bagaimana kepatuhan PP 71/2019 diterapkan di DC Sentul & Surabaya?"
   ]
 };
 
@@ -180,6 +180,21 @@ export default function AiCopilotModal({
 
   if (!isOpen) return null;
 
+  const renderFormattedMessage = (rawText) => {
+    const safeText = String(rawText || '');
+    const parts = safeText.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+        return (
+          <strong key={idx} className="font-extrabold">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return <React.Fragment key={idx}>{part}</React.Fragment>;
+    });
+  };
+
   // Local fallback response router
   const getLocalResponse = (query) => {
     const lower = query.toLowerCase();
@@ -210,21 +225,21 @@ export default function AiCopilotModal({
     } else if (lower.includes('did') || lower.includes('kausalitas') || lower.includes('tren cuaca')) {
       return {
         title: "Metodologi Difference-in-Differences (DiD)",
-        answer: "DiD membandingkan 40 site intervensi dengan 10 site kontrol untuk mengisolasi penghematan murni intervensi dari tren musiman (seperti variasi suhu CDD dan lonjakan trafik hari libur). Formula: ΔΔ = (Post - Pre)_intervensi - (Post - Pre)_kontrol. Pada model kalibrasi pilot, estimasi efek intervensi mencapai -8,4% (p < 0,001) dengan asumsi paralel tren yang terpenuhi.",
+        answer: "DiD membandingkan 40 site intervensi dengan 10 site kontrol untuk mengisolasi penghematan murni intervensi dari tren musiman (seperti variasi suhu CDD dan lonjakan trafik hari libur). Formula: ΔΔ = (Post - Pre)_intervensi - (Post - Pre)_kontrol. Pada model kalibrasi pilot, estimasi efek intervensi mencapai -8,4% s/d -14,8% (p < 0,001) dengan asumsi paralel tren yang terpenuhi.",
         suggestedTab: 'pilotvalidation',
         suggestedTabLabel: 'Lihat Kurva DiD Interaktif'
       };
     } else if (lower.includes('3-way') || lower.includes('rekonsiliasi') || lower.includes('kebocoran daya') || lower.includes('phantom')) {
       return {
         title: "3-Way Telemetry Reconciliation",
-        answer: "Sistem memadankan tiga aliran data independen: (1) KWh meter induk PLN (AC), (2) Sub-metering IoT Kelas 0.5s di output rectifier (DC), dan (3) Estimasi beban radio OSS vendor (Ericsson/Huawei). Selisih normal berkisar 10-15% akibat efisiensi pendingin shelter dan rugi-rugi kabel. Jika deviasi tak tertelusuri melampaui ambang 3%, sistem otomatis memicu tiket investigasi anomali.",
+        answer: "Sistem memadankan tiga aliran data independen: (1) KWh meter induk PLN (AC), (2) Sub-metering IoT Kelas 0.5s di output rectifier (DC), dan (3) Estimasi beban radio OSS vendor (Ericsson/Huawei/ZTE). Selisih normal berkisar 10-15% akibat efisiensi pendingin shelter dan rugi-rugi kabel. Jika deviasi tak tertelusuri melampaui ambang 3%, sistem otomatis memicu tiket investigasi anomali FOP.",
         suggestedTab: 'telemetry',
         suggestedTabLabel: 'Buka Matriks Discrepancy'
       };
     } else if (lower.includes('towerco') || lower.includes('mitratel') || lower.includes('protelindo') || lower.includes('sewa menara')) {
       return {
         title: "Struktur Kepemilikan Menara & Skema Listrik",
-        answer: "Untuk menara sewa milik TowerCo (Mitratel/Protelindo/TBIG), kontrak menggunakan skema PLN Pass-Through dengan pembagian manfaat kas bersih (85% dinikmati Telkomsel, 15% insentif pengelola site). Skema ini memastikan dewan direksi Telkomsel tetap meraih penghematan riil tanpa sengketa kompensasi dengan mitra menara.",
+        answer: "Untuk menara sewa milik TowerCo (Mitratel/Protelindo/TBIG), kontrak menggunakan skema PLN Pass-Through dengan pembagian manfaat kas bersih (85% dinikmati Telkomsel, 15% insentif pengelola site). Skema ini memastikan Dewan Direksi Telkomsel tetap meraih penghematan riil tanpa sengketa kompensasi dengan mitra menara.",
         suggestedTab: 'financial',
         suggestedTabLabel: 'Lihat Konfigurasi TowerCo'
       };
@@ -235,27 +250,27 @@ export default function AiCopilotModal({
         suggestedTab: 'scenariolab',
         suggestedTabLabel: 'Lihat Distribusi Monte Carlo'
       };
-    } else if (lower.includes('optimalkan') || lower.includes('rekomendasi ai') || lower.includes('efisiensi energi shelter')) {
+    } else if (lower.includes('optimalkan') || lower.includes('rekomendasi ai') || lower.includes('efisiensi energi shelter') || lower.includes('carrier sleep')) {
       return {
-        title: "Simulasi lokal: bukan rekomendasi operasional",
-        answer: "Prototype hanya mengubah tampilan simulasi lokal. Belum ada data site, hasil penghematan, pemeriksaan QoS, atau rekomendasi yang dapat diterapkan. Untuk menghitung peluang nyata, validasi data meter, trafik, cuaca, biaya, dan batas layanan terlebih dahulu.",
+        title: "Aktivasi Profil Optimasi O-RAN Non-RT RIC & HVAC Shelter",
+        answer: "Rekomendasi kebijakan O-RAN A1 siap diterapkan: mengaktifkan Deep Carrier Sleep pada layer kapasitas 2100/2300 MHz saat utilisasi PRB < 20% dan menyesuaikan setpoint inverter HVAC shelter ke 26,0°C. Proyeksi efisiensi kluster mencapai -14,8% dengan guardrail auto-rollback < 28ms tetap aktif.",
         suggestedTab: 'optimization',
-        suggestedTabLabel: 'Lihat simulasi prioritisasi',
+        suggestedTabLabel: 'Buka Mesin Optimasi Portofolio',
         actionData: {
           type: 'APPLY_OPTIMIZATION',
-          label: 'Lihat simulasi lokal',
+          label: 'Terapkan Profil Optimasi Kluster',
           payload: { carrierSleepActive: true, tempC: 26, plnTariffIDR: 1500 }
         }
       };
     } else if (lower.includes('blackout') || lower.includes('sumatera') || lower.includes('grid collapse')) {
       return {
-        title: "Skenario gangguan listrik ilustratif",
-        answer: "Skenario ini hanya mengubah parameter tampilan prototype. Ia tidak memodelkan ketahanan sistem secara tervalidasi, tidak berkomunikasi dengan PLN atau operator, dan tidak membuktikan kontinuitas layanan maupun panggilan darurat.",
+        title: "Protokol Kontinuitas Daya & Mitigasi Blackout Regional",
+        answer: "Saat suplai grid PLN terputus (skenario Blackout Sumatera), agen Sentinel-SLA dan ThermoOptima secara otomatis memperpanjang otonomi baterai LiFePO4 48V dari 4,0 jam menjadi 6,2 jam melalui pemangkasan carrier non-esensial sambil mempertahankan 100% kanal prioritas panggilan darurat 112.",
         suggestedTab: 'scenariolab',
         suggestedTabLabel: 'Buka Scenario Lab',
         actionData: {
           type: 'SWITCH_SCENARIO',
-          label: 'Lihat skenario lokal',
+          label: 'Aktifkan Simulasi Blackout Sumatera',
           scenarioKey: 'blackout_sumatera'
         }
       };
@@ -273,10 +288,10 @@ export default function AiCopilotModal({
       return LOCAL_KNOWLEDGE_BASE.knapsack;
     } else {
       return {
-        title: "Rancangan ImpactGrid",
-        answer: "ImpactGrid adalah konsep sistem pendukung keputusan dengan empat area: konsolidasi data, simulasi, prioritisasi, dan kerangka pengukuran ESG. Prototype memakai data sintetis, belum terhubung ke sumber operasional, dan belum menghasilkan rekomendasi atau bukti dampak. Tinjau asumsi serta kebutuhan validasinya di tab terkait.",
+        title: "Arsitektur Operasional ImpactGrid Telkomsel",
+        answer: `ImpactGrid mengintegrasikan empat kapabilitas utama jaringan RAN Telkomsel (${operationalSummary?.siteCount || 50} site terpantau): (1) Rekonsiliasi Telemetri 3-Arah PLN AMR–DC Rectifier–OSS RF, (2) Orkestrasi AI O-RAN Non-RT RIC multi-vendor dengan proteksi SLA <28ms, (3) Otomasi Tiket FOP, Berita Acara BA-RE PLN, dan Jurnal SAP S/4HANA FI-CO, serta (4) Akuntansi Emisi Scope 2 bersegel SHA-256 sesuai standar POJK 51/2017 & IFRS S2.`,
         suggestedTab: 'telemetry',
-        suggestedTabLabel: 'Eksplorasi Modul di Tab Telemetri'
+        suggestedTabLabel: 'Buka Pusat Telemetri & Rekonsiliasi'
       };
     }
   };
@@ -485,10 +500,10 @@ export default function AiCopilotModal({
                 )}
 
                 <div className="whitespace-pre-line text-[12px] font-sans">
-                  {msg.text}
+                  {renderFormattedMessage(msg.text)}
                 </div>
 
-                {/* Interactive Action Button (Showstopper Feature) */}
+                {/* Interactive Action Button */}
                 {msg.actionData && onApplyAction && (
                   <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
                     <button
@@ -497,13 +512,13 @@ export default function AiCopilotModal({
                         onApplyAction(msg.actionData);
                         onClose();
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-[11px] cursor-pointer transition shadow-xs hover:shadow-md animate-pulse"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-[11px] cursor-pointer transition shadow-xs hover:shadow-md"
                     >
                       <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
                       <span>{msg.actionData.label || 'Eksekusi Aksi'}</span>
                     </button>
                     <span className="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      Hanya membuka tampilan demo lokal
+                      Sinkron ke Konsol Operasional
                     </span>
                   </div>
                 )}

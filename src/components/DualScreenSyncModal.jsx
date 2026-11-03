@@ -55,7 +55,7 @@ export default function DualScreenSyncModal({
             </div>
             <div>
               <h2 id="dual-screen-sync-title" className="text-sm sm:text-base font-black tracking-tight">
-                Dual-Screen Presenter &amp; Jury Projector Live Sync
+                Dual-Screen Presenter &amp; Boardroom Projector Live Sync
               </h2>
               <p className="text-[11px] text-slate-400 font-mono">
                 Channel: impactgrid-live-sync-v1 • Sinkronisasi Lokal Tanpa Internet (BroadcastChannel)
@@ -108,7 +108,7 @@ export default function DualScreenSyncModal({
             >
               <div className="flex items-center justify-between">
                 <strong className="text-xs font-black uppercase text-slate-900 dark:text-white">
-                  Layar 2: Audience / Proyektor Juri
+                  Layar 2: Audience / Proyektor Ruang Rapat Direksi
                 </strong>
                 {syncStats.role === 'audience' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
               </div>
@@ -131,7 +131,7 @@ export default function DualScreenSyncModal({
                 type="text"
                 readOnly
                 value={audienceUrl}
-                aria-label="URL Layar Proyektor Juri"
+                aria-label="URL Layar Proyektor Direksi"
                 className="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 font-mono text-xs text-slate-800 dark:text-slate-200"
               />
               <button

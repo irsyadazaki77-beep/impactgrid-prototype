@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronRight, CheckCircle2, ShieldCheck, X, FileText, Sparkles, ArrowRight } from 'lucide-react';
+import { HelpCircle, ChevronRight, CheckCircle2, ShieldCheck, X, FileText, Sparkles, ArrowRight, Download } from 'lucide-react';
 
 const DEFENSE_QUESTIONS = [
   {
@@ -7,7 +7,7 @@ const DEFENSE_QUESTIONS = [
     category: "CTO / Network Director",
     question: "Bukankah fitur sleep mode ini sudah ada di vendor RAN kami (Ericsson ENM / Huawei iMaster)? Kenapa harus buat ImpactGrid?",
     shortAnswer: "Solusi Vendor Bersifat Silo, ImpactGrid Mengorkestrasi Lintas-Domain",
-    fullExplanation: "Fitur sleep mode bawaan vendor (Huawei iMaster / Ericsson ENM) hanya mengoptimalkan radio secara terisolasi tanpa integrasi data submetering listrik PLN, kondisi mikroklimat HVAC shelter, profil tarif WBP/LWBP, maupun klausul pass-through TowerCo. ImpactGrid bertindak sebagai Non-RT RIC (RAN Intelligent Controller) berbasis O-RAN O1 yang mengorkestrasi multi-vendor secara terpadu demi efisiensi biaya menyeluruh.",
+    fullExplanation: "Fitur sleep mode bawaan vendor (Huawei iMaster / Ericsson ENM / ZTE NetNumen) hanya mengoptimalkan radio secara terisolasi tanpa integrasi data submetering listrik PLN, kondisi mikroklimat HVAC shelter, profil tarif WBP/LWBP, maupun klausul pass-through TowerCo. ImpactGrid bertindak sebagai Non-RT RIC (RAN Intelligent Controller) berbasis O-RAN O1 yang mengorkestrasi multi-vendor secara terpadu demi efisiensi biaya menyeluruh.",
     targetTab: "architecture",
     proofPoint: "Lihat Arsitektur Multi-Tier O-RAN O1 & TMF API"
   },
@@ -76,7 +76,16 @@ const DEFENSE_QUESTIONS = [
   }
 ];
 
-export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
+export default function BodDefenseModal({
+  isOpen,
+  onClose,
+  onNavigateTab,
+  simState,
+  selectedScale = 'pilot',
+  operationalSummary,
+  resolvedSites = [],
+  onOpenOfficialBaRe
+}) {
   const [selectedQuestion, setSelectedQuestion] = useState(DEFENSE_QUESTIONS[0]);
   const [filterCategory, setFilterCategory] = useState('all');
 
@@ -95,11 +104,37 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
 
   if (!isOpen) return null;
 
+  const siteCount = operationalSummary?.siteCount ?? 50;
+  const savedMwh = operationalSummary?.annualizedSavedMwh ?? 200;
+  const simHour = typeof simState?.simHour === 'number' ? simState.simHour : 14;
+
+  const handleExportDefenseCsv = () => {
+    const rows = [
+      ['ID', 'Persona Direksi', 'Pertanyaan Kritis', 'Jawaban Inti (Quick Hook)', 'Argumen Kuantitatif & Solusi', 'Modul Bukti'],
+      ...DEFENSE_QUESTIONS.map((q) => [
+        q.id,
+        q.category,
+        q.question,
+        q.shortAnswer,
+        q.fullExplanation,
+        `${q.proofPoint} (${q.targetTab})`
+      ])
+    ];
+    const csvContent = rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_BoD_Defense_QA_Telkomsel_${selectedScale}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#0B1324] rounded-2xl max-w-4xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white flex items-center justify-between shrink-0">
+        <div className="px-6 py-4 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center space-x-3">
             <div className="p-2 rounded-xl bg-white/10 backdrop-blur-xs">
               <ShieldCheck className="w-6 h-6 text-white" />
@@ -112,16 +147,52 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
                 </span>
               </div>
               <p className="text-xs text-amber-100 mt-0.5">
-                Kompilasi jawaban taktis & navigasi bukti langsung di web untuk menghadapi CEO, CTO, CFO & ESG Director.
+                Kompilasi jawaban taktis &amp; navigasi bukti langsung untuk menghadapi CEO, CTO, CFO &amp; ESG Director.
               </p>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportDefenseCsv}
+              className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition cursor-pointer inline-flex items-center gap-1.5 border border-white/25"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Unduh Q&amp;A Direksi (CSV)</span>
+            </button>
+            <button 
+              onClick={onClose}
+              aria-label="Tutup BoD Defense"
+              className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Live Synchronized Operational Proof Strip */}
+        <div className="px-6 py-2.5 bg-slate-900 text-slate-200 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] shrink-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>Skala Aktif: <strong className="text-amber-400 uppercase">{selectedScale} ({siteCount} Site)</strong></span>
+            <span>•</span>
+            <span>Jam Simulasi: <strong className="text-emerald-400">{String(simHour).padStart(2, '0')}:00 WIB</strong></span>
+            <span>•</span>
+            <span>Hemat Tahunan: <strong className="text-white">{savedMwh} MWh/Thn</strong></span>
+            <span>•</span>
+            <span>Kalibrasi FOP: <strong className="text-emerald-400">{resolvedSites.length} Site Klop</strong></span>
+          </div>
+          {onOpenOfficialBaRe && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenOfficialBaRe();
+              }}
+              className="text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer"
+            >
+              Buka Berita Acara (BA-RE)
+            </button>
+          )}
         </div>
 
         {/* Content Body: Split Left (Question List) & Right (Deep Answer & Live Proof) */}
@@ -130,7 +201,7 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
           <div className="md:col-span-5 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-4 space-y-2 bg-slate-50/50 dark:bg-slate-950/40">
             <div className="space-y-1.5 mb-3">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">
-                Filter Persona Dewan Direksi & Stakeholder:
+                Filter Persona Dewan Direksi &amp; Stakeholder:
               </span>
               <div className="flex flex-wrap gap-1">
                 {categories.map(cat => (
@@ -167,7 +238,7 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
                   </span>
                   <ChevronRight className={`w-3.5 h-3.5 ${selectedQuestion.id === item.id ? 'text-white' : 'text-slate-400'}`} />
                 </div>
-                <span className={`text-xs font-bold leading-snug mt-1 ${selectedQuestion.id === item.id ? 'text-white' : 'text-slate-900'}`}>
+                <span className={`text-xs font-bold leading-snug mt-1 ${selectedQuestion.id === item.id ? 'text-white' : 'text-slate-900 dark:text-slate-100'}`}>
                   {item.question}
                 </span>
               </button>
@@ -175,50 +246,51 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
           </div>
 
           {/* Right Deep Answer Box */}
-          <div className="md:col-span-7 p-6 overflow-y-auto space-y-5 bg-white">
+          <div className="md:col-span-7 p-6 overflow-y-auto space-y-5 bg-white dark:bg-[#0B1324]">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 text-xs font-bold">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span>{selectedQuestion.category} Focus</span>
               </div>
-              <h3 className="text-base font-black text-slate-900 tracking-tight mt-2 leading-snug">
-                "{selectedQuestion.question}"
+              <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight mt-2 leading-snug">
+                &ldquo;{selectedQuestion.question}&rdquo;
               </h3>
             </div>
 
             {/* Quick One-Liner Hook */}
             <div className="p-3.5 rounded-2xl bg-slate-900 text-white space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">
-                Jawaban 1 Kalimat Paling Menusuk (Quick Hook):
+                Jawaban Inti Eksekutif (Executive Hook):
               </span>
               <p className="text-xs font-semibold leading-relaxed">
-                "{selectedQuestion.shortAnswer}"
+                &ldquo;{selectedQuestion.shortAnswer}&rdquo;
               </p>
             </div>
 
             {/* Detailed Tactical Reasoning */}
             <div className="space-y-2">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-600 block">
-                Argumen Kuantitatif & Landasan Solusi:
+              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 block">
+                Argumen Kuantitatif &amp; Landasan Solusi:
               </span>
-              <p className="text-xs text-slate-700 leading-relaxed font-normal bg-slate-50 p-4 rounded-2xl border border-slate-200/90">
+              <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-normal bg-slate-50 dark:bg-slate-900/70 p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800">
                 {selectedQuestion.fullExplanation}
               </p>
             </div>
 
             {/* Proof Point Navigator */}
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/90 flex items-center justify-between gap-3">
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800 flex items-center justify-between gap-3">
               <div className="space-y-0.5">
-                <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider block">
-                  Layar Bukti Interaktif di Prototype:
+                <span className="text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300 tracking-wider block">
+                  Modul Bukti Operasional Langsung:
                 </span>
-                <span className="text-xs font-bold text-emerald-950">
+                <span className="text-xs font-bold text-emerald-950 dark:text-emerald-100">
                   {selectedQuestion.proofPoint}
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => {
-                  onNavigateTab(selectedQuestion.targetTab);
+                  onNavigateTab?.(selectedQuestion.targetTab);
                   onClose();
                 }}
                 className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center space-x-1.5 shrink-0 cursor-pointer shadow-xs"
@@ -233,3 +305,4 @@ export default function BodDefenseModal({ isOpen, onClose, onNavigateTab }) {
     </div>
   );
 }
+

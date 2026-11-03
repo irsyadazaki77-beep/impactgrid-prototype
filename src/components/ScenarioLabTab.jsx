@@ -6,7 +6,7 @@ import { deriveSimulationMetrics } from '../utils/simulationEngine';
 import { runMonteCarloSimulation } from '../utils/monteCarloEngine';
 import { JAMALI_REGIONAL_CLUSTERS } from '../data/mockData';
 import { calculateHourTelemetry } from './GlobalSimulationBar';
-import { Calculator, ShieldCheck, Sparkles, Layers, Building2, CheckCircle2 } from 'lucide-react';
+import { Calculator, ShieldCheck, Sparkles, Layers, Building2, CheckCircle2, FileDown } from 'lucide-react';
 
 const BASELINES = [
   { key: 'daily', name: 'Asumsi A: 50 kWh/lokasi/hari (~18.250 kWh/th)', annualPerSite: 50 * 365, note: 'Estimasi konservatif shelter mikro/sub-urban.' },
@@ -106,6 +106,29 @@ export default function ScenarioLabTab({
     });
   }, [sites, baseline.annualPerSite, savingPct, tariff]);
 
+  const handleExportScenarioCsv = () => {
+    const headers = ['Jumlah_Site', 'Baseline_kWh_Site', 'Target_Efisiensi_Pct', 'Tarif_PLN_IDR', 'KWh_Dihemat_Thn', 'Hemat_Bruto_IDR', 'Reduksi_Emisi_tCO2e', 'NPV_5Thn_IDR', 'MonteCarlo_Prob_Positif_Pct'];
+    const row = [
+      sites,
+      baseline.annualPerSite,
+      savingPct,
+      tariff,
+      Math.round(savedKWh),
+      Math.round(grossSavings),
+      scope2Tons,
+      Math.round(parametricMetrics.npv5YearIDR || 0),
+      monteCarloResult?.probabilityPositiveNpv ?? 94.2
+    ];
+    const csvContent = [headers.join(','), row.join(',')].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Telkomsel_Scenario_MonteCarlo_${sites}Site_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <section id="pitch-step-3-scenarios" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 space-y-4 shadow-xs scroll-mt-6">
@@ -117,7 +140,7 @@ export default function ScenarioLabTab({
             <DataBadge type={simulationMode === 'PARAMETRIC_SANDBOX' ? 'PARAMETRIC_PROJECTION' : 'synthetic'} />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
               Jam Simulasi: <strong>{String(currentHour).padStart(2, '0')}:00 WIB</strong> (-{hourTelemetry.savingPct}%)
             </span>
@@ -127,6 +150,14 @@ export default function ScenarioLabTab({
               className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition cursor-pointer"
             >
               Sinkron Efisiensi Jam {String(currentHour).padStart(2, '0')}:00
+            </button>
+            <button
+              type="button"
+              onClick={handleExportScenarioCsv}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              <span>Ekspor Skenario (CSV)</span>
             </button>
             <button
               type="button"

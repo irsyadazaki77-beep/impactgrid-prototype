@@ -5,13 +5,26 @@ import {
   CheckCircle2, 
   Sparkles, 
   X,
-  Target
+  Target,
+  Download
 } from 'lucide-react';
 
-export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
+export default function DirectorTourModal({
+  isOpen,
+  onClose,
+  onNavigateTab,
+  simState,
+  selectedScale = 'pilot',
+  operationalSummary,
+  resolvedSites = []
+}) {
   const [currentStep, setCurrentStep] = useState(0);
 
   if (!isOpen) return null;
+
+  const siteCount = operationalSummary?.siteCount ?? 50;
+  const savedMwh = operationalSummary?.annualizedSavedMwh ?? 200;
+  const simHour = typeof simState?.simHour === 'number' ? simState.simHour : 14;
 
   const tourSteps = [
     {
@@ -82,6 +95,28 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
 
   const current = tourSteps[currentStep];
 
+  const handleExportBriefingCsv = () => {
+    const rows = [
+      ['Tahap', 'Judul Materi Briefing', 'Audiens Direksi', 'Metrik Utama', 'Pokok Telaah Strategis Eksekutif', 'Modul Terkait'],
+      ...tourSteps.map((s, idx) => [
+        idx + 1,
+        s.title,
+        s.targetDirector,
+        s.keyMetric,
+        s.pitchScript,
+        s.targetTab
+      ])
+    ];
+    const csvContent = rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Executive_Briefing_Direksi_${selectedScale}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       const nextIdx = currentStep + 1;
@@ -115,7 +150,7 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="director-tour-title"
-        className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-xl bg-white dark:bg-[#0B1324] text-slate-900 dark:text-slate-100 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Modal Header */}
         <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between border-b border-slate-800">
@@ -125,34 +160,52 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
             </div>
             <div>
               <h2 id="director-tour-title" className="text-sm font-black tracking-tight">
-                Executive Briefing & Strategic Walkthrough • Dewan Direksi Telkomsel
+                Executive Briefing &amp; Strategic Walkthrough • Dewan Direksi Telkomsel
               </h2>
               <p className="text-[11px] text-slate-400">
-                Langkah {currentStep + 1} dari {tourSteps.length}: Panduan Eksekutif Dewan Direksi
+                Langkah {currentStep + 1} dari {tourSteps.length}: Panduan Eksekutif ({siteCount} Site · Jam {String(simHour).padStart(2, '0')}:00 WIB)
               </p>
             </div>
           </div>
 
-          <button 
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleExportBriefingCsv}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition cursor-pointer inline-flex items-center gap-1 border border-slate-700"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Unduh Materi (CSV)</span>
+            </button>
+            <button 
+              onClick={onClose}
+              aria-label="Tutup Briefing"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Content Body */}
         <div className="p-5 sm:p-6 space-y-4 overflow-y-auto text-xs">
+          {/* Live Telemetry Sync Strip */}
+          <div className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+            <span>Skala Aktif: <strong className="uppercase text-[#ED0226]">{selectedScale} ({siteCount} Site)</strong></span>
+            <span>Penghematan: <strong className="text-emerald-600 dark:text-emerald-400">{savedMwh} MWh/Thn</strong></span>
+            <span>Kalibrasi FOP: <strong>{resolvedSites.length} Site Klop</strong></span>
+          </div>
+
           {/* Target Audience & Metric Pill */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="flex items-center space-x-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Audiens Utama:</span>
-              <span className="font-extrabold text-xs text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">
+              <span className="font-extrabold text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 px-2.5 py-0.5 rounded-full border border-red-200 dark:border-red-900">
                 {current.targetDirector}
               </span>
             </div>
 
-            <div className="flex items-center space-x-1.5 font-mono text-[11px] bg-slate-100 px-2.5 py-0.5 rounded-lg text-slate-700 font-bold">
+            <div className="flex items-center space-x-1.5 font-mono text-[11px] bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-lg text-slate-700 dark:text-slate-200 font-bold">
               <Target className="w-3.5 h-3.5 text-slate-500" />
               <span>{current.keyMetric}</span>
             </div>
@@ -160,24 +213,24 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
 
           {/* Step Title */}
           <div>
-            <h3 className="text-base font-black text-slate-900">
+            <h3 className="text-base font-black text-slate-900 dark:text-white">
               {current.title}
             </h3>
           </div>
 
           {/* Spoken Pitch Script (Executive Dossier Style) */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-2">
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
               Pokok Telaah Strategis Eksekutif:
             </span>
-            <p className="text-slate-800 text-xs sm:text-[13px] leading-relaxed font-medium">
-              "{current.pitchScript}"
+            <p className="text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] leading-relaxed font-medium">
+              &ldquo;{current.pitchScript}&rdquo;
             </p>
           </div>
 
           {/* Action Prompt */}
-          <div className="flex items-center space-x-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold text-[11px]">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="flex items-center space-x-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 font-semibold text-[11px]">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>Tindakan di Layar: {current.actionPrompt}</span>
           </div>
 
@@ -191,7 +244,7 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
                 className={`h-2 rounded-full transition-all cursor-pointer ${
                   idx === currentStep 
                     ? 'w-6 bg-[#ED0226]' 
-                    : 'w-2 bg-slate-200 hover:bg-slate-300'
+                    : 'w-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
                 }`}
               />
             ))}
@@ -199,14 +252,14 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="bg-slate-50 px-5 py-3.5 border-t border-slate-200 flex items-center justify-between">
+        <div className="bg-slate-50 dark:bg-slate-900 px-5 py-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <button
             onClick={handlePrev}
             disabled={currentStep === 0}
             className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
               currentStep === 0
-                ? 'text-slate-300 cursor-not-allowed'
-                : 'text-slate-700 hover:bg-slate-200'
+                ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800'
             }`}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -239,3 +292,4 @@ export default function DirectorTourModal({ isOpen, onClose, onNavigateTab }) {
     </div>
   );
 }
+

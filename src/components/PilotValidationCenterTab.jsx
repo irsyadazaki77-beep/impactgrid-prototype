@@ -10,7 +10,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   Wrench,
-  Zap
+  Zap,
+  FileDown
 } from 'lucide-react';
 import EvidenceExplorerModal from './EvidenceExplorerModal';
 import DifferenceInDifferencesVisualizer from './DifferenceInDifferencesVisualizer';
@@ -76,6 +77,27 @@ export default function PilotValidationCenterTab({
   const hourTelemetry = calculateHourTelemetry(currentHour, currentScenario);
   const activeSitesCount = operationalSummary?.activeSitesCount || 50;
   const calibratedCount = resolvedSites.length;
+
+  const handleExportValidationCsv = () => {
+    const headers = ['No', 'Pilar_Validasi', 'Status_Kepatuhan', 'Bukti_Operasional', 'Kriteria_Evaluasi', 'Jam_Simulasi', 'Efisiensi_Pct'];
+    const rows = operationalValidations.map((item, idx) => [
+      idx + 1,
+      `"${item.title.replace(/"/g, '""')}"`,
+      `"${item.status.replace(/"/g, '""')}"`,
+      `"${item.evidence.replace(/"/g, '""')}"`,
+      `"${item.decision.replace(/"/g, '""')}"`,
+      `${String(currentHour).padStart(2, '0')}:00 WIB`,
+      `-${hourTelemetry.savingPct}%`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Telkomsel_Validasi_DiD_QoS_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
@@ -161,6 +183,13 @@ export default function PilotValidationCenterTab({
               <FileText className="h-4 w-4" /> Lihat Lembar Kerja Validasi
             </button>
           )}
+          <button
+            type="button"
+            onClick={handleExportValidationCsv}
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold transition cursor-pointer shadow-2xs"
+          >
+            <FileDown className="h-4 w-4" /> Ekspor Matriks Validasi (CSV)
+          </button>
           <button
             onClick={() => setIsEvidenceOpen(true)}
             className="inline-flex items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 px-4 py-2 text-xs font-bold transition cursor-pointer shadow-2xs border border-slate-200 dark:border-slate-700"

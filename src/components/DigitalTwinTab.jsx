@@ -13,15 +13,18 @@ import {
   TrendingDown,
   Box,
   Wrench,
-  RefreshCw
+  RefreshCw,
+  Download
 } from 'lucide-react';
 import Bts3DDigitalTwinCanvas from './Bts3DDigitalTwinCanvas';
 import RegionalMultiSiteBenchmark, { EXTENDED_REGIONAL_SITES } from './RegionalMultiSiteBenchmark';
+import Site3gppCarrierInspectorPanel from './Site3gppCarrierInspectorPanel';
 import { MULTI_VENDOR_RAN_COMPARISON } from '../data/mockData';
 import { calculateHourTelemetry } from './GlobalSimulationBar';
 
 export default function DigitalTwinTab({
   simState,
+  emergencyState = { active: false },
   operationalState,
   resolvedSites = [],
   onResolveSiteAnomaly,
@@ -91,6 +94,43 @@ export default function DigitalTwinTab({
     }
     setDispatchNotice(`Kebijakan O-RAN O1 (${optimizationMode.toUpperCase()}) berhasil dikirim ke ${site.id} (${site.vendor || 'Multi-Vendor'}).`);
     setTimeout(() => setDispatchNotice(null), 4000);
+  };
+
+  const handleExportPinnCsv = () => {
+    const rows = [
+      ['Site ID', 'Nama Menara BTS', 'Region', 'Vendor RAN', 'Baseline (kW)', 'Grid Aktif (kW)', 'Hemat (%)', 'Suhu Kabinet (C)', 'PUE', 'Hemat/Jam (IDR)', 'Status Kalibrasi FOP'],
+      ...combinedSites.map((s) => {
+        const isCurrent = s.id === site.id;
+        const isRes = resolvedSites.includes(s.id);
+        const baseKw = Number(s.baselinePowerKw || 4.8);
+        const gridKw = isCurrent ? simulation.totalGridPowerKw : Number((baseKw * 0.82).toFixed(2));
+        const savedPct = isCurrent ? simulation.powerSavedPct : '18.0';
+        const cabTemp = isCurrent ? simulation.cabinetInternalTempC : 25.4;
+        const sitePue = isCurrent ? simulation.pue : '1.21';
+        const saveIdr = isCurrent ? simulation.savingsPerHourIdr : Math.round((baseKw - gridKw) * (s.tariffRate || 1500));
+        return [
+          s.id,
+          s.name,
+          s.region || 'Jamali',
+          s.vendor || 'Ericsson',
+          baseKw,
+          gridKw,
+          `${savedPct}%`,
+          cabTemp,
+          sitePue,
+          saveIdr,
+          isRes ? 'TERKALIBRASI FOP' : 'AKTIF O-RAN O1'
+        ];
+      })
+    ];
+    const csvContent = rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_DigitalTwin_PINN_${site.id}_${String(currentHour).padStart(2, '0')}00WIB.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // Physics-Informed Neural Network (PINN) Thermodynamic & Radio Calculation Model
@@ -293,6 +333,14 @@ export default function DigitalTwinTab({
                 <span>Terkalibrasi FOP · Lihat BA-RE</span>
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleExportPinnCsv}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold transition cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Ekspor Telemetri PINN (CSV)</span>
+            </button>
           </div>
         </div>
 
@@ -606,6 +654,15 @@ export default function DigitalTwinTab({
           </div>
         </article>
       </section>
+
+      {/* 04B. Deep 3GPP Rel-18 Per-Carrier & Sub-Carrier Sleep Inspector */}
+      <Site3gppCarrierInspectorPanel
+        site={site}
+        trafficLoadPct={trafficLoadPct}
+        optimizationMode={optimizationMode}
+        emergencyActive={Boolean(emergencyState?.active || simState?.emergencyActive)}
+        isSelectedResolved={isSelectedResolved}
+      />
 
       {/* 05. Multi-Vendor RAN Hardware & O1 Telemetry Comparison */}
       <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 shadow-xs space-y-4">

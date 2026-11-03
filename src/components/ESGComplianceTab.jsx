@@ -4,6 +4,7 @@ import SocialDividendCard from './SocialDividendCard';
 import StakeholderCommunicationSuite from './StakeholderCommunicationSuite';
 import AuditTrailHashVerifier from './AuditTrailHashVerifier';
 import ExecutiveDealClosingSuitePanel from './ExecutiveDealClosingSuitePanel';
+import EsgCarbonTaxAndGreenBtsPanel from './EsgCarbonTaxAndGreenBtsPanel';
 import { calculateHourTelemetry } from './GlobalSimulationBar';
 
 const sources = [
@@ -39,6 +40,26 @@ export default function ESGComplianceTab({
   const hourTelemetry = calculateHourTelemetry(currentHour, simState?.scenarioKey || 'normal');
   const scaleMultiplier = selectedScale === 'national' ? 250 : selectedScale === 'regional' ? 125 : 1;
   const projectedAnnualTons = Math.round(174 * (hourTelemetry.savingPct / 12.0) * scaleMultiplier);
+
+  const handleExportEsgCsv = () => {
+    const headers = ['No', 'Protokol_Validasi_ESG', 'Status_Audit', 'Deskripsi_Metodologi', 'Skala_Aktif', 'Reduksi_Tahunan_tCO2e'];
+    const rows = validations.map(([title, description, status], idx) => [
+      idx + 1,
+      `"${title.replace(/"/g, '""')}"`,
+      `"${status.replace(/"/g, '""')}"`,
+      `"${description.replace(/"/g, '""')}"`,
+      selectedScale.toUpperCase(),
+      projectedAnnualTons
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ImpactGrid_Telkomsel_ESG_Scope2_${selectedScale}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
@@ -84,11 +105,20 @@ export default function ESGComplianceTab({
             ))}
           </div>
 
-          {onOpenReportModal && (
-            <button onClick={onOpenReportModal} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-emerald-800 dark:hover:bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition cursor-pointer shadow-2xs">
-              <FileDown className="h-4 w-4" /> Unduh Dokumen Rekonsiliasi ESG
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportEsgCsv}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-3.5 py-2 text-xs font-bold text-white transition cursor-pointer shadow-2xs"
+            >
+              <FileDown className="h-3.5 w-3.5" /> Ekspor Inventarisasi GRK (CSV)
             </button>
-          )}
+            {onOpenReportModal && (
+              <button onClick={onOpenReportModal} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-emerald-800 dark:hover:bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition cursor-pointer shadow-2xs">
+                <FileDown className="h-4 w-4" /> Unduh Dokumen Rekonsiliasi ESG
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
@@ -117,6 +147,13 @@ export default function ESGComplianceTab({
 
       {activeSubView === 'inventory' && (
         <div className="space-y-6">
+          <EsgCarbonTaxAndGreenBtsPanel
+            selectedScale={selectedScale}
+            projectedAnnualTons={projectedAnnualTons}
+            resolvedSites={resolvedSites}
+            onOpenModal={onOpenModal}
+          />
+
           {/* Protocol Validations Matrix */}
           <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-6 md:p-8 space-y-5 shadow-xs">
             <div className="flex items-center gap-2">

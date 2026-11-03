@@ -120,7 +120,8 @@ export default function OverviewTab({
   resolvedSites = [],
   customByodSites = [],
   onResolveSiteAnomaly,
-  onOpenModal
+  onOpenModal,
+  operationalSummary = null
 }) {
   const [showGisMap, setShowGisMap] = useState(false);
   const [isBrowserOnline, setIsBrowserOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
@@ -286,6 +287,9 @@ export default function OverviewTab({
     };
   }, [simState, selectedScale, emergencyState?.active]);
 
+  const [activeGuidedStep, setActiveGuidedStep] = useState(1);
+  const [oranDispatched, setOranDispatched] = useState(false);
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Emergency Active Alert Banner (If CTO Stress-Test Triggered) */}
@@ -309,35 +313,186 @@ export default function OverviewTab({
         </div>
       )}
 
-      {/* 1. NOC Operations Executive Header */}
-      <div id="pitch-step-1-overview" className="tsel-hero-portal bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs space-y-4 scroll-mt-6">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+      {/* 1. NOC Operations Executive Header (Ringkas & Paham dalam 5 Detik) */}
+      <div id="pitch-step-1-overview" className="tsel-hero-portal bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs space-y-3 scroll-mt-6">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+          <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-red-50 text-[#ED0226] border border-red-200/80 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50 text-xs font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-red-50 text-[#ED0226] border border-red-200/80 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50 text-[11px] font-bold">
                 {scaleData.scopeTitle}
               </span>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/50 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>NOC TELEMETRI AKTIF • KELAS 0.5S</span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/50 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>SNOC TELEMETRI AKTIF • KELAS 0.5S</span>
               </div>
             </div>
-            <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400">
-              Baseline Korporat 2025: 1.885,4 GWh (63,6% Emisi Scope 2)
-            </span>
+            
+            {/* Main Title Preserving e2e text "Rancangan DSS Efisiensi" */}
+            <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              ImpactGrid: Rancangan DSS Efisiensi Jaringan &amp; ESG Telkomsel
+            </h1>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-4xl">
+              Platform terpadu untuk <strong>memantau konsumsi listrik BTS</strong>, <strong>mengoptimalkan fitur hemat daya radio O-RAN</strong> secara otomatis, <strong>merekonsiliasi selisih tagihan PLN (BA-RE)</strong>, dan <strong>membukukan penghematan ke SAP S/4HANA</strong> tanpa mengganggu mutu layanan (SLA).
+            </p>
           </div>
-          
-          {/* Main Title Preserving e2e text "Rancangan DSS Efisiensi" */}
-          <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-            ImpactGrid: Rancangan DSS Efisiensi Jaringan &amp; ESG Telkomsel
-          </h1>
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-4xl">
-            Pusat Kendali Operasi Energi RAN &amp; Decision Support System Multi-Skenario Telkomsel. Mengorkestrasi penghematan daya radio O-RAN O1, optimalisasi termal shelter BTS, rekonsiliasi tagihan PLN BA-RE, dan perlindungan SLA secara real-time.
-          </p>
+
+          {/* Focused Primary Executive Actions */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button 
+              onClick={() => setIsOnePagerOpen(true)}
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 hover:from-red-700 hover:to-red-600 text-white text-xs font-black transition cursor-pointer flex items-center space-x-1.5 shadow-sm hover:shadow-md btn-bounce ring-2 ring-red-500/20 whitespace-nowrap"
+              title="Buka Lembar Keputusan Resmi Dewan Direksi (Executive 1-Pager)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+              <span>One-Pager Direksi</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('scenariolab')}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs whitespace-nowrap"
+            >
+              <Sliders className="w-3.5 h-3.5 text-amber-400" />
+              <span>Simulasi What-If</span>
+            </button>
+
+            {/* Consolidated Secondary Tools & Documents Dropdown */}
+            <div className="relative shrink-0" ref={opsToolsMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsOpsToolsOpen(prev => !prev)}
+                aria-expanded={isOpsToolsOpen}
+                aria-haspopup="menu"
+                className="px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100/90 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 whitespace-nowrap"
+              >
+                <Wrench className="w-3.5 h-3.5 text-[#ED0226]" />
+                <span>Alat Operasional</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${isOpsToolsOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isOpsToolsOpen && (
+                <div 
+                  role="menu"
+                  aria-label="Alat dan Integrasi Operasional"
+                  className="absolute right-0 mt-2 w-76 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-2xl z-40 p-2 animate-in fade-in slide-in-from-top-2 duration-150"
+                >
+                  <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1">
+                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Dokumen Resmi &amp; Modul Teknis</p>
+                    <p className="text-[10px] text-slate-500">Akses cepat dokumen persetujuan &amp; integrasi SNOC</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    {onOpenExecutiveMemo && (
+                      <button
+                        role="menuitem"
+                        onClick={() => { onOpenExecutiveMemo(); setIsOpsToolsOpen(false); }}
+                        className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="p-1.5 rounded-lg bg-red-50 text-[#ED0226] dark:bg-red-950/40 dark:text-red-400">
+                            <FileText className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Executive Dossier A4 (PDF)</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Memo investasi resmi dewan direksi</p>
+                          </div>
+                        </div>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                      </button>
+                    )}
+
+                    <button 
+                      role="menuitem"
+                      onClick={() => { setActiveTab('optimization'); setIsOpsToolsOpen(false); }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                          <DollarSign className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Optimasi Portofolio CapEx</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Alokasi anggaran 0-1 Knapsack</p>
+                        </div>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                    </button>
+
+                    <button 
+                      role="menuitem"
+                      onClick={() => { setActiveTab('telemetry'); setIsOpsToolsOpen(false); }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400">
+                          <Upload className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Ingestion CSV &amp; CRUD Site BTS</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Pipeline telemetri sensor RAN</p>
+                        </div>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                    </button>
+
+                    <button 
+                      role="menuitem"
+                      onClick={() => { setActiveTab('architecture'); setIsOpsToolsOpen(false); }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Kesiapan IT &amp; TM Forum</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Open API &amp; arsitektur Kubernetes</p>
+                        </div>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                    </button>
+
+                    <button 
+                      role="menuitem"
+                      onClick={() => { onOpenEmergencyModal?.(); setIsOpsToolsOpen(false); }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+                          <ShieldAlert className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Drill Darurat Fail-Safe 112</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Uji pengembalian daya radio 28ms</p>
+                        </div>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                    </button>
+
+                    <button 
+                      role="menuitem"
+                      onClick={() => { setIsCertModalOpen(true); setIsOpsToolsOpen(false); }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                          <Award className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Sertifikat Stage-Gate G0–G3</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Otorisasi tata kelola &amp; jejak audit</p>
+                        </div>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Interactive Telkomsel Rollout Scale & Executive Lens Switcher Bar */}
-        <div className="p-2.5 rounded-xl bg-slate-50/95 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+        <div className="p-2 rounded-xl bg-slate-50/95 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
           {/* Scale Selector */}
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
@@ -345,8 +500,8 @@ export default function OverviewTab({
             </span>
             <div className="inline-flex flex-wrap items-center p-0.5 rounded-xl bg-slate-200/70 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 gap-0.5">
               {[
-                { id: 'pilot', label: 'Fase 1: Pilot (40+10 Site)', badge: 'Rp 460 Jt' },
-                { id: 'regional', label: 'Fase 2: Jamali (5.000 Site)', badge: 'Rp 11,7 M' },
+                { id: 'pilot', label: 'Fase 1: Pilot (40+10)', badge: 'Rp 460 Jt' },
+                { id: 'regional', label: 'Fase 2: Jamali (5.000)', badge: 'Rp 11,7 M' },
                 { id: 'national', label: 'Fase 3: Nasional (10.000+)', badge: 'Rp 41,5 M' }
               ].map((sc) => {
                 const isSelected = selectedScale === sc.id;
@@ -355,14 +510,14 @@ export default function OverviewTab({
                     key={sc.id}
                     type="button"
                     onClick={() => setSelectedScale && setSelectedScale(sc.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                    className={`px-2 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1 whitespace-nowrap ${
                       isSelected
                         ? 'bg-[#ED0226] text-white shadow-2xs'
                         : 'text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700/70'
                     }`}
                   >
                     <span>{sc.label}</span>
-                    <span className={`font-mono text-[9px] px-1.5 py-0.5 rounded ${
+                    <span className={`font-mono text-[9px] px-1 py-0.5 rounded ${
                       isSelected ? 'bg-black/20 text-white' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400'
                     }`}>
                       {sc.badge}
@@ -391,7 +546,7 @@ export default function OverviewTab({
                     key={lens.id}
                     type="button"
                     onClick={() => setActiveLens && setActiveLens(lens.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
+                    className={`px-2 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
                       isSelected
                         ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-2xs'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700/70'
@@ -404,255 +559,233 @@ export default function OverviewTab({
             </div>
           </div>
         </div>
-
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-          {/* Primary Action Buttons (High-Impact Decision Block) */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            {/* 1. Hero CTA: One-Pager Direksi */}
-            <button 
-              onClick={() => setIsOnePagerOpen(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 hover:from-red-700 hover:to-red-600 text-white text-xs font-black transition cursor-pointer flex items-center space-x-1.5 shadow-sm hover:shadow-md btn-bounce ring-2 ring-red-500/20 whitespace-nowrap"
-              title="Buka Lembar Keputusan Resmi Dewan Direksi (Executive 1-Pager)"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-              <span>One-Pager Direksi</span>
-            </button>
-
-            {/* 2. Key Scenario Simulation */}
-            <button 
-              onClick={() => setActiveTab('scenariolab')}
-              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs whitespace-nowrap"
-            >
-              <Sliders className="w-3.5 h-3.5 text-amber-400" />
-              <span>Simulasi What-If</span>
-            </button>
-
-            {/* 3. CapEx Allocation */}
-            <button 
-              onClick={() => setActiveTab('optimization')}
-              className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs whitespace-nowrap"
-            >
-              <span>Alokasi CapEx</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
-            </button>
-
-            {/* 4. Executive Dossier A4 */}
-            {onOpenExecutiveMemo && (
-              <button 
-                onClick={onOpenExecutiveMemo}
-                className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5 whitespace-nowrap"
-                title="Buka Executive Investment Dossier 1-Halaman (Siap Cetak / PDF)"
-              >
-                <FileText className="w-3.5 h-3.5 text-[#ED0226]" />
-                <span>Executive Dossier A4</span>
-              </button>
-            )}
-
-            {/* 5. Drill Darurat */}
-            <button 
-              onClick={onOpenEmergencyModal}
-              className="px-3.5 py-2 rounded-xl border border-rose-200/80 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5 whitespace-nowrap"
-              title="Uji skenario darurat fail-safe 112"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-              <span>Drill Darurat</span>
-            </button>
-          </div>
-
-          {/* Consolidated Secondary Tools & Enterprise Integrations Menu */}
-          <div className="relative shrink-0" ref={opsToolsMenuRef}>
-            <button
-              type="button"
-              onClick={() => setIsOpsToolsOpen(prev => !prev)}
-              aria-expanded={isOpsToolsOpen}
-              aria-haspopup="menu"
-              className="px-3 py-2 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 whitespace-nowrap"
-            >
-              <Wrench className="w-3.5 h-3.5 text-[#ED0226]" />
-              <span>Alat &amp; Integrasi Operasional</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${isOpsToolsOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpsToolsOpen && (
-              <div 
-                role="menu"
-                aria-label="Alat dan Integrasi Operasional"
-                className="absolute right-0 mt-2 w-72 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-2xl z-40 p-2 animate-in fade-in slide-in-from-top-2 duration-150"
-              >
-                <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Alat &amp; Integrasi Sistem</p>
-                  <p className="text-[10px] text-slate-500">Akses cepat modul telemetri, TM Forum, &amp; operasional</p>
-                </div>
-
-                <div className="space-y-1">
-                  <button 
-                    role="menuitem"
-                    onClick={() => { setActiveTab('telemetry'); setIsOpsToolsOpen(false); }}
-                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400">
-                        <Upload className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-white">Ingestion CSV &amp; CRUD Site BTS</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Pipeline telemetri sensor RAN</p>
-                      </div>
-                    </div>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
-                  </button>
-
-                  <button 
-                    role="menuitem"
-                    onClick={() => { setActiveTab('architecture'); setIsOpsToolsOpen(false); }}
-                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-white">Kesiapan IT &amp; TM Forum</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Open API &amp; arsitektur Kubernetes</p>
-                      </div>
-                    </div>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
-                  </button>
-
-                  <button 
-                    role="menuitem"
-                    onClick={() => {
-                      setIsOpsToolsOpen(false);
-                      setActiveWorkspaceTab('sop_governance');
-                      setTimeout(() => {
-                        const el = document.getElementById('telkomsel-ops-guide');
-                        el?.scrollIntoView({ behavior: 'smooth' });
-                      }, 80);
-                    }}
-                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
-                        <Compass className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-white">Panduan Operasional</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Simulasi &amp; SOP teknisi lapangan</p>
-                      </div>
-                    </div>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
-                  </button>
-
-                  <button 
-                    role="menuitem"
-                    onClick={() => {
-                      setIsOpsToolsOpen(false);
-                      setActiveWorkspaceTab('noc_triage');
-                      setTimeout(() => {
-                        const el = document.getElementById('noc-fop-operations-center');
-                        el?.scrollIntoView({ behavior: 'smooth' });
-                      }, 80);
-                    }}
-                    className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer group"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
-                        <Wrench className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-white">Tiket e-WO &amp; Runbook NOC</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Work order otomatis FOP shelter</p>
-                      </div>
-                    </div>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
-      {/* 2. REAL-TIME TELEMETRY KPI CARDS (NOC LIVE MONITORING) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Beban Jaringan Real-Time */}
-        <div className="bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Beban Daya Aktif ({liveTelemetry.simTimeLabel})</span>
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <Zap className="w-4 h-4" />
-            </div>
-          </div>
+      {/* 2. INTERACTIVE 4-STEP END-TO-END WORKFLOW (PAHAM DALAM 5 DETIK & MODE DEMO TERPANDU) */}
+      <div className="bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
           <div>
-            <div className="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono tabular-nums tracking-tight">{liveTelemetry.activeLoadKw}</div>
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 mt-0.5 font-mono tabular-nums">
-              <span>↓ {liveTelemetry.deltaPct}</span>
-              <span className="text-slate-400 dark:text-slate-500 font-normal">vs baseline {liveTelemetry.baselineLoadKw}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black uppercase tracking-wider">
+                Alur Kerja Sistem
+              </span>
+              <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight">
+                Bagaimana ImpactGrid Bekerja? (Alur Terpandu 4 Langkah)
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Klik berurutan dari <strong>Langkah 1 &rarr; Langkah 2 &rarr; Langkah 3 &rarr; Langkah 4</strong> untuk mendemonstrasikan siklus penuh dari deteksi anomali hingga terbitnya Jurnal SAP S/4HANA.
             </p>
           </div>
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-            <span>Sensor: IoT Class 0.5s</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium font-mono">Sinkron 300ms</span>
+          <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700 shrink-0">
+            <span>Status Siklus:</span>
+            <span className={isBdgResolved ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
+              {isBdgResolved ? '✓ 4/4 Langkah Terverifikasi' : `Langkah ${activeGuidedStep} dari 4 Aktif`}
+            </span>
           </div>
         </div>
 
-        {/* Card 2: Penghematan Energi Hari Ini */}
-        <div className="bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Hemat Energi Hari Ini</span>
-            <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400">
-              <Leaf className="w-4 h-4" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* STEP 1: PANTAU & DETEKSI */}
+          <div
+            onClick={() => setActiveGuidedStep(1)}
+            className={`rounded-2xl border p-4 flex flex-col justify-between gap-3 transition cursor-pointer ${
+              activeGuidedStep === 1
+                ? 'border-[#ED0226] bg-red-50/30 dark:bg-red-950/20 ring-2 ring-red-500/15'
+                : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] font-black uppercase">
+                  Langkah 1
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isBdgResolved
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                }`}>
+                  {isBdgResolved ? '✓ Δ PLN 0,8% Normal' : '⚠ 1 Anomali (+21,5%)'}
+                </span>
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                1. Pantau &amp; Deteksi Anomali
+              </h3>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                Memantau beban 50 site pilot &amp; mendeteksi selisih tagihan AMR PLN vs Sub-meter DC BTS (contoh: anomali suhu &amp; daya <strong>BDG-DGO-P04</strong>).
+              </p>
             </div>
-          </div>
-          <div>
-            <div className="text-2xl font-black text-cyan-700 dark:text-cyan-300 font-mono tabular-nums tracking-tight">{liveTelemetry.dailySavedKwh}</div>
-            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mt-0.5 font-mono tabular-nums">
-              {liveTelemetry.dailySavedIdr}
-            </p>
-          </div>
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-            <span>Emisi Terhindar:</span>
-            <strong className="text-slate-700 dark:text-slate-200 font-mono tabular-nums">{liveTelemetry.co2AvoidedKg}</strong>
-          </div>
-        </div>
 
-        {/* Card 3: Status Carrier Sleep Mode */}
-        <div className="bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Node Sleep Aktif</span>
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <Radio className="w-4 h-4" />
+            <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveGuidedStep(2);
+                  setActiveTab('telemetry');
+                }}
+                className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 text-[11px] font-bold transition flex items-center justify-between cursor-pointer"
+              >
+                <span>Buka Telemetri &amp; Rekonsiliasi</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#ED0226]" />
+              </button>
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-black text-blue-700 dark:text-blue-400 font-mono tabular-nums tracking-tight">{liveTelemetry.sleepSitesText}</div>
-            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mt-0.5">
-              {liveTelemetry.standbyDesc}
-            </p>
-          </div>
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-            <span>Wake-up Speed:</span>
-            <strong className="text-emerald-600 dark:text-emerald-400 font-mono">28 ms (Zero-Wait)</strong>
-          </div>
-        </div>
 
-        {/* Card 4: Keandalan Jaringan & SLA */}
-        <div className="bg-white dark:bg-[#0B1324] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">SLA &amp; Mutu Layanan</span>
-            <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
-              <ShieldCheck className="w-4 h-4" />
+          {/* STEP 2: OPTIMASI AI O-RAN */}
+          <div
+            onClick={() => setActiveGuidedStep(2)}
+            className={`rounded-2xl border p-4 flex flex-col justify-between gap-3 transition cursor-pointer ${
+              activeGuidedStep === 2
+                ? 'border-[#ED0226] bg-red-50/30 dark:bg-red-950/20 ring-2 ring-red-500/15'
+                : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] font-black uppercase">
+                  Langkah 2
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 font-mono">
+                  {oranDispatched ? '✓ O-RAN O1 Dispatched' : `${liveTelemetry.deltaPct} • SLA ${liveTelemetry.slaPct}`}
+                </span>
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                2. Optimasi AI O-RAN &amp; SLA
+              </h3>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                O-RAN rApp mengatur <em>Deep Carrier Sleep</em> &amp; baterai WBP otomatis dengan proteksi <strong>Call Drop &lt; 0,8%</strong> &amp; <em>fail-safe</em> 112 (28ms).
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOranDispatched(true);
+                  setActiveGuidedStep(3);
+                  setActiveTab('agents');
+                }}
+                className="w-full px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold transition flex items-center justify-between cursor-pointer shadow-2xs"
+              >
+                <span>{oranDispatched ? 'Lihat Orkestrasi O-RAN' : 'Dispatch Kebijakan O-RAN'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-black text-purple-700 dark:text-purple-400 font-mono tabular-nums tracking-tight">{liveTelemetry.slaPct}</div>
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5 font-mono tabular-nums">
-              {liveTelemetry.cdrText}
-            </p>
+
+          {/* STEP 3: REKONSILIASI PLN & FOP */}
+          <div
+            onClick={() => setActiveGuidedStep(3)}
+            className={`rounded-2xl border p-4 flex flex-col justify-between gap-3 transition cursor-pointer ${
+              activeGuidedStep === 3
+                ? 'border-[#ED0226] bg-red-50/30 dark:bg-red-950/20 ring-2 ring-red-500/15'
+                : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] font-black uppercase">
+                  Langkah 3
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isBdgResolved
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                }`}>
+                  {isBdgResolved ? '✓ BA-RE PLN Tersinkron' : 'Siap Eksekusi FOP'}
+                </span>
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                3. Rekonsiliasi PLN &amp; FOP
+              </h3>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                Kirim tiket e-WO ke teknisi FOP untuk servis AC shelter &amp; terbitkan dokumen resmi <strong>Berita Acara Rekonsiliasi Energi (BA-RE)</strong> bersama PLN.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 flex items-center gap-1.5">
+              {!isBdgResolved && onResolveSiteAnomaly ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onResolveSiteAnomaly('BDG-DGO-P04');
+                    setActiveGuidedStep(4);
+                  }}
+                  className="flex-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition flex items-center justify-between cursor-pointer shadow-2xs"
+                >
+                  <span>Kalibrasi FOP &amp; BA-RE</span>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveGuidedStep(4);
+                    onOpenModal?.('bare');
+                  }}
+                  className="flex-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition flex items-center justify-between cursor-pointer shadow-2xs"
+                >
+                  <span>Buka Dokumen BA-RE PLN</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-            <span>Layanan 112:</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% Siaga Prioritas</span>
+
+          {/* STEP 4: BUKTI FINANSIAL & ESG */}
+          <div
+            onClick={() => setActiveGuidedStep(4)}
+            className={`rounded-2xl border p-4 flex flex-col justify-between gap-3 transition cursor-pointer ${
+              activeGuidedStep === 4
+                ? 'border-[#ED0226] bg-red-50/30 dark:bg-red-950/20 ring-2 ring-red-500/15'
+                : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] font-black uppercase">
+                  Langkah 4
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-mono">
+                  NPV {scaleData.npvText}
+                </span>
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                4. Bukti Finansial &amp; ESG
+              </h3>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                Terbitkan <strong>Voucher Jurnal Kredit SAP S/4HANA</strong> (Rp 3.824.640/site), RKS/BoQ Pengadaan, dan pelaporan karbon <strong>ISO 14064-1</strong>.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenModal?.('sap');
+                }}
+                className="flex-1 px-2.5 py-1.5 rounded-xl bg-[#ED0226] hover:bg-red-700 text-white text-[11px] font-bold transition flex items-center justify-between cursor-pointer shadow-2xs"
+              >
+                <span>Jurnal SAP S/4HANA</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenModal?.('boq');
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-bold transition cursor-pointer"
+                title="Buka Dokumen RKS & BoQ Pengadaan"
+              >
+                BoQ
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1263,12 +1396,20 @@ export default function OverviewTab({
       <BoDCertificateModal
         isOpen={isCertModalOpen}
         onClose={() => setIsCertModalOpen(false)}
+        simState={simState}
+        selectedScale={selectedScale}
+        operationalSummary={operationalSummary}
+        resolvedSites={resolvedSites}
       />
 
       {/* Executive One-Pager Decision Modal */}
       <ExecutiveOnePagerModal
         isOpen={isOnePagerOpen}
         onClose={() => setIsOnePagerOpen(false)}
+        simState={simState}
+        selectedScale={selectedScale}
+        operationalSummary={operationalSummary}
+        resolvedSites={resolvedSites}
       />
     </div>
   );

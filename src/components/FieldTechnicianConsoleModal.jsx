@@ -19,7 +19,8 @@ import {
   Gauge, 
   RotateCcw,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Download
 } from 'lucide-react';
 import { addStoredWorkOrder } from '../utils/storageEngine';
 
@@ -78,9 +79,46 @@ export default function FieldTechnicianConsoleModal({ isOpen, onClose, onResolve
     }, 600);
   };
 
+  const handleFastTrackComplete = () => {
+    setIsQrScanned(true);
+    setIsBleConnected(true);
+    setChecklist({
+      cleanFilter: true,
+      refrigerantRefill: true,
+      calibrateSubmeter: true,
+      groundingTest: true
+    });
+    setCurrentStep(4);
+    handleFinishWorkOrder();
+  };
+
+  const handleExportFopCsv = () => {
+    const rows = [
+      ['Parameter Work Order', 'Nilai / Status Verifikasi'],
+      ['Nomor Tiket ITSM', 'INC-2026-TSEL-0492'],
+      ['Nomor Work Order', 'WO-2026-TSEL-MT-00492'],
+      ['Site ID & Nama', 'BDG-DGO-P04 — Dago Atas Macro Hub'],
+      ['Teknisi Pelaksana', 'Ir. Andi Pratama (ID: FOP-8921-MT)'],
+      ['Koordinat GPS', '-6.882104, 107.618921 (Akurasi: 3m)'],
+      ['Suhu Shelter Pre vs Post', '34.8 C -> 23.8 C (Optimal)'],
+      ['Daya Input PLN Pre vs Post', '3.85 kW -> 3.12 kW (-19%)'],
+      ['Selisih Submeter (Discrepancy)', '+10.4% -> +0.7% (Klop Kelas 0.5s)'],
+      ['Nota Kredit Restitusi Bulanan', 'Rp 3.824.640'],
+      ['Status Penutupan', isCompleted ? 'RESOLVED_CLOSED' : 'IN_PROGRESS']
+    ];
+    const csvContent = rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ImpactGrid_BAST_Servis_FOP_BDG-DGO-P04.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/85 p-2 sm:p-4 backdrop-blur-xs animate-fade-in">
-      <div className="my-6 w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] text-slate-900 shadow-2xl flex flex-col max-h-[92vh]">
+      <div className="my-6 w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1324] text-slate-900 dark:text-slate-100 shadow-2xl flex flex-col max-h-[92vh]">
         
         {/* Mobile Header Bar */}
         <header className="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-5 py-3.5 text-white shrink-0">
@@ -111,14 +149,30 @@ export default function FieldTechnicianConsoleModal({ isOpen, onClose, onResolve
         </header>
 
         {/* Technician ID & GPS Status Strip */}
-        <div className="bg-slate-100 dark:bg-slate-900 px-5 py-2 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
+        <div className="bg-slate-100 dark:bg-slate-900 px-5 py-2 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-900 dark:text-white">Teknisi:</span>
             <span>Ir. Andi Pratama (ID: FOP-8921-MT)</span>
           </div>
-          <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-mono text-[10px]">
-            <MapPin className="w-3 h-3 text-red-500" />
-            <span>-6.882104, 107.618921 (Akurasi: 3m)</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportFopCsv}
+              className="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-800 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer inline-flex items-center gap-1"
+            >
+              <Download className="w-3 h-3 text-emerald-600" />
+              <span>Unduh BAST FOP (CSV)</span>
+            </button>
+            {!isCompleted && (
+              <button
+                type="button"
+                onClick={handleFastTrackComplete}
+                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition cursor-pointer inline-flex items-center gap-1"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>1-Klik Selesaikan Semua Tahap</span>
+              </button>
+            )}
           </div>
         </div>
 

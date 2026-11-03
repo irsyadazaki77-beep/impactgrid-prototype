@@ -162,6 +162,10 @@ export function useKeyboardShortcuts({
         onNavigateTab('architecture');
         return;
       }
+      if (e.key === '0') {
+        onNavigateTab('architecture');
+        return;
+      }
       if (keyLower === 'w') {
         onTogglePitch?.();
         return;

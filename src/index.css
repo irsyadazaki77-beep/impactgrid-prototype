@@ -212,7 +212,8 @@ p { line-height: 1.55; }
 .impactgrid-app main button { min-height: 36px; }
 .impactgrid-app input:not([type="range"]), .impactgrid-app select, .impactgrid-app textarea { min-height: 40px; border-radius: 9px; font-size: 14px; }
 .impactgrid-app .fixed.inset-0[class*="bg-slate-900/"] { background-color: rgb(6 11 20 / 0.7); backdrop-filter: blur(4px); }
-.impactgrid-app .fixed.inset-0 > [class*="max-w-"] { max-height: min(90vh, 900px); overflow-y: auto; overscroll-behavior: contain; }
+.impactgrid-app .fixed.inset-0 > [class*="max-w-"]:not(.it-inspector-drawer-panel) { max-height: min(90vh, 900px); overflow-y: auto; overscroll-behavior: contain; }
+.impactgrid-app .it-inspector-drawer-panel { max-height: 100dvh !important; height: 100dvh !important; }
 .impactgrid-app [role="button"]:focus-visible { outline: 3px solid rgb(237 2 38 / 0.45); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto; animation-duration: 0.01ms; animation-iteration-count: 1; transition-duration: 0.01ms; }
