@@ -22,6 +22,7 @@ export default function TelkomselSsoModal({
   onClose,
   onLoginSuccess,
   currentSession,
+  securityStatus,
   onAuthenticateSso,
   divisionAccounts = []
 }) {
@@ -36,6 +37,7 @@ export default function TelkomselSsoModal({
   if (!isOpen) return null;
 
   const activeRoleObj = ENTERPRISE_ROLES.find(r => r.id === selectedRoleId) || ENTERPRISE_ROLES[0];
+  const isLockedOut = Boolean(securityStatus?.lockout?.isLocked);
 
   const handleRoleSelectChange = (nextRoleId) => {
     setSelectedRoleId(nextRoleId);
@@ -157,6 +159,15 @@ export default function TelkomselSsoModal({
 
         {/* Content Form */}
         <form onSubmit={handleSimulateSsoLogin} className="p-6 space-y-4 text-xs">
+          {isLockedOut && authStage !== 'success' && (
+            <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-200 space-y-1">
+              <p className="font-bold">Pemulihan Kunci Sesi Otomatis (Auto-Lockout Recovery)</p>
+              <p className="text-[11px] text-red-700 dark:text-red-300">
+                Sesi dikunci karena terdeteksi percobaan intrusi / pelanggaran berulang. Masukkan kode OTP MFA 6-digit untuk membuka kunci dan memulihkan hak akses eksekusi.
+              </p>
+            </div>
+          )}
+
           {authStage === 'success' && (
             <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-center gap-2.5">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />

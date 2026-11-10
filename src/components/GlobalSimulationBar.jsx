@@ -344,6 +344,7 @@ export default function GlobalSimulationBar({
             {/* Play/Pause Button */}
             <button
               onClick={togglePlay}
+              aria-label={isPlaying ? 'Jeda jam demo' : 'Putar jam demo'}
               className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
                 isPlaying 
                   ? 'bg-amber-500 text-slate-950 font-black' 
@@ -367,6 +368,7 @@ export default function GlobalSimulationBar({
             {/* Reset Button */}
             <button
               onClick={handleResetToBaseline}
+              aria-label="Reset seluruh simulasi"
               title="Kembalikan tampilan ke skenario operasional awal"
               className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 cursor-pointer transition"
             >

@@ -287,7 +287,7 @@ export default function IndonesiaGisMap() {
 
       {/* Map Viewport Container */}
       <div className="relative h-[460px] overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
-        {!forceSvgMode && isOnline && tileStatus !== 'unavailable' && tileStatus !== 'timeout' ? (
+        {!forceSvgMode && isOnline ? (
           <MapContainer 
             center={currentView.center} 
             zoom={currentView.zoom} 

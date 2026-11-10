@@ -152,6 +152,13 @@ export default function BodDefenseModal({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button 
+              onClick={onClose}
+              aria-label="Tutup BoD Defense"
+              className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer order-last"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <button
               type="button"
               onClick={handleExportDefenseCsv}
@@ -159,13 +166,6 @@ export default function BodDefenseModal({
             >
               <Download className="w-3.5 h-3.5" />
               <span>Unduh Q&amp;A Direksi (CSV)</span>
-            </button>
-            <button 
-              onClick={onClose}
-              aria-label="Tutup BoD Defense"
-              className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

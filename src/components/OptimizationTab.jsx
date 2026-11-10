@@ -294,7 +294,7 @@ export default function OptimizationTab({
         <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
-              Jam Simulasi: {String(simState?.hour ?? 2).padStart(2, '0')}:00 WIB
+              Jam Simulasi: {String(simState?.simHour ?? simState?.hour ?? 14).padStart(2, '0')}:00 WIB
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 font-bold text-emerald-700 dark:text-emerald-300">
               Proyeksi Skala ({selectedScale === 'national' ? 'Nasional 10.000 Site' : selectedScale === 'regional' ? 'Regional Jamali 5.000 Site' : 'Pilot 40 Site'}): Rp {((totalNetBenefitYear * scaleMultiplier) / 1_000_000_000).toFixed(2)} Miliar/thn

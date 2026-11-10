@@ -304,7 +304,7 @@ export default function FinancialModelTab({
             Kelayakan Finansial, Rekonsiliasi Tagihan PLN &amp; Ekspansi 4-Horizon Telkomsel
           </h1>
           <p className="max-w-4xl text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            Model arus kas terdiskonto (DCF) 5 tahun (2027–2031) dari fase Pilot ({operationalSummary?.activeSiteCount || 50} site) hingga ekspansi <strong>Regional Jamali 5.000 Site</strong>, terintegrasi dengan nilai Nota Kredit Restitusi BA-RE PLN dan ayat jurnal <strong>SAP S/4HANA FI-CO</strong>.
+            Model sensitivitas arus kas terdiskonto (DCF) 5 tahun (2027–2031) dari fase Pilot ({operationalSummary?.activeSiteCount || 50} site) hingga ekspansi <strong>Regional Jamali 5.000 Site</strong>, terintegrasi dengan nilai Nota Kredit Restitusi BA-RE PLN dan ayat jurnal <strong>SAP S/4HANA FI-CO</strong>.
           </p>
         </div>
 

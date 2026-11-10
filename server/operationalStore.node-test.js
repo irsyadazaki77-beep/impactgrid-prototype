@@ -119,3 +119,53 @@ test('operationalStore: executes end-to-end FOP -> BA-RE -> SAP S/4HANA closed-l
   assert.equal(afterSap.sapVoucher.totalDebitIdr, afterSap.sapVoucher.totalCreditIdr);
   assert.equal(afterSap.sapVoucher.totalDebitIdr, 2662824640);
 });
+
+import { verifyAuditChainIntegrity } from './operationalStore.js';
+import {
+  inspectAndSanitizePayload,
+  recordSecurityStrike,
+  unlockSecuritySession,
+  resetSecurityEngineState,
+  verifyAndRecordNonce
+} from './securityEngine.js';
+
+test('securityEngine & operationalStore: verifies SHA-256 audit chain, quarantines IDS attacks, and enforces Auto-Lockout + MFA recovery', () => {
+  resetOperationalState('jamali50');
+  resetSecurityEngineState();
+
+  // Verify audit chain integrity after multiple mutations
+  upsertOperationalSite({ site_id: 'JKT-SEC-01', site_name: 'Sentul Secure Hub', pln_ac_kwh: 4.4 });
+  const chainReport = verifyAuditChainIntegrity();
+  assert.equal(chainReport.verified, true);
+  assert.equal(chainReport.status, 'CRYPTOGRAPHIC_CHAIN_VERIFIED');
+  assert.ok(chainReport.entriesChecked >= 2);
+
+  // Verify IDS blocks SQLi and XSS
+  const sqliCheck = inspectAndSanitizePayload({ site_name: "Test' UNION SELECT * FROM users--" });
+  assert.equal(sqliCheck.blocked, true);
+  assert.equal(sqliCheck.violations[0].category, 'SQL_INJECTION');
+
+  const xssCheck = inspectAndSanitizePayload({ resolutionNotes: '<script>alert(1)</script>' });
+  assert.equal(xssCheck.blocked, true);
+  assert.equal(xssCheck.violations[0].category, 'XSS_INJECTION');
+
+  // Verify Anti-Replay Nonce detection
+  const firstNonce = verifyAndRecordNonce('nonce-unique-1001', String(Date.now()));
+  assert.equal(firstNonce.valid, true);
+  const replayNonce = verifyAndRecordNonce('nonce-unique-1001', String(Date.now()));
+  assert.equal(replayNonce.valid, false);
+  assert.equal(replayNonce.code, 'ERR_NONCE_REPLAY_DETECTED');
+
+  // Verify 3 strikes trigger Auto-Lockout and 6-digit MFA OTP unlocks session
+  recordSecurityStrike({ type: 'STRIKE_1', reason: 'First anomaly' });
+  recordSecurityStrike({ type: 'STRIKE_2', reason: 'Second anomaly' });
+  const thirdStrike = recordSecurityStrike({ type: 'STRIKE_3', reason: 'Third anomaly' });
+  assert.equal(thirdStrike.lockout.isLocked, true);
+  assert.equal(thirdStrike.lockout.strikeCount, 3);
+
+  const unlocked = unlockSecuritySession({ otpCode: '881026', nik: '8810429' });
+  assert.equal(unlocked.success, true);
+  assert.equal(unlocked.lockout.isLocked, false);
+  assert.equal(unlocked.lockout.strikeCount, 0);
+});
+

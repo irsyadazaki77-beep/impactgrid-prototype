@@ -1,141 +1,144 @@
-# Penyempurnaan ImpactGrid Enterprise DSS: Unified Role-Based Workspace untuk Tim Bisnis & Operasional Telkomsel
+# Rencana Penguatan Keamanan Siber (Zero-Trust & Auto-Defense Hardening) — ImpactGrid
 
-Menyempurnakan platform **ImpactGrid** menjadi sistem pendukung keputusan (*Decision Support System*) dan konsol eksekusi operasional yang terintegrasi penuh, bebas dari tumpang-tindih antarmuka, serta dirancang khusus untuk memaksimalkan produktivitas harian **Tim Bisnis/Finansial** (BoD, VP Finance, Procurement, ESG) dan **Tim Operasional** (SNOC 24/7, RAN/O-RAN Engineering, Teknisi Lapangan FOP) Telkomsel.
+Rencana ini menghadirkan arsitektur pertahanan berlapis (*Defense-in-Depth*) pada sisi backend dan API untuk melindungi infrastruktur telemetri energi RAN Telkomsel, eksekusi kebijakan O-RAN, serta penyelesaian finansial SAP S/4HANA dari ancaman peretasan, manipulasi payload, injeksi berbahaya, dan serangan DDoS, dilengkapi mekanisme penguncian sesi otomatis (*auto-lockout*) serta indikator status keamanan ringkas pada antarmuka utama.
 
----
-
-### User Review & Critical Decisions
+## User Review & Critical Decisions
 
 > [!IMPORTANT]
-> Berdasarkan konfirmasi prioritas pada tahap klarifikasi, rencana penyempurnaan ini mengintegrasikan **seluruh kapabilitas strategis Bisnis & Finansial** serta **alur kerja teknis SNOC & FOP** ke dalam satu arsitektur **Role-Based Workspace (Ruang Kerja Berbasis Peran)** yang bersih, terstruktur, dan saling terhubung secara *real-time*.
+> Seluruh prioritas keamanan yang Anda konfirmasi pada tahap klarifikasi telah diintegrasikan ke dalam cetak biru arsitektur ini. Tinjau pendekatan teknis di bawah sebelum eksekusi dimulai.
 
-- **Keputusan Terkonfirmasi 1 — Fokus Tim Bisnis & Finansial Telkomsel**:
-  1. **Kalkulator ROI & Anggaran Dinamis**: Simulasi interaktif CapEx/OpEx, bagi-hasil kontrak sewa *TowerCo* (Mitratel/Protelindo), serta proyeksi DCF 5-tahun (NPV, IRR, Payback) lintas skala (*Pilot 50 Site*, *Regional 5.000 Site*, *Nasional 10.000+ Site*).
-  2. **Otomatisasi Dokumen & Settlement**: Alur persetujuan satu klik dari temuan anomali menuju penerbitan Berita Acara Rekonsiliasi Energi (**BA-RE PLN**), jurnal *Credit Note* **SAP S/4HANA**, dan paket keputusan eksekutif.
-  3. **Benchmark Finansial & Energi Antar-Regional**: Komparasi *real-time* performa penghematan kWh, deviasi tagihan, dan efisiensi biaya per kluster regional Telkomsel (Jabodetabek, Jabar, Jateng, Jatim, Bali-Nusra, Sumatera, Kalimantan, Sulawesi).
-  4. **Kepatuhan ESG, Pajak Karbon & Green BTS**: Pelacakan reduksi emisi *Scope 2* (tCO₂e), kalkulasi eksposur nilai ekonomi karbon/pajak karbon, alokasi *Social Dividend* 15% untuk BTS 3T, dan kesiapan sertifikasi *Green BTS* (POJK 51/2017 & ISO 14064).
-
-- **Keputusan Terkonfirmasi 2 — Fokus Tim Operasional SNOC, RAN & FOP Lapangan**:
-  1. **End-to-End Closed-Loop Workflow**: Integrasi langsung dari alarm triase SNOC $\rightarrow$ penerbitan tiket kerja elektronik (*e-Work Order*) FOP lapangan $\rightarrow$ eksekusi kebijakan radio **NETCONF/YANG O-RAN O1** $\rightarrow$ verifikasi hasil kalibrasi.
-  2. **Ingest Data BYOD Riil & Deteksi Anomali Otomatis**: Kemampuan unggah data operasional riil (CSV/JSON) dengan mesin deteksi otomatis untuk mengidentifikasi *meter drift*, kebocoran beban termal AC shelter, atau selisih tagihan PLN > 5%.
-  3. **Mode Siaga Bencana (Emergency 112), Guard Trafik VIP & Fail-Safe**: Sakelar intervensi darurat instan (< 50ms) yang membatalkan *carrier sleep* demi menjaga 100% kapasitas PRB dan memproteksi trafik prioritas tanpa risiko degradasi QoS.
-  4. **Inspeksi Teknis Mendalam per Site (Digital Twin & 3GPP)**: Penelusuran *drill-down* per menara BTS untuk memantau profil termal *Physics-Informed Neural Network* (PINN), status *sub-carrier sleep* 3GPP Rel-18, dan rekonsiliasi 3-arah (PLN vs Sub-meter DC vs Estimasi RAN).
-
-- **Keputusan Terkonfirmasi 3 — Pendekatan UX & Tata Kelola Utama**:
-  - **Penyederhanaan UI Berbasis Peran (*Role-Based Workspace*) dengan Alur Kerja Terpadu**: Mengurangi kepadatan elemen visual (*visual clutter*) dengan menghadirkan **Role Action Launcher Bar** kontekstual dan mengelompokkan alur kerja sesuai profil pengguna aktif tanpa menghilangkan akses lintas modul.
+- **Keputusan Terkonfirmasi 1 — Empat Lapisan Pertahanan Utama**:
+  1. **Zero-Trust API, JWT/HMAC Ketat & Proteksi Endpoint**: Verifikasi token autentikasi, validasi hak akses berbasis peran (*Role-Based Access Control* / RBAC), dan tanda tangan kriptografis HMAC-SHA256 beserta *timestamp/nonce anti-replay* pada seluruh endpoint mutasi kritis.
+  2. **Deteksi Intrusi Real-Time (IDS) & Karantina Otomatis**: Mesin inspeksi berbasis aturan (*rule-based WAF/IDS*) yang mendeteksi pola serangan (SQL/NoSQL injection, XSS, *path traversal*, manipulasi parameter fisika Kirchhoff, dan *credential stuffing*) serta langsung mengarantina permintaan mencurigakan.
+  3. **Enkripsi Payload End-to-End & Rantai Audit Anti-Tamper**: Kanonikalisasi JSON deterministik dengan rantai *hash* Merkle/SHA-256 berkesinambungan (*append-only*) yang memvalidasi keutuhan histori operasional setiap kali state diakses atau dimodifikasi.
+  4. **Mitigasi DDoS, Rate-Limiting Adaptif & Sanitasi Input**: Pembatasan laju bertingkat (*tiered rate-limiting*) per rute (ketat pada autentikasi, AI, dan mutasi kebijakan) disertai daftar blokir penalti otomatis (*penalty box*) dan pembersihan skema payload secara mendalam.
+- **Keputusan Terkonfirmasi 2 — Kunci Sesi Otomatis (*Auto-Lockout*)**: Sesi operator dan alamat asal akan dikunci secara otomatis apabila terdeteksi pelanggaran berulang (misalnya kegagalan OTP/token berturut-turut, percobaan eskalasi hak akses RBAC, atau pengiriman payload yang terindikasi *tampering*). Pemulihan sesi memerlukan re-autentikasi SSO dengan kode MFA valid.
+- **Keputusan Terkonfirmasi 3 — Visibilitas Ringkas Berfokus Backend**: Alih-alih menambahkan tab baru yang membebani navigasi, fokus utama ditempatkan pada penguatan mesin backend/API, sementara antarmuka menampilkan **indikator status keamanan ringkas** pada bilah atas (beserta *popover* ringkas untuk melihat metrik blokir IDS, status integritas rantai SHA-256, status *auto-lockout*, dan tombol uji ketahanan/*self-test*).
 
 ---
 
-### 1. Overview & Core Concept
+## 1. Overview & Core Concept
 
-- **Apa yang Dilakukan Penyempurnaan Ini**:
-  Menyatukan seluruh modul analitik bisnis dan instrumen kendali teknis yang sebelumnya tersebar di berbagai panel menjadi sebuah **Unified Command & Business Workspace**. Ketika seorang pemangku kepentingan memilih peran mereka (misalnya *VP Network/Finance*, *NOC Incident Commander*, *O-RAN Engineer*, *Head of ESG*, atau *Internal Auditor*), antarmuka secara cerdas menampilkan **Ringkasan KPI Prioritas**, **Alur Kerja Terpadu 4-Langkah (Detect $\rightarrow$ Execute $\rightarrow$ Settle $\rightarrow$ Approve)**, serta akses cepat ke instrumen yang relevan dengan tugas harian mereka.
-
-- **Target Pengguna / Persona Utama**:
-  1. **Tim Bisnis & Eksekutif Telkomsel (Direksi, VP Finance, VP Procurement, TowerCo Partnership)**: Membutuhkan kepastian angka ROI/NPV, pengendalian plafon anggaran *Stage-Gate* (G0–G3), negosiasi kontrak sewa menara *TowerCo*, dan bukti penghematan teraudit di SAP S/4HANA.
-  2. **Tim Keberlanjutan & Tata Kelola (Head of ESG & Corporate Auditor)**: Membutuhkan pelacakan dekarbonisasi *Scope 2*, valuasi kredit/pajak karbon, transparansi jejak audit kriptografis (SHA-256), dan kepatuhan regulasi.
-  3. **Tim Operasional & Teknis (SNOC 24/7, RAN/O-RAN Engineer, Teknisi FOP)**: Membutuhkan deteksi anomali cepat dari data telemetri/BYOD, disposisi tiket lapangan, eksekusi *script* NETCONF multi-vendor (Ericsson, Huawei, ZTE), dan jaminan keamanan *fail-safe* 112.
-
-- **Nilai Tambah Utama (*Key Value*)**:
-  - **Zero Friction Collaboration**: Setiap tindakan teknis di lapangan (misal: kalibrasi FOP pada site anomali atau eksekusi *batch* O-RAN) secara instan memperbarui angka penghematan finansial (Rupiah), menurunkan deviasi tagihan PLN, mengkalkulasi ulang NPV/Payback di modul Finansial, dan memperbarui capaian emisi ESG secara *real-time*.
+- **Apa yang Dilakukan**: Mengubah lapisan komunikasi dan penyimpanan operasional ImpactGrid menjadi lingkungan **Zero-Trust** yang secara aktif memvalidasi identitas, izin peran, keutuhan kriptografis, dan kebersihan input pada setiap transaksi API, sekaligus mengunci sesi secara otomatis ketika anomali perilaku atau serangan terdeteksi.
+- **Target Pengguna / Persona**:
+  - **CISO & Auditor Internal (ISO 27001 / BSSN / PP 71/2019)**: Membutuhkan kepastian bahwa tidak ada perintah O-RAN atau jurnal akuntansi SAP yang dapat dipalsukan atau dieksekusi tanpa otorisasi sah.
+  - **VP Network Operations & NOC Incident Commander**: Membutuhkan jaminan ketersediaan sistem (*high availability*) terhadap banjir trafik (DDoS) tanpa mengorbankan kecepatan respons *fail-safe* 112 (<28ms).
+- **Nilai Utama**: Mencegah pengambilalihan kendali menara BTS, memblokir injeksi data telemetri palsu (*phantom savings manipulation*), menjaga keabsahan hukum dokumen Berita Acara (BA-RE), dan memberikan visibilitas instan atas postur pertahanan sistem tanpa memperumit alur kerja harian.
 
 ---
 
-### 2. User Experience & Visual Design
+## 2. User Experience & Visual Design
 
-- **Alur Kerja Utama Pengguna (*Key User Flows*)**:
-  1. **Alur Kerja Tim Bisnis (Simulasi Investasi $\rightarrow$ Benchmark Regional $\rightarrow$ Settlement BA-RE & SAP)**:
-     - Pengguna memilih profil **Bisnis / Eksekutif** atau membuka tab **Ringkasan / Dampak Finansial**.
-     - Menggunakan **Interactive Business ROI & TowerCo Studio** untuk mengubah parameter tarif listrik PLN, target efisiensi, jumlah site, skema bagi-hasil *TowerCo*, dan melihat perubahan instan pada NPV 5-tahun, IRR, Payback Period, serta tabel sensitivitas.
-     - Membandingkan performa efisiensi antar wilayah pada **Matriks Benchmark Regional Real-Time** dan mengekspor laporan kesiapan komite investasi atau memicu penerbitan **BA-RE PLN & Jurnal SAP S/4HANA**.
-  2. **Alur Kerja Tim Operasional (Ingest BYOD & Deteksi Anomali $\rightarrow$ Eksekusi O-RAN / FOP $\rightarrow$ Verifikasi 3-Arah)**:
-     - Pengguna memilih profil **NOC Commander / O-RAN Engineer** atau membuka tab **Telemetri / Digital Twin / Optimasi**.
-     - Mengunggah dataset telemetri (CSV/JSON) atau memuat *preset* kluster regional; sistem secara otomatis menandai site dengan anomali selisih meteran PLN vs Sub-meter DC atau suhu shelter kritis.
-     - Menjalankan **Closed-Loop Action**: mengirim kebijakan *Adaptive Carrier Sleep* via NETCONF O-RAN O1 atau menugaskan **Tiket e-WO Teknisi FOP** (baik per site maupun *Batch Calibration*), lengkap dengan perlindungan **Emergency 112 & VIP Traffic Guard**.
-     - Memeriksa pembaruan status teknis secara langsung pada **Inspektur Digital Twin 3D & Telemetri 3GPP** hingga status rekonsiliasi berubah menjadi *Verified (< 1.5% Drift)*.
+- **Alur Pengguna Utama (Key User Flows)**:
+  1. **Operasi Normal Terlindungi (Zero-Trust Transparent Flow)**: Saat operator terautentikasi mengeksekusi aksi (seperti menerapkan kebijakan O-RAN, memperbarui site BTS, menandatangani BA-RE, atau mem-posting jurnal SAP), klien secara otomatis menyertakan header keamanan (`Authorization` Bearer token, `X-ImpactGrid-Timestamp`, `X-ImpactGrid-Nonce`, dan `X-ImpactGrid-HMAC-SHA256`). Backend memverifikasi tanda tangan dan hak akses RBAC secara instan.
+  2. **Indikator Postur Keamanan Ringkas (Compact Security Status Badge)**: Pada bilah status atas (*Navbar*), terdapat indikator keamanan ringkas yang menampilkan postur aktual (`ZERO-TRUST AKTIF · INTEGRITAS TERVERIFIKASI` atau `PERINGATAN IDS` / `SESI TERKUNCI`). Mengklik indikator ini membuka panel *popover* ringkas berisi:
+     - Status rantai audit SHA-256 (*Chain Integrity Verified*).
+     - Statistik perlindungan real-time (jumlah permintaan terverifikasi HMAC, serangan/injeksi yang dikarantina IDS, dan status *rate-limiter*).
+     - Aksi cepat **Verifikasi Rantai Audit & Uji Pertahanan** untuk membuktikan bahwa mesin IDS dan *auto-lockout* bekerja secara nyata.
+  3. **Alur Kunci Sesi Otomatis (*Auto-Lockout* & Pemulihan)**: Jika terdeteksi aktivitas berbahaya atau 3 kali pelanggaran keamanan berturut-turut (misalnya manipulasi *hash* payload, percobaan injeksi, atau pelanggaran batas otorisasi peran), backend segera mencabut sesi aktif dan mengaktifkan status `LOCKED_OUT`. Antarmuka menampilkan peringatan penguncian sesi dan mengarahkan operator ke modal **Telkomsel IAM SSO** untuk melakukan verifikasi ulang MFA sebelum dapat melanjutkan eksekusi perintah kritis.
 
-- **Identitas Visual & Tema (*SaaS & Enterprise Dashboard Discipline*)**:
-  - **Arah Estetika**: *Precision Enterprise Telemetry & Executive Financial Console* — memadukan ketegasan korporat Telkomsel dengan keterbacaan tingkat tinggi untuk ruang komando SNOC maupun ruang rapat Direksi.
-  - **Palet Warna & Kontras (60-30-10 Discipline)**:
-    - *60% Kanvas Netral*: Putih bersih (`#FFFFFF` / `slate-50`) pada mode terang untuk rapat eksekutif dan *Deep Slate* (`#0B1324` / `#0F172A`) pada mode gelap untuk pemantauan SNOC 24/7.
-    - *30% Permukaan Struktural*: Kartu dengan kedalaman satu lapis (*single-elevation depth*) menggunakan garis batas tipis (`1px solid border-slate-200 dark:border-slate-800`) tanpa tumpukan kartu di dalam kartu yang berlebihan.
-    - *10% Aksen Semantik & Korporat*: Merah Telkomsel (`#ED0226`) khusus untuk aksi utama dan status aktif; Hijau Emerald (`#16A34A`) untuk status *Verified / Optimal*; Amber (`#D97706`) untuk peringatan deviasi; Merah Crimson (`#DC2626`) untuk siaga darurat 112.
-  - **Tipografi & Disiplin Angka Tabular**:
-    - Hierarki tipografi yang tegas dengan ukuran judul bagian yang terkontrol dan keterbacaan teks utama yang nyaman.
-    - Seluruh angka finansial (Rp), metrik daya (kW/MWh), persentase efisiensi, waktu simulasi, dan nilai deviasi wajib menggunakan **`tabular-nums` (`font-mono`)** agar lurus secara vertikal di seluruh tabel dan kartu KPI.
-    - Metadata ditampilkan sebagai teks bersih dengan pemisah tipografis (`·` atau `/`) sesuai prinsip *Zero-Pill Metadata Discipline*.
-
-- **Umpan Balik Interaktif & Kelengkapan Status (*State Completeness*)**:
-  - Respons interaksi instan ($\le 200\text{ms}$) saat mengganti peran (*Role Switch*), mengubah slider parameter finansial, atau mengeksekusi kalibrasi *batch*.
-  - Setiap tabel dan matriks data memiliki status lengkap: *Populated State* (data kaya), *Filtered Empty State* (dengan tombol reset filter), serta umpan balik konfirmasi yang jelas setiap kali tindakan operasional berhasil disinkronkan ke basis data operasional.
+- **Identitas Visual & Tema**:
+  - *Aesthetic Direction*: **Precision Enterprise Utility** — bersih, berwibawa, dan berorientasi data tanpa ornamen berlebihan (*anti-slop*), selaras dengan bahasa desain korporat Telkomsel yang sudah ada pada platform.
+  - *Color Palette & Mood*: Mempertahankan distribusi warna 60-30-10 pada mode Terang (`#FFFFFF` / `#F8FAFC`) dan Gelap (`#0B1324` / `#060B14`) dengan aksen utama Telkomsel Crimson (`#ED0226`). Status keamanan menggunakan warna semantik terukur yang selalu dipasangkan dengan label teks eksplisit:
+    - **Nominal / Terlindungi**: Emerald (`#16A34A` / `text-emerald-600 dark:text-emerald-400`) — `ZERO-TRUST AKTIF`.
+    - **Anomali Terkarantina / Peringatan**: Amber (`#D97706` / `text-amber-600 dark:text-amber-400`) — `INTRUSI DIKARANTINA`.
+    - **Sesi Terkunci / Pelanggaran Kritis**: Crimson (`#DC2626` / `text-red-600 dark:text-red-400`) — `SESI DIKUNCI OTOMATIS`.
+  - *Typography & Hierarchy*: Menggunakan tipografi antarmuka yang bersih untuk label kontrol dan wajib menerapkan angka tabular monospasi (`font-mono tabular-nums`) pada seluruh pencatat waktu (*timestamp*), *digest* SHA-256/HMAC, penghitung blokir IDS, dan sisa waktu *cooldown* kunci sesi.
+  - *Component Styling & Layout*: Menggunakan permukaan datar (*single-elevation depth*) dengan garis batas halus `1px` (`border-slate-200 dark:border-slate-800`), tanpa kartu bersarang berlebihan atau garis aksen kiri tebal.
+- **Umpan Balik Interaktif & Gerak**: Respons interaksi di bawah `150ms`, transisi status *lockout* dan *unlock* berlangsung instan di DOM tanpa jeda animasi yang menghalangi tindakan pemulihan.
 
 ---
 
-### 3. Key Product Decisions & Trade-Offs
+## 3. Key Product Decisions & Trade-Offs
 
-- **Keputusan 1: Menambahkan *Unified Role-Based Action Bar & Workflow Hub* di Atas Workspace Tanpa Menghapus Modul Spesialis**
-  - *Pendekatan Terpilih*: Menyediakan bilah **Role-Based Quick Workspace** yang beradaptasi secara dinamis dengan 5 peran korporat Telkomsel (VP Network/Finance, NOC Commander, O-RAN Engineer, Head of ESG, Internal Auditor) sekaligus merapikan tata letak di dalam setiap tab agar alur *Bisnis* dan *Operasional* saling terhubung dengan 1 klik.
-  - *Alasan ("Why")*: Memudahkan tim bisnis langsung fokus pada kalkulator ROI, benchmark regional, BA-RE, dan ESG, sementara tim operasional langsung mendapatkan kontrol triase SNOC, ingest BYOD, *dispatch* O-RAN, dan tiket FOP tanpa tersesat di antara puluhan tombol.
-  - *Alternatif yang Dipertimbangkan*: Memisahkan aplikasi menjadi dua URL berbeda (satu khusus bisnis, satu khusus teknis). Ditolak karena justru memutus visibilitas *closed-loop* di mana tim bisnis perlu melihat bukti teknis secara langsung dan tim teknis perlu melihat dampak rupiah dari optimasi mereka.
+- **Keputusan 1: Penegakan Zero-Trust & RBAC dengan Grace-Mode Kontekstual untuk Read-Only vs Mutasi Kritis**
+  - *Pendekatan Terpilih*: Endpoint pembacaan telemetri dan kesiapan infrastruktur (`/healthz`, `/readyz`, `/api/v1/operations/state`) tetap dapat diakses dengan proteksi *rate-limiting* dan sanitasi, sedangkan endpoint mutasi kritis (`/api/v1/oran/policy`, `/api/v1/sap/post-voucher`, `/api/v1/bare/sign`, `/api/v1/sites`, `/api/v1/sla-thresholds`, `/api/v1/oss/cli-execute`) melewati lapisan verifikasi Zero-Trust (validasi sesi/peran RBAC, pemeriksaan *nonce anti-replay*, verifikasi HMAC, dan pemindaian IDS).
+  - *Mengapa*: Memastikan pemantauan layar eksekutif tidak terputus saat inisialisasi awal, namun menjamin bahwa setiap perubahan konfigurasi jaringan dan transaksi finansial terlindungi secara kriptografis.
+  - *Alternatif yang Dipertimbangkan*: Memblokir seluruh endpoint pembacaan sebelum login penuh — ditolak karena akan mengganggu pemuatan awal dashboard dan alur demonstrasi cepat.
 
-- **Keputusan 2: Sinkronisasi State *Real-Time* Lintas Modul Bisnis & Operasional melalui Full-Stack Operational Store**
-  - *Pendekatan Terpilih*: Memperkuat integrasi antara *state* simulasi, daftar site yang telah dikalibrasi FOP (`resolvedSites`), data BYOD yang diunggah, dan *backend operational store* sehingga setiap perubahan di sisi operasional langsung memperbarui kalkulasi finansial (kredit restitusi SAP, NPV, penghematan OPEX) dan metrik kepatuhan ESG.
-  - *Alasan ("Why")*: Menjamin konsistensi angka 100% di seluruh tab dan dokumen cetak (BA-RE, SAP Voucher, BoQ, Executive Memo) sehingga siap digunakan untuk simulasi operasional nyata maupun audit internal.
+- **Keputusan 2: Mesin Deteksi Intrusi (IDS) & Sanitasi Terpadu di Dalam Proses Backend**
+  - *Pendekatan Terpilih*: Membangun modul keamanan mandiri di sisi server yang menginspeksi seluruh `req.body`, `req.query`, dan `req.params` secara rekursif terhadap pola injeksi (XSS, SQLi/NoSQLi, *command injection*, *prototype pollution* `__proto__`/`constructor`) serta memelihara skor ancaman (*threat score*) per klien/sesi untuk memicu *auto-lockout* secara deterministik.
+  - *Mengapa*: Memberikan perlindungan instan berlatensi sub-milidetik (`<1ms`) tanpa ketergantungan pada layanan WAF eksternal yang memerlukan konfigurasi jaringan tambahan.
+  - *Alternatif yang Dipertimbangkan*: Menggunakan pustaka pihak ketiga yang berat — ditolak demi menjaga kecepatan *startup*, portabilitas kontainer Telkom DC, dan kontrol penuh atas aturan spesifik telekomunikasi (seperti batas fisik hukum Kirchhoff dan parameter 3GPP).
+
+- **Keputusan 3: Rantai Audit SHA-256 Berkesinambungan (*Hash-Chained Ledger*)**
+  - *Pendekatan Terpilih*: Setiap entri log audit menyimpan `prevHash` dari entri sebelumnya dan menghitung `currentHash = SHA256(prevHash + canonicalJson(entry))`, ditambah pemeriksaan integritas rantai penuh (`verifyAuditChainIntegrity`) yang diekspos melalui API status keamanan.
+  - *Mengapa*: Jika peretas mencoba memodifikasi file database JSON secara langsung di penyimpanan, rantai *hash* akan putus dan langsung terdeteksi oleh indikator keamanan.
 
 ---
 
-### 4. Technical Architecture & Data Strategy *(Technical Reference)*
+## 4. Technical Architecture & Data Strategy *(Technical Reference)*
 
-- **Diagram Arsitektur Sistem & Alur Kerja Terpadu**:
+### Architecture & Component Diagram
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                     IMPACTGRID UNIFIED ROLE-BASED WORKSPACE HEADER                     │
-│  [Persona Switcher: Bisnis / SNOC / O-RAN / ESG / Audit] ──► [Contextual Action Strip] │
-│  [Global Sim & Emergency 112 Guardrail (<50ms)]          ──► [Multi-Screen Sync Bus]   │
-└───────────────────┬────────────────────────────────────────────────┬───────────────────┘
-                    │                                                │
-                    ▼                                                ▼
-┌───────────────────────────────────────┐        ┌───────────────────────────────────────┐
-│     TIM BISNIS & EKSEKUTIF SUITE      │        │    TIM OPERASIONAL SNOC & FOP SUITE   │
-├───────────────────────────────────────┤        ├───────────────────────────────────────┤
-│ 1. Kalkulator ROI, DCF & TowerCo      │◄──────►│ 1. Triase SNOC & Emergency 112 Guard  │
-│    (Simulasi CapEx/OpEx, WACC, Tarif, │ Sinkron│    (Deteksi Alarm, VIP Traffic Guard, │
-│     Bagi-Hasil Mitratel/Protelindo)   │  State │     Instant Override Carrier Sleep)   │
-│                                       │  Nyata │                                       │
-│ 2. Otomasi Settlement & Persetujuan   │◄──────►│ 2. Ingest BYOD & Rekonsiliasi 3-Arah  │
-│    (BA-RE PLN, Jurnal SAP S/4HANA     │        │    (Parser CSV/JSON, Deteksi Otomatis │
-│     Credit Note, BoQ & Memo BoD)      │        │     Anomali Meter >5% & Termal AC)    │
-│                                       │        │                                       │
-│ 3. Benchmark Finansial Antar-Regional │◄──────►│ 3. Closed-Loop FOP & NETCONF O-RAN O1 │
-│    (Komparasi Real-Time Kluster       │        │    (Disposisi e-WO Lapangan, Batch    │
-│     Jamali & Luar Jawa, Ranking ROI)  │        │     Calibration, Script Multi-Vendor) │
-│                                       │        │                                       │
-│ 4. Kepatuhan ESG & Pajak Karbon       │◄──────►│ 4. Inspektur Digital Twin & 3GPP      │
-│    (Scope 2 tCO₂e, Valuasi Pajak      │        │    (Drill-Down per Site, Termal PINN, │
-│     Karbon, Sertifikasi Green BTS)    │        │     Sub-Carrier Sleep & QoS Guard)    │
-└───────────────────┬───────────────────┘        └───────────────────┬───────────────────┘
-                    │                                                │
-                    └───────────────────────┬────────────────────────┘
-                                            ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│             OPERATIONAL BACKEND STORE & CRYPTOGRAPHIC AUDIT ENGINE (SHA-256)           │
-│  • Sinkronisasi Status Site BTS, Kebijakan O-RAN O1, Tiket e-WO FOP & Dokumen BA-RE    │
-│  • Pencatatan Rantai Hash Audit Tidak Terbantahkan & Ekspor Dokumen Resmi (CSV/Print)  │
-└────────────────────────────────────────────────────────────────────────────────────────┘
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        CLIENT LAYER (React SPA)                              │
+│                                                                              │
+│  ┌───────────────────────────────┐      ┌─────────────────────────────────┐  │
+│  │ Navbar Compact Security Badge │◄────►│ Security Status Popover         │  │
+│  │ (Nominal / Quarantine / Lock) │      │ (Chain Verify, IDS Stats, Test) │  │
+│  └──────────────┬────────────────┘      └────────────────┬────────────────┘  │
+│                 │                                        │                   │
+│                 ▼                                        ▼                   │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │ Operational Backend Hook & Zero-Trust Request Signer                   │  │
+│  │ • Attaches Bearer JWT, X-ImpactGrid-Timestamp, Nonce & Client SHA-256  │  │
+│  │ • Intercepts 401/403/423 (Auto-Lockout) -> Triggers SSO Re-Auth Modal  │  │
+│  └──────────────┬─────────────────────────────────────────────────────────┘  │
+└─────────────────┼────────────────────────────────────────────────────────────┘
+                  │ HTTPS / JSON + Security Headers
+                  ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                   EXPRESS BACKEND SECURITY PIPELINE                          │
+│                                                                              │
+│  [1. Hardened Security Headers & Strict CORS]                                │
+│      • CSP, HSTS, X-Frame-Options, X-Content-Type-Options,Permissions-Policy │
+│                                  │                                           │
+│                                  ▼                                           │
+│  [2. Adaptive Tiered Rate-Limiter & DDoS Penalty Box]                        │
+│      • General API (120/m) | Auth & AI (20/m) | Critical Mutations (30/m)    │
+│      • Auto-blocks flooding IPs & increments Threat Score                    │
+│                                  │                                           │
+│                                  ▼                                           │
+│  [3. Deep Input Sanitizer & Real-Time IDS / WAF Inspector]                   │
+│      • Blocks __proto__/constructor pollution, XSS, SQLi, CLI injection      │
+│      • Quarantines malicious payloads & logs SECURITY_INTRUSION_BLOCKED      │
+│                                  │                                           │
+│                                  ▼                                           │
+│  [4. Zero-Trust Session, RBAC, Anti-Replay Nonce & Auto-Lockout Guard]       │
+│      • Validates session lockout state (HTTP 423 Locked if threshold met)    │
+│      • Verifies RBAC permissions & HMAC/SHA-256 payload integrity            │
+│                                  │                                           │
+│                                  ▼                                           │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │ Operational Store & Anti-Tamper Hash-Chained Audit Ledger              │  │
+│  │ • Executes BTS CRUD, O-RAN A1/O1 Policy, FOP, BA-RE, SAP S/4HANA       │  │
+│  │ • Computes prevHash -> currentHash SHA-256 chain & verifies integrity  │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Model Data & Strategi State Terpadu**:
-  1. **Role & Workspace Context State**: Menyimpan profil peran aktif (`currentRole`), mode tampilan (`executive` vs `engineering`), skala jaringan (`pilot`, `regional`, `national`), serta daftar rekomendasi tindakan prioritas untuk peran tersebut.
-  2. **Operational & BYOD Telemetry State**: Menggabungkan data bawaan 50 site pilot dengan data unggahan BYOD pengguna, menghitung selisih 3-arah (*PLN Billing* vs *Sub-meter DC* vs *RAN Telemetry*) secara otomatis, dan mengelompokkan site ke dalam status *Nominal*, *Warning*, *Critical Drift*, atau *FOP Verified*.
-  3. **Financial & ESG Dynamic Engine**: Menghitung ulang secara reaktif dampak penghematan energi (MWh), manfaat bersih tahunan (Rp), NPV 5-tahun, bagi-hasil *TowerCo*, nilai ekonomi karbon/pajak karbon, serta indeks kesiapan *Green BTS* berdasarkan jam simulasi, kebijakan O-RAN yang aktif, dan jumlah site anomali yang telah diselesaikan oleh FOP.
+### Data Model & State
 
-- **Pemetaan Interaksi Komponen & Handler Lengkap**:
-  1. **Role-Based Quick Action Banner (pada Ringkasan & Workspace Utama)**:
-     - Menampilkan misi utama peran aktif, KPI kunci peran tersebut, dan 3–4 tombol aksi langsung (misal untuk *Tim Bisnis*: "Simulasi Kalkulator ROI & TowerCo", "Terbitkan BA-RE & Jurnal SAP", "Benchmark Regional", "Audit Pajak Karbon ESG"; untuk *Tim Operasional*: "Triase Anomali & Tiket FOP", "Unggah Data BYOD CSV/JSON", "Batch Dispatch O-RAN O1", "Simulasi Siaga 112").
-  2. **Peningkatan Modul Finansial & Benchmark Bisnis**:
-     - Menambahkan kalkulator interaktif kontrak bagi-hasil *TowerCo* & sensitivitas anggaran CapEx/OpEx yang terhubung langsung dengan perbandingan efisiensi antar-regional Telkomsel dan tombol penerbitan cepat dokumen *settlement* (BA-RE PLN, SAP S/4HANA, dan BoQ Pengadaan).
-  3. **Peningkatan Modul ESG, Pajak Karbon & Sertifikasi Green BTS**:
-     - Menambahkan simulator eksposur Pajak Karbon / Nilai Ekonomi Karbon (Rp/tCO₂e) dan matriks kelayakan sertifikasi **Green BTS Telkomsel** per kluster regional.
-  4. **Peningkatan Modul Operasional SNOC, Ingest BYOD & Digital Twin**:
-     - Memperkuat *scanner* deteksi anomali otomatis saat ingest data BYOD, menyediakan kontrol *Guard Trafik VIP & Siaga 112* yang responsif, serta memperkaya panel inspeksi *drill-down* per site BTS (status *carrier sleep* 3GPP, kurva termal shelter, dan riwayat kalibrasi FOP).
+1. **Security Telemetry & Intrusion State (Backend Memory & Persistent Audit)**:
+   - `securityPosture`: `'NOMINAL' | 'ELEVATED_QUARANTINE' | 'LOCKED_OUT'`
+   - `threatCounters`: Penghitung terstruktur untuk `totalInspectedRequests`, `hmacVerifiedCount`, `intrusionBlockedCount`, `rateLimitTriggeredCount`, `replayBlockedCount`, dan `autoLockoutCount`.
+   - `sessionLockoutRegistry`: Peta status penguncian berdasarkan identitas sesi/NIK/klien yang menyimpan `strikeCount` (jumlah pelanggaran), `isLocked` (boolean), `lockedAt`, `lockReason`, dan `unlockRequiresMfa` (boolean).
+   - `nonceRegistry`: Penyimpanan *sliding-window* untuk `X-ImpactGrid-Nonce` guna mencegah *replay attack* pada transaksi kritis.
+   - `intrusionEvents`: Daftar ringkas insiden yang dikarantina (waktu, jenis ancaman seperti `SQLI_OR_XSS_PAYLOAD`, `HMAC_TAMPER_DETECTED`, `UNAUTHORIZED_RBAC_ESCALATION`, `BRUTE_FORCE_OTP`, endpoint target, dan tindakan mitigasi otomatis).
+
+2. **Anti-Tamper Audit Chain Verification**:
+   - Setiap entri pada `auditTrail` di penyimpanan persisten memiliki `id`, `timestamp`, `action`, `actor`, `category`, `detail`, `prevHash`, dan `currentHash`.
+   - Fungsi verifikasi rantai menghitung ulang *digest* dari entri paling awal hingga terbaru untuk memastikan tidak ada satupun entri historis yang diubah secara ilegal.
+
+### Interactive Component & State Mapping
+
+- **Indikator & Popover Keamanan Ringkas (`Navbar`)**:
+  - Menampilkan status real-time dari endpoint `/api/v1/security/status`.
+  - Menyediakan tombol **Verifikasi Integritas Rantai Audit** yang memicu pemeriksaan kriptografis penuh pada seluruh log historis dan menampilkan hasilnya (`TERVERIFIKASI` beserta *root hash* terbaru).
+  - Menyediakan tombol **Simulasi Uji Serangan & Auto-Lockout** (untuk keperluan pengujian CISO/Auditor) yang mengirimkan *probe* terisolasi ke endpoint keamanan guna mendemonstrasikan bagaimana IDS mengarantina payload berbahaya dan bagaimana sistem mengaktifkan *auto-lockout* saat batas pelanggaran tercapai.
+- **Alur Kunci Sesi Otomatis (`Auto-Lockout`) & Pemulihan MFA (`TelkomselSsoModal`)**:
+  - Ketika pengguna atau penguji memicu 3 pelanggaran keamanan berturut-turut (atau menekan uji *auto-lockout*), status sesi berubah menjadi `LOCKED_OUT` (HTTP `423 Locked`).
+  - Banner peringatan ringkas muncul pada bilah atas dengan tombol **Buka Kunci via MFA SSO**.
+  - Saat pengguna melakukan autentikasi ulang pada modal SSO dengan kode OTP MFA yang sah (6 digit numerik valid), endpoint `/api/v1/auth/sso` mereset `strikeCount`, mencabut status *lockout*, mencatat peristiwa `SECURITY_SESSION_UNLOCKED_MFA` ke rantai audit, dan memulihkan akses operasional.

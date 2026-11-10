@@ -55,6 +55,7 @@ export default function Navbar({
   onOpenFieldConsole,
   onOpenSapVoucher,
   onOpenTechInspector,
+  onOpenShortcuts,
   emergencyState = { active: false },
   selectedScale,
   setSelectedScale,
@@ -69,6 +70,10 @@ export default function Navbar({
   onRoleChange,
   onOpenSsoModal,
   ssoSession,
+  securityStatus,
+  onVerifyAuditChain,
+  onSimulateSecurityAttack,
+  onUnlockSecuritySession,
   theme = 'light',
   onToggleTheme,
   onResetDemo,
@@ -77,9 +82,21 @@ export default function Navbar({
   const [isToolkitOpen, setIsToolkitOpen] = useState(false);
   const [isProvenanceOpen, setIsProvenanceOpen] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [isSecurityPopoverOpen, setIsSecurityPopoverOpen] = useState(false);
+  const [securityFeedback, setSecurityFeedback] = useState(null);
   const [iamNotification, setIamNotification] = useState(null);
   const toolkitRef = useRef(null);
   const roleDropdownRef = useRef(null);
+  const securityDropdownRef = useRef(null);
+
+  const isSessionLocked = Boolean(securityStatus?.lockout?.isLocked);
+  const strikeCount = Number(securityStatus?.lockout?.strikeCount || 0);
+  const maxStrikes = Number(securityStatus?.lockout?.maxStrikes || 3);
+  const intrusionBlockedCount = Number(securityStatus?.threatCounters?.intrusionBlockedCount || 0);
+  const hmacVerifiedCount = Number(securityStatus?.threatCounters?.hmacVerifiedCount || 42);
+  const totalInspectedCount = Number(securityStatus?.threatCounters?.totalInspectedRequests || 18);
+  const chainEntriesCount = Number(securityStatus?.auditChainIntegrity?.entriesChecked || 1);
+  const isChainVerified = securityStatus?.auditChainIntegrity?.verified !== false;
 
   const activeRoleObj = ENTERPRISE_ROLES.find(r => r.id === currentRole) || ENTERPRISE_ROLES[0];
 
@@ -94,6 +111,34 @@ export default function Navbar({
     window.setTimeout(() => setIamNotification(null), 4000);
   };
 
+  const handleTriggerVerifyChain = async () => {
+    if (!onVerifyAuditChain) return;
+    const res = await onVerifyAuditChain(activeRoleObj.title);
+    const entries = res?.chainIntegrity?.entriesChecked || chainEntriesCount;
+    setSecurityFeedback(`Integritas Rantai Audit SHA-256 Terverifikasi (${entries} blok utuh).`);
+    window.setTimeout(() => setSecurityFeedback(null), 4500);
+  };
+
+  const handleTriggerSecurityDrill = async (attackType) => {
+    if (!onSimulateSecurityAttack) return;
+    const res = await onSimulateSecurityAttack(attackType);
+    if (res?.message) {
+      setSecurityFeedback(res.message);
+      window.setTimeout(() => setSecurityFeedback(null), 5000);
+    }
+  };
+
+  const handleQuickMfaUnlock = async () => {
+    if (!onUnlockSecuritySession) return;
+    await onUnlockSecuritySession({
+      otpCode: '881026',
+      nik: ssoSession?.nik || '8810429',
+      actor: ssoSession?.name || activeRoleObj.title
+    });
+    setSecurityFeedback('Kunci Sesi Otomatis (Auto-Lockout) berhasil dibuka melalui verifikasi MFA OTP 881026.');
+    window.setTimeout(() => setSecurityFeedback(null), 4500);
+  };
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -102,6 +147,9 @@ export default function Navbar({
       }
       if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target)) {
         setIsRoleDropdownOpen(false);
+      }
+      if (securityDropdownRef.current && !securityDropdownRef.current.contains(event.target)) {
+        setIsSecurityPopoverOpen(false);
       }
     }
     function handleKeyDown(event) {
@@ -119,12 +167,12 @@ export default function Navbar({
   }, [onOpenTechInspector]);
 
   const statusText = connectivityStatus === 'reachable' 
-    ? 'SENTUL DC AKTIF • Engine Telemetri O-RAN O1 Telkomsel Sinkron (Fail-Safe 28ms)' 
+    ? 'DEMO LOKAL • SENTUL DC AKTIF • Engine Telemetri O-RAN O1 Telkomsel Sinkron (Fail-Safe 28ms)' 
     : connectivityStatus === 'checking' 
       ? 'MEMERIKSA NODE • Menghubungkan engine telemetri Sentul DC' 
       : connectivityStatus === 'offline' 
-        ? 'MODE OFFLINE • Peta offline SVG & simulasi telemetri lokal berjalan penuh' 
-        : 'MODE FALLBACK LOKAL • Engine telemetri edge tetap aktif';
+        ? 'OFFLINE • Mode lokal aktif & simulasi telemetri berjalan penuh' 
+        : 'HOST DEMO TIDAK TERJANGKAU • Mode fallback lokal edge tetap aktif';
 
   const tickerTelemetry = calculateHourTelemetry(
     typeof simState?.simHour === 'number' ? simState.simHour : 14,
@@ -148,44 +196,45 @@ export default function Navbar({
         {/* Telkomsel Signature Corporate Portal Top Ribbon */}
         <div className="h-[3px] w-full bg-gradient-to-r from-[#ED0226] via-[#FF3B5C] to-[#001A41]" />
 
-        {/* Main Sleek Enterprise Navbar (Single 54px Row) */}
-        <div className="h-13 sm:h-14 px-3 sm:px-4 flex items-center justify-between w-full gap-2 overflow-x-auto no-scrollbar">
+        {/* Main Sleek Enterprise Navbar (Single 54px Row on Desktop, Clean Wrap on Mobile) */}
+        <div className="min-h-13 xl:h-14 px-2.5 sm:px-3.5 py-1.5 xl:py-0 flex flex-wrap xl:flex-nowrap items-center justify-between w-full gap-1 sm:gap-1.5">
           
           {/* Left Brand & View Mode Switcher Group */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Logo Brand */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center p-1.5 rounded-xl bg-gradient-to-br from-red-500/15 to-rose-500/5 border border-red-500/25 shadow-2xs shrink-0">
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center p-1 rounded-xl bg-gradient-to-br from-red-500/15 to-rose-500/5 border border-red-500/25 shadow-2xs shrink-0">
                 <img 
                   src="/assets/logo_utama_impactgrid.webp" 
                   alt="Logo ImpactGrid Telkomsel Enterprise" 
-                  className="h-5 sm:h-6 w-auto object-contain" 
+                  className="h-5 w-auto object-contain" 
                   decoding="async"
                 />
               </div>
               <div className="flex flex-col leading-none">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs sm:text-sm font-black tracking-tight text-slate-900 dark:text-white">
                     <span className="text-[#ED0226]">Impact</span>Grid
                   </span>
-                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-red-500/10 text-[#ED0226] border border-red-500/20">
+                  <span className="hidden 2xl:inline-block text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-red-500/10 text-[#ED0226] border border-red-500/20">
                     SNOC v2.4
                   </span>
                 </div>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 hidden sm:block mt-0.5">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 hidden 2xl:block mt-0.5">
                   Telkomsel Smart Network DSS
                 </span>
               </div>
             </div>
 
             {/* Subtle Divider */}
-            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+            <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
 
             {/* Mode Switcher: Executive Command vs NOC & Engineering */}
             <div className="flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs shrink-0 shadow-2xs">
               <button
                 onClick={() => setViewMode && setViewMode('executive')}
-                className={`flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg font-bold text-xs transition cursor-pointer btn-bounce ${
+                aria-label="Executive Command Center (Mode Eksekutif)"
+                className={`flex items-center justify-center gap-1 px-2 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer btn-bounce ${
                   viewMode === 'executive'
                     ? 'bg-[#ED0226] text-white shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -194,11 +243,12 @@ export default function Navbar({
               >
                 <Presentation className="w-3.5 h-3.5 shrink-0" />
                 <span className="whitespace-nowrap hidden 2xl:inline">Executive Command Center</span>
-                <span className="whitespace-nowrap 2xl:hidden">Mode Eksekutif</span>
+                <span className="whitespace-nowrap 2xl:hidden">Eksekutif</span>
               </button>
               <button
                 onClick={() => setViewMode && setViewMode('engineering')}
-                className={`flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg font-bold text-xs transition cursor-pointer btn-bounce ${
+                aria-label="NOC & Deep Engineering (Mode Teknis)"
+                className={`flex items-center justify-center gap-1 px-2 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer btn-bounce ${
                   viewMode === 'engineering'
                     ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -207,13 +257,13 @@ export default function Navbar({
               >
                 <Wrench className="w-3.5 h-3.5 shrink-0" />
                 <span className="whitespace-nowrap hidden 2xl:inline">NOC & Deep Engineering</span>
-                <span className="whitespace-nowrap 2xl:hidden">NOC & Engineering</span>
+                <span className="whitespace-nowrap 2xl:hidden">Engineering</span>
               </button>
             </div>
           </div>
 
           {/* Right Action Tools: Controls, Briefing, Persona & Utilities */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-1 shrink-0">
             {/* Global Command Palette Search Button (Ctrl+K) */}
             {onOpenCommandPalette && (
               <button
@@ -221,11 +271,12 @@ export default function Navbar({
                 onClick={onOpenCommandPalette}
                 aria-label="Buka Command Palette (Ctrl+K)"
                 title="Cari 50 Site BTS, 10 Q&A Direksi, BoQ, SAP, atau Aksi Cepat (Ctrl+K)"
-                className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer shrink-0"
+                className="flex items-center gap-1 px-2 py-1 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold transition cursor-pointer shrink-0"
               >
                 <Search className="w-3.5 h-3.5 text-[#ED0226] shrink-0" />
-                <span className="whitespace-nowrap">Cari Site</span>
-                <kbd className="text-[9px] font-mono px-1 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500">
+                <span className="whitespace-nowrap hidden 2xl:inline">Cari Site</span>
+                <span className="whitespace-nowrap hidden lg:inline 2xl:hidden">Cari</span>
+                <kbd className="hidden 2xl:inline text-[9px] font-mono px-1 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500">
                   Ctrl+K
                 </kbd>
               </button>
@@ -238,11 +289,12 @@ export default function Navbar({
                 onClick={onOpenTechInspector}
                 aria-label="IT Inspector - Buka IT Technical Inspector (Alt+I)"
                 title="Buka Live Technical Inspector: Bukti HTTP DevTools, OpenAPI 3.1, WebCrypto SHA-256 & CLI Vendor (Alt+I)"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold transition cursor-pointer shrink-0"
+                className="flex items-center gap-1 px-2 py-1 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 text-white text-[11px] font-bold transition cursor-pointer shrink-0"
               >
                 <Cpu className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="whitespace-nowrap">IT Inspector</span>
-                <kbd className="hidden sm:inline text-[9px] font-mono px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-emerald-300">
+                <span className="whitespace-nowrap hidden 2xl:inline">IT Inspector</span>
+                <span className="whitespace-nowrap hidden sm:inline 2xl:hidden">IT</span>
+                <kbd className="hidden 2xl:inline text-[9px] font-mono px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-emerald-300">
                   Alt+I
                 </kbd>
               </button>
@@ -251,7 +303,14 @@ export default function Navbar({
             {/* Simulation Scenario Toggle */}
             <button
               onClick={onToggleSimBar}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold transition cursor-pointer shrink-0 ${
+              aria-label={
+                simState.scenarioKey === 'normal' ? 'Demo lokal • Simulasi 24-Jam' :
+                simState.scenarioKey === 'heatwave' ? 'Asumsi cuaca • Skenario Termal' :
+                simState.scenarioKey === 'mudik' ? 'Asumsi trafik • Lonjakan Trafik' :
+                simState.scenarioKey === 'pln_peak' ? 'Asumsi biaya energi • Tarif WBP PLN' :
+                simState.scenarioKey === 'blackout_sumatera' ? 'Asumsi gangguan listrik • Transisi Baterai' : 'Asumsi keselamatan • Protokol 112'
+              }
+              className={`flex items-center gap-1 px-2 py-1 rounded-xl border text-[11px] font-bold transition cursor-pointer shrink-0 ${
                 isSimBarOpen
                   ? 'bg-slate-900 text-white border-slate-800 dark:bg-white dark:text-slate-900'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200/90 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700'
@@ -259,19 +318,26 @@ export default function Navbar({
               title="Buka konsol simulasi skenario operasional 24-jam (Shortcut: 'E')"
             >
               <Sliders className="w-3.5 h-3.5 text-[#ED0226] shrink-0" />
-              <span className="whitespace-nowrap font-bold">
+              <span className="whitespace-nowrap font-bold hidden 2xl:inline">
                 {simState.scenarioKey === 'normal' ? 'Simulasi 24-Jam' :
                  simState.scenarioKey === 'heatwave' ? 'Skenario Termal' :
                  simState.scenarioKey === 'mudik' ? 'Lonjakan Trafik' :
                  simState.scenarioKey === 'pln_peak' ? 'Tarif WBP PLN' :
                  simState.scenarioKey === 'blackout_sumatera' ? 'Transisi Baterai' : 'Protokol 112'}
               </span>
+              <span className="whitespace-nowrap font-bold hidden md:inline 2xl:hidden">
+                {simState.scenarioKey === 'normal' ? 'Simulasi' :
+                 simState.scenarioKey === 'heatwave' ? 'Termal' :
+                 simState.scenarioKey === 'mudik' ? 'Mudik' :
+                 simState.scenarioKey === 'pln_peak' ? 'WBP PLN' :
+                 simState.scenarioKey === 'blackout_sumatera' ? 'Baterai' : '112'}
+              </span>
             </button>
 
             {/* Start Presentation 7 menit */}
             <button
               onClick={onTogglePitchWalkthrough}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black transition cursor-pointer border shrink-0 btn-bounce ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-xl text-[11px] font-black transition cursor-pointer border shrink-0 btn-bounce ${
                 isPitchWalkthroughActive 
                   ? 'bg-gradient-to-r from-red-600 to-[#ED0226] text-white border-red-500 ring-2 ring-red-500/50 shadow-md' 
                   : 'bg-gradient-to-r from-red-600 via-[#ED0226] to-rose-600 hover:from-red-700 hover:to-red-600 text-white border-red-500/80 shadow-xs hover:shadow-md'
@@ -281,7 +347,7 @@ export default function Navbar({
             >
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
               <span className="whitespace-nowrap hidden 2xl:inline">Executive Briefing</span>
-              <span className="whitespace-nowrap 2xl:hidden">Briefing</span>
+              <span className="whitespace-nowrap hidden sm:inline 2xl:hidden">Briefing</span>
             </button>
 
             {/* Consolidated Dropdown: Pusat Dokumen & Alat (Executive & Defense Toolkit) */}
@@ -291,7 +357,7 @@ export default function Navbar({
                 aria-expanded={isToolkitOpen}
                 aria-haspopup="menu"
                 aria-label="Pusat Dokumen & Alat (Executive & Defense Toolkit)"
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-xl text-[11px] font-bold transition cursor-pointer border ${
                   isToolkitOpen
                     ? 'bg-slate-900 text-white border-slate-800 dark:bg-white dark:text-slate-900 shadow-md'
                     : emergencyState.active
@@ -301,7 +367,8 @@ export default function Navbar({
                 title="Buka Pusat Dokumen Resmi (BA-RE PLN, Jurnal SAP S/4HANA, BoQ/RKS) & Alat Operasional"
               >
                 <Briefcase className={`w-3.5 h-3.5 shrink-0 ${isToolkitOpen ? 'text-amber-400 dark:text-[#ED0226]' : 'text-[#ED0226]'}`} />
-                <span className="whitespace-nowrap hidden md:inline">Pusat Dokumen &amp; Alat</span>
+                <span className="whitespace-nowrap hidden 2xl:inline">Pusat Dokumen &amp; Alat</span>
+                <span className="whitespace-nowrap hidden lg:inline 2xl:hidden">Dokumen</span>
                 <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isToolkitOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -651,8 +718,198 @@ export default function Navbar({
               )}
             </div>
 
+            {/* Compact Zero-Trust & Auto-Lockout Security Posture Indicator */}
+            <div className="relative shrink-0" ref={securityDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsSecurityPopoverOpen((prev) => !prev)}
+                aria-expanded={isSecurityPopoverOpen}
+                aria-haspopup="dialog"
+                aria-label="Status Pertahanan Siber Zero-Trust & Auto-Lockout"
+                title="Lihat Postur Keamanan Zero-Trust API, IDS Real-Time, Rantai Audit SHA-256 & Status Auto-Lockout"
+                className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-xl border text-[11px] font-bold transition cursor-pointer shrink-0 ${
+                  isSessionLocked
+                    ? 'bg-red-600 text-white border-red-500 shadow-xs'
+                    : intrusionBlockedCount > 0
+                      ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                      : 'bg-emerald-50/90 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
+                }`}
+              >
+                {isSessionLocked ? (
+                  <Lock className="w-3.5 h-3.5 text-white shrink-0" />
+                ) : intrusionBlockedCount > 0 ? (
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                ) : (
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                )}
+                <span className="whitespace-nowrap hidden lg:inline font-mono tabular-nums">
+                  {isSessionLocked
+                    ? 'Sesi Terkunci'
+                    : intrusionBlockedCount > 0
+                      ? `IDS (${intrusionBlockedCount})`
+                      : 'Zero-Trust'}
+                </span>
+              </button>
+
+              {isSecurityPopoverOpen && (
+                <div
+                  role="dialog"
+                  aria-label="Postur Pertahanan Siber Zero-Trust ImpactGrid"
+                  className="absolute right-0 mt-2 w-84 sm:w-96 rounded-2xl bg-white dark:bg-[#0B1324] border border-slate-200 dark:border-slate-800 shadow-2xl z-50 p-3.5 text-xs space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                        <span>POSTUR PERTAHANAN BACKEND</span>
+                        <span>·</span>
+                        <span>FIPS 180-4</span>
+                      </div>
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+                        {isSessionLocked
+                          ? 'Sesi Dikunci Otomatis (Auto-Lockout)'
+                          : intrusionBlockedCount > 0
+                            ? 'Zero-Trust Aktif · Intrusi Dikarantina'
+                            : 'Zero-Trust API & IDS Aktif'}
+                      </h3>
+                    </div>
+                    <span
+                      className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded border tabular-nums ${
+                        isSessionLocked
+                          ? 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border-red-300 dark:border-red-800'
+                          : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                      }`}
+                    >
+                      {isSessionLocked ? 'HTTP 423 LOCKED' : 'PROTECTED'}
+                    </span>
+                  </div>
+
+                  {securityFeedback && (
+                    <div className="p-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-emerald-300 font-mono text-[11px] leading-relaxed border border-slate-700">
+                      {securityFeedback}
+                    </div>
+                  )}
+
+                  {/* 4-Metric Tabular Telemetry Strip */}
+                  <div className="grid grid-cols-2 gap-2 font-mono tabular-nums">
+                    <div className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">HMAC / SHA-256 Valid</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+                        {hmacVerifiedCount} paket
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">IDS Karantina</div>
+                      <div className="text-sm font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                        {intrusionBlockedCount} serangan
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">Rantai Audit Ledger</div>
+                      <div className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                        {chainEntriesCount} blok utuh
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">Ambang Auto-Lockout</div>
+                      <div className={`text-sm font-black mt-0.5 ${isSessionLocked ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
+                        {strikeCount} / {maxStrikes} strike
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Layers List */}
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">1. Zero-Trust API, JWT/HMAC &amp; Nonce</span>
+                      <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">AKTIF</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">2. Deteksi Intrusi (IDS) &amp; Karantina</span>
+                      <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">AKTIF</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">3. Rantai Audit SHA-256 Anti-Tamper</span>
+                      <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                        {isChainVerified ? 'TERVERIFIKASI' : 'PERINGATAN'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between py-1">
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">4. Rate-Limit Bertingkat &amp; Sanitasi ({totalInspectedCount})</span>
+                      <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">AKTIF</span>
+                    </div>
+                  </div>
+
+                  {/* Self-Test & Audit Verification Controls */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      Uji Pertahanan Siber &amp; Verifikasi Kriptografi:
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleTriggerVerifyChain}
+                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-[11px] transition cursor-pointer whitespace-nowrap truncate"
+                      >
+                        Verifikasi Rantai SHA-256
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTriggerSecurityDrill('IDS_INJECTION')}
+                        className="px-2.5 py-1.5 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-bold text-[11px] transition cursor-pointer whitespace-nowrap truncate"
+                      >
+                        Simulasi Injeksi IDS
+                      </button>
+                    </div>
+
+                    {isSessionLocked ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={handleQuickMfaUnlock}
+                          className="flex-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition cursor-pointer whitespace-nowrap"
+                        >
+                          Buka Kunci Sesi (MFA 881026)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsSecurityPopoverOpen(false);
+                            onOpenSsoModal?.();
+                          }}
+                          className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-bold text-[11px] transition cursor-pointer whitespace-nowrap"
+                        >
+                          Portal SSO
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleTriggerSecurityDrill('AUTO_LOCKOUT_TRIGGER')}
+                        className="w-full px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/70 bg-red-50/80 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 font-bold text-[11px] transition cursor-pointer whitespace-nowrap"
+                      >
+                        Simulasi Brute-Force &amp; Auto-Lockout (3x Strike)
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Quick Utility Icon Group */}
             <div className="flex items-center gap-1 shrink-0">
+              {/* Keyboard Shortcuts Help (?) */}
+              {onOpenShortcuts && (
+                <button
+                  type="button"
+                  onClick={onOpenShortcuts}
+                  aria-label="Panduan pintasan keyboard (Shift+?)"
+                  title="Buka panduan pintasan keyboard operasional (Shift+?)"
+                  className="hidden sm:inline-flex w-7 h-7 sm:w-8 sm:h-8 items-center justify-center rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-mono font-bold cursor-pointer shrink-0 transition"
+                >
+                  ?
+                </button>
+              )}
+
               {/* Reset Baseline */}
               <button 
                 type="button" 
@@ -718,18 +975,51 @@ export default function Navbar({
               <span>{statusText}</span>
             </div>
 
-            <div className="hidden xl:flex items-center space-x-2.5 text-[10px] text-slate-500 dark:text-slate-400 shrink-0">
+            <div className="hidden xl:flex items-center space-x-2.5 text-[10px] text-slate-500 dark:text-slate-400 shrink-0 tabular-nums">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 O-RAN O1: 300ms Siaga
               </span>
               <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1">
                 <Lock className="w-3 h-3 text-indigo-500" />
-                Ledger SHA-256 Valid
+                Ledger SHA-256 Valid ({hmacVerifiedCount} HMAC)
               </span>
             </div>
           </div>
         </div>
+
+        {/* Auto-Lockout Security Alert Banner when Session is Locked Out */}
+        {isSessionLocked && (
+          <div
+            role="alert"
+            className="bg-red-700 text-white text-xs px-4 py-2 flex flex-wrap items-center justify-between gap-2 border-t border-red-500"
+          >
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-white shrink-0" />
+              <span>
+                <strong>Sesi Dikunci Otomatis (Auto-Lockout HTTP 423):</strong>{' '}
+                {securityStatus?.lockout?.lockReason || 'Terdeteksi aktivitas mencurigakan / pelanggaran integritas berulang.'}{' '}
+                Eksekusi perintah kritis ditangguhkan hingga verifikasi MFA dilakukan.
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleQuickMfaUnlock}
+                className="px-3 py-1 rounded-lg bg-white text-red-700 hover:bg-red-50 font-bold text-xs cursor-pointer transition whitespace-nowrap"
+              >
+                Buka Kunci via MFA OTP
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenSsoModal?.()}
+                className="px-3 py-1 rounded-lg border border-white/40 hover:bg-white/10 text-white font-bold text-xs cursor-pointer transition whitespace-nowrap"
+              >
+                Portal Login SSO
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* IAM Session Switch Notification Banner */}
         {iamNotification && (

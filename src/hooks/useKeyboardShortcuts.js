@@ -130,20 +130,29 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      // 7. 1 s/d 5 : Mengubah activeTab sesuai urutan tab pada viewMode yang sedang aktif
-      if (['1', '2', '3', '4', '5'].includes(e.key)) {
-        const index = parseInt(e.key, 10) - 1;
-        const currentOrder = viewMode === 'engineering' ? ENGINEERING_TAB_ORDER : EXECUTIVE_TAB_ORDER;
-        const targetTab = currentOrder[index];
-        if (targetTab) {
-          onNavigateTab(targetTab);
-        }
+      // 7. Pemetaan Pintasan Tab 1-9, 0, dan V
+      if (e.key === '1') {
+        onNavigateTab('overview');
         return;
       }
-
-      // 8. Pintasan presenter eksisting lainnya (v, 6-9, w, t, s, p, q, a, b, k)
       if (keyLower === 'v') {
         onNavigateTab('pilotvalidation');
+        return;
+      }
+      if (e.key === '2') {
+        onNavigateTab(viewMode === 'engineering' ? 'digitaltwin' : 'pilotvalidation');
+        return;
+      }
+      if (e.key === '3') {
+        onNavigateTab(viewMode === 'engineering' ? 'agents' : 'scenariolab');
+        return;
+      }
+      if (e.key === '4') {
+        onNavigateTab(viewMode === 'engineering' ? 'telemetry' : 'financial');
+        return;
+      }
+      if (e.key === '5') {
+        onNavigateTab('scenariolab');
         return;
       }
       if (e.key === '6') {
@@ -158,11 +167,7 @@ export function useKeyboardShortcuts({
         onNavigateTab('financial');
         return;
       }
-      if (e.key === '9') {
-        onNavigateTab('architecture');
-        return;
-      }
-      if (e.key === '0') {
+      if (e.key === '9' || e.key === '0') {
         onNavigateTab('architecture');
         return;
       }

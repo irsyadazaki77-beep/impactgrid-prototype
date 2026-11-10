@@ -19,18 +19,18 @@ import {
 
 const executiveItems = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard, keyHint: '1' },
-  { id: 'pilotvalidation', label: 'Validasi Pilot', icon: ShieldCheck, keyHint: '2' },
-  { id: 'scenariolab', label: 'Simulasi Skenario', icon: FlaskConical, keyHint: '3' },
-  { id: 'financial', label: 'Dampak Finansial', icon: ChartNoAxesCombined, keyHint: '4' },
-  { id: 'esg', label: 'Dampak ESG', icon: Leaf, keyHint: '5' },
+  { id: 'pilotvalidation', label: 'Validasi Pilot', icon: ShieldCheck, keyHint: 'V' },
+  { id: 'scenariolab', label: 'Simulasi Skenario', icon: FlaskConical, keyHint: '5' },
+  { id: 'financial', label: 'Dampak Finansial', icon: ChartNoAxesCombined, keyHint: '8' },
+  { id: 'esg', label: 'Dampak ESG', icon: Leaf, keyHint: '7' },
 ];
 
 const engineeringItems = [
-  { id: 'telemetry', label: 'Telemetri', icon: Radio, keyHint: '6' },
-  { id: 'digitaltwin', label: 'Digital Twin', icon: Zap, keyHint: '7' },
-  { id: 'agents', label: 'Orkestrasi Agen', icon: Bot, keyHint: '8' },
-  { id: 'optimization', label: 'Optimasi', icon: BriefcaseBusiness, keyHint: '9' },
-  { id: 'architecture', label: 'Arsitektur', icon: Layers, keyHint: '0' },
+  { id: 'telemetry', label: 'Telemetri', icon: Radio, keyHint: '4' },
+  { id: 'digitaltwin', label: 'Digital Twin', icon: Zap, keyHint: '2' },
+  { id: 'agents', label: 'Orkestrasi Agen', icon: Bot, keyHint: '3' },
+  { id: 'optimization', label: 'Optimasi', icon: BriefcaseBusiness, keyHint: '6' },
+  { id: 'architecture', label: 'Arsitektur', icon: Layers, keyHint: '9' },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, viewMode = 'executive' }) {

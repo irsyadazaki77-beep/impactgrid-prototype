@@ -31,6 +31,7 @@ export default function GuidedPitchBar({
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+  const graceTicksRef = React.useRef(0);
   const current = PRESENTATION_STEPS[currentStep];
   const remainingSeconds = Math.max(0, PRESENTATION_DURATION_SECONDS - secondsElapsed);
   const isOvertime = secondsElapsed > PRESENTATION_DURATION_SECONDS;
@@ -52,6 +53,7 @@ export default function GuidedPitchBar({
   }, [onNavigateTab]);
 
   const resetPresentation = useCallback(() => {
+    graceTicksRef.current = 0;
     setCurrentStep(0);
     setSecondsElapsed(0);
     setIsTimerRunning(true);
@@ -74,7 +76,20 @@ export default function GuidedPitchBar({
 
   useEffect(() => {
     if (!isActive || !isTimerRunning) return undefined;
-    const timer = window.setInterval(() => setSecondsElapsed((elapsed) => elapsed + 1), 1000);
+    const GRACE_SECONDS = 8;
+    const timer = window.setInterval(() => {
+      setSecondsElapsed((elapsed) => {
+        if (elapsed === 0 && graceTicksRef.current < GRACE_SECONDS) {
+          graceTicksRef.current += 1;
+          return 0;
+        }
+        if (elapsed === 0 && graceTicksRef.current === GRACE_SECONDS) {
+          graceTicksRef.current += 1;
+          return GRACE_SECONDS + 1;
+        }
+        return elapsed + 1;
+      });
+    }, 1000);
     return () => window.clearInterval(timer);
   }, [isActive, isTimerRunning]);
 
@@ -125,12 +140,10 @@ export default function GuidedPitchBar({
   }, [currentStep, goToStep, isActive, onClose, shortcutsEnabled, toggleFullscreen]);
 
   const toggleNotes = useCallback(() => {
-    setIsNotesExpanded((expanded) => {
-      const next = !expanded;
-      onNotesExpandedChange?.(next);
-      return next;
-    });
-  }, [onNotesExpandedChange]);
+    const next = !isNotesExpanded;
+    setIsNotesExpanded(next);
+    onNotesExpandedChange?.(next);
+  }, [isNotesExpanded, onNotesExpandedChange]);
 
   const stageStatus = useMemo(() => `${currentStep + 1} dari ${PRESENTATION_STEPS.length}`, [currentStep]);
   if (!isActive) return null;

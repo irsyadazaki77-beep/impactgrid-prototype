@@ -66,7 +66,7 @@ export default function ReportModal({
                 Dokumen Telaah Eksekutif • PT Telekomunikasi Selular
               </div>
               <h2 className="text-xl font-black text-slate-900 print:text-lg">
-                Lembar Kerja Validasi Operasional &amp; Analisis Sensitivitas Direksi
+                Rencana validasi data dan sensitivitas awal • Lembar Kerja Direksi
               </h2>
               <p className="text-xs text-slate-500 font-semibold">
                 Executive Board Memo: Kerangka Keputusan Efisiensi Energi RAN • ImpactGrid Enterprise Suite ({scaleLabel})

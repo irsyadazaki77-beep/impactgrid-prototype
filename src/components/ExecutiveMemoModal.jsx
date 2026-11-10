@@ -55,7 +55,7 @@ export default function ExecutiveMemoModal({
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-amber-300" />
             <div>
-              <h2 className="text-sm font-extrabold">Berkas Keputusan Investasi Direksi (A4)</h2>
+              <h2 className="text-sm font-extrabold">Memo konsep ImpactGrid • Berkas Keputusan Investasi Direksi (A4)</h2>
               <p className="text-[11px] text-slate-300">Executive Investment Dossier 1-Halaman • Dokumen Pengambilan Keputusan Dewan Direksi</p>
             </div>
           </div>

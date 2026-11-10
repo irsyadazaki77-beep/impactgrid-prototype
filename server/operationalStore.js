@@ -483,6 +483,68 @@ export function appendAuditEntry(state, { action, actor = 'Telkomsel Operator', 
   return entry;
 }
 
+export function verifyAuditChainIntegrity(stateInput = null) {
+  const state = stateInput || loadOperationalState();
+  const ledger = Array.isArray(state?.auditLedger) ? state.auditLedger : [];
+  const expectedGenesisHash = crypto.createHash('sha256').update('IMPACTGRID-GENESIS-TELKOMSEL-2026').digest('hex');
+
+  if (ledger.length === 0) {
+    return {
+      verified: true,
+      status: 'CHAIN_EMPTY_NOMINAL',
+      entriesChecked: 0,
+      headHash: expectedGenesisHash,
+      genesisHash: expectedGenesisHash,
+      brokenAtId: null,
+      verifiedAt: new Date().toISOString()
+    };
+  }
+
+  // Ledger is stored newest-first ([0] is newest, [ledger.length - 1] is oldest)
+  const chronological = [...ledger].reverse();
+  let brokenAtId = null;
+  let failureReason = null;
+
+  for (let i = 0; i < chronological.length; i++) {
+    const item = chronological[i];
+    if (i > 0) {
+      const prevItem = chronological[i - 1];
+      if (item.prevHash !== prevItem.currentHash) {
+        brokenAtId = item.id;
+        failureReason = `Rantai hash terputus pada ${item.id}: prevHash tidak cocok dengan entri sebelumnya.`;
+        break;
+      }
+    }
+
+    if (item.id === 'AUD-GENESIS-001') {
+      if (item.currentHash !== expectedGenesisHash) {
+        brokenAtId = item.id;
+        failureReason = 'Genesis block hash tidak cocok dengan konstanta kriptografi Telkomsel.';
+        break;
+      }
+    } else {
+      const expectedPayload = `${item.prevHash}|${item.timestamp}|${item.action}|${item.actor}|${item.category}|${item.detail}`;
+      const recomputed = crypto.createHash('sha256').update(expectedPayload).digest('hex');
+      if (recomputed !== item.currentHash) {
+        brokenAtId = item.id;
+        failureReason = `Manipulasi terdeteksi pada entri ${item.id}: SHA-256 tidak sesuai konten.`;
+        break;
+      }
+    }
+  }
+
+  return {
+    verified: !brokenAtId,
+    status: brokenAtId ? 'CHAIN_TAMPER_DETECTED' : 'CRYPTOGRAPHIC_CHAIN_VERIFIED',
+    entriesChecked: chronological.length,
+    headHash: ledger[0]?.currentHash || expectedGenesisHash,
+    genesisHash: chronological[0]?.currentHash || expectedGenesisHash,
+    brokenAtId,
+    failureReason,
+    verifiedAt: new Date().toISOString()
+  };
+}
+
 export function resetOperationalState(presetKey = 'jamali50') {
   const fresh = createInitialDbState();
   fresh.datasetKey = presetKey;

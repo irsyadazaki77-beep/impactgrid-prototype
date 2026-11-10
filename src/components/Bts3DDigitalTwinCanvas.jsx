@@ -75,85 +75,95 @@ export default function Bts3DDigitalTwinCanvas({
     }
   }, [site?.id]);
 
-  // Initialize Three.js scene
+  // Initialize Three.js scene (deferred by 1 frame so React DOM commits immediately)
   useEffect(() => {
     const container = mountRef.current;
-    if (!container) return;
+    if (!container) return undefined;
 
-    const width = container.clientWidth || 800;
-    const height = container.clientHeight || 480;
+    let cleanupFn = null;
+    const initTimer = window.setTimeout(() => {
+      if (!mountRef.current) return;
+      const width = container.clientWidth || 800;
+      const height = container.clientHeight || 480;
 
-    // 1. Software WebGL detector
-    const isSoftwareGl = (() => {
+      // 1. Software WebGL detector
+      const isSoftwareGl = (() => {
+        try {
+          const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+          if (!gl) return true;
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
+          const gpu = String(gl.getParameter(param));
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+          return /SwiftShader|llvmpipe|softpipe|Software|Basic Render|Mesa OffScreen/i.test(gpu);
+        } catch {
+          return true;
+        }
+      })();
+
+      // 2. Renderer setup
+      let renderer;
       try {
-        const gl = document.createElement('canvas').getContext('webgl2');
-        if (!gl) return true;
-        const ext = gl.getExtension('WEBGL_debug_renderer_info');
-        const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
-        const gpu = String(gl.getParameter(param));
-        gl.getExtension('WEBGL_lose_context')?.loseContext();
-        return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
+        renderer = new THREE.WebGLRenderer({
+          antialias: !isSoftwareGl,
+          powerPreference: 'high-performance',
+          alpha: true
+        });
       } catch {
-        return false;
+        return;
       }
-    })();
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(isSoftwareGl ? 0.5 : Math.min(window.devicePixelRatio, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+      renderer.shadowMap.enabled = !isSoftwareGl;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // 2. Renderer setup
-    const renderer = new THREE.WebGLRenderer({
-      antialias: !isSoftwareGl,
-      powerPreference: 'high-performance',
-      alpha: true
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
-    renderer.shadowMap.enabled = !isSoftwareGl;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
+      rendererRef.current = renderer;
 
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+      // 3. Scene and Camera
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a1122);
+      scene.fog = new THREE.FogExp2(0x0a1122, 0.015);
+      sceneRef.current = scene;
 
-    // 3. Scene and Camera
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a1122);
-    scene.fog = new THREE.FogExp2(0x0a1122, 0.015);
-    sceneRef.current = scene;
+      const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+      camera.position.set(12, 14, 18);
+      cameraRef.current = camera;
 
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(12, 14, 18);
-    cameraRef.current = camera;
+      // 4. Orbit Controls (Configured to avoid fighting scripted damping)
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = !isSoftwareGl;
+      controls.dampingFactor = 0.06;
+      controls.maxPolarAngle = Math.PI / 2 - 0.02;
+      controls.minDistance = 3;
+      controls.maxDistance = 45;
+      controls.target.set(0, 8, 0);
 
-    // 4. Orbit Controls (Configured to avoid fighting scripted damping)
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = !isSoftwareGl;
-    controls.dampingFactor = 0.06;
-    controls.maxPolarAngle = Math.PI / 2 - 0.02;
-    controls.minDistance = 3;
-    controls.maxDistance = 45;
-    controls.target.set(0, 8, 0);
+      controls.addEventListener('start', () => {
+        isUserControllingRef.current = true;
+      });
+      controls.addEventListener('end', () => {
+        isUserControllingRef.current = false;
+        targetCamPosRef.current.copy(camera.position);
+        targetCamLookRef.current.copy(controls.target);
+      });
 
-    controls.addEventListener('start', () => {
-      isUserControllingRef.current = true;
-    });
-    controls.addEventListener('end', () => {
-      isUserControllingRef.current = false;
-      targetCamPosRef.current.copy(camera.position);
-      targetCamLookRef.current.copy(controls.target);
-    });
+      controlsRef.current = controls;
 
-    controlsRef.current = controls;
-
-    // 5. Studio Environment & Lighting
-    try {
-      const pmremGenerator = new THREE.PMREMGenerator(renderer);
-      scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
-      pmremGenerator.dispose();
-    } catch {
-      // Fallback
-    }
+      // 5. Studio Environment & Lighting (skip expensive PMREM cubemap convolution on CPU software WebGL)
+      if (!isSoftwareGl) {
+        try {
+          const pmremGenerator = new THREE.PMREMGenerator(renderer);
+          scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+          pmremGenerator.dispose();
+        } catch {
+          // Fallback
+        }
+      }
 
     const keyLight = new THREE.DirectionalLight(0xfff5ea, 1.8);
     keyLight.position.set(16, 24, 14);
@@ -496,59 +506,80 @@ export default function Bts3DDigitalTwinCanvas({
 
     renderer.domElement.addEventListener('click', handleCanvasClick);
 
-    // 11. Animation Loop (using performance.now() instead of deprecated THREE.Clock)
-    const startTimeMs = performance.now();
-    let prevTimeMs = startTimeMs;
+      // 11. Animation Loop (skip continuous 60fps loop on CPU software WebGL or when tab is hidden)
+      const startTimeMs = performance.now();
+      let prevTimeMs = startTimeMs;
 
-    const animate = () => {
-      animFrameIdRef.current = requestAnimationFrame(animate);
+      const renderOnce = () => {
+        if (!container.offsetParent || document.hidden) return;
+        controls.update();
+        renderer.render(scene, camera);
+      };
 
-      const nowMs = performance.now();
-      const delta = Math.min(0.1, Math.max(0.001, (nowMs - prevTimeMs) / 1000));
-      const elapsed = (nowMs - startTimeMs) / 1000;
-      prevTimeMs = nowMs;
+      const animate = () => {
+        if (isSoftwareGl) return;
+        animFrameIdRef.current = requestAnimationFrame(animate);
+        if (!container.offsetParent || document.hidden) return;
 
-      // Only lerp camera when user is NOT manually dragging OrbitControls
-      if (!isUserControllingRef.current) {
-        camera.position.lerp(targetCamPosRef.current, delta * 3.5);
-        controls.target.lerp(targetCamLookRef.current, delta * 3.5);
+        const nowMs = performance.now();
+        const delta = Math.min(0.1, Math.max(0.001, (nowMs - prevTimeMs) / 1000));
+        const elapsed = (nowMs - startTimeMs) / 1000;
+        prevTimeMs = nowMs;
+
+        // Only lerp camera when user is NOT manually dragging OrbitControls
+        if (!isUserControllingRef.current) {
+          camera.position.lerp(targetCamPosRef.current, delta * 3.5);
+          controls.target.lerp(targetCamLookRef.current, delta * 3.5);
+        }
+
+        // Subtle HVAC fan spin
+        if (fanRotor) {
+          fanRotor.rotation.x += delta * 14;
+        }
+
+        // Auto-rotation around target if enabled
+        if (isRotating && !isUserControllingRef.current) {
+          towerGroup.rotation.y = Math.sin(elapsed * 0.1) * 0.05;
+        }
+
+        controls.update();
+        renderer.render(scene, camera);
+      };
+
+      renderOnce();
+      if (!isSoftwareGl) {
+        animate();
+      } else {
+        controls.addEventListener('change', renderOnce);
       }
 
-      // Subtle HVAC fan spin
-      if (fanRotor) {
-        fanRotor.rotation.x += delta * 14;
-      }
+      // 12. Resize Handler
+      const handleResize = () => {
+        if (!container || !renderer || !camera || !container.offsetParent) return;
+        const w = container.clientWidth || 800;
+        const h = container.clientHeight || 480;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+        if (isSoftwareGl) renderOnce();
+      };
 
-      // Auto-rotation around target if enabled
-      if (isRotating && !isUserControllingRef.current) {
-        towerGroup.rotation.y = Math.sin(elapsed * 0.1) * 0.05;
-      }
+      window.addEventListener('resize', handleResize);
 
-      controls.update();
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    // 12. Resize Handler
-    const handleResize = () => {
-      if (!container || !renderer || !camera) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-
-    window.addEventListener('resize', handleResize);
+      cleanupFn = () => {
+        window.removeEventListener('resize', handleResize);
+        controls.removeEventListener('change', renderOnce);
+        renderer.domElement.removeEventListener('click', handleCanvasClick);
+        if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
+        if (rendererRef.current) {
+          rendererRef.current.dispose();
+        }
+      };
+    }, 16);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      renderer.domElement.removeEventListener('click', handleCanvasClick);
-      if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
-      if (rendererRef.current) {
-        rendererRef.current.dispose();
-      }
+      window.clearTimeout(initTimer);
+      if (cleanupFn) cleanupFn();
     };
   }, []);
 

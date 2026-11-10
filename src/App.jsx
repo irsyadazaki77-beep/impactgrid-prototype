@@ -22,12 +22,12 @@ import { DEFAULT_BYOD_REGIONAL_PRESET } from './utils/telkomselNextGenOperations
 import KpiStatRow from './components/KpiStatRow';
 import RoleBasedWorkspaceBanner from './components/RoleBasedWorkspaceBanner';
 import OverviewTab from './components/OverviewTab';
-import TelemetryTab from './components/TelemetryTab';
-import ArchitectureTab from './components/ArchitectureTab';
-import DigitalTwinTab from './components/DigitalTwinTab';
-import ESGComplianceTab from './components/ESGComplianceTab';
-import FinancialModelTab from './components/FinancialModelTab';
 
+const TelemetryTab = lazy(() => import('./components/TelemetryTab'));
+const ArchitectureTab = lazy(() => import('./components/ArchitectureTab'));
+const DigitalTwinTab = lazy(() => import('./components/DigitalTwinTab'));
+const ESGComplianceTab = lazy(() => import('./components/ESGComplianceTab'));
+const FinancialModelTab = lazy(() => import('./components/FinancialModelTab'));
 const PilotValidationCenterTab = lazy(() => import('./components/PilotValidationCenterTab'));
 const AgentOrchestratorTab = lazy(() => import('./components/AgentOrchestratorTab'));
 const ScenarioLabTab = lazy(() => import('./components/ScenarioLabTab'));
@@ -61,6 +61,16 @@ const PRESENTATION_PREFLIGHT_ITEMS = [
 function ModalLoadingState() {
   return <div className="modal-module-loading" role="status">Memuat modul sistem…</div>;
 }
+
+const FrozenWhenHidden = memo(
+  function FrozenWhenHidden({ children }) {
+    return children;
+  },
+  (prevProps, nextProps) =>
+    prevProps.isHidden &&
+    nextProps.isHidden &&
+    prevProps.resetVersion === nextProps.resetVersion
+);
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -120,6 +130,7 @@ export default function App() {
     operationalState,
     operationalSummary,
     divisionAccounts,
+    securityStatus,
     selectDatasetPreset,
     ingestTelemetryRecords,
     upsertBtsSite,
@@ -130,6 +141,9 @@ export default function App() {
     signBareDocument,
     postSapVoucher,
     authenticateSso,
+    verifyAuditChain,
+    simulateSecurityAttack,
+    unlockSecuritySessionMfa,
     resetOperationalDatabase
   } = useOperationalBackend();
 
@@ -477,6 +491,7 @@ export default function App() {
         onOpenFieldConsole={() => setIsFieldConsoleOpen(true)}
         onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
         onOpenTechInspector={() => setIsTechInspectorOpen(true)}
+        onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
         emergencyState={emergencyState}
         selectedScale={selectedScale}
         setSelectedScale={setSelectedScale}
@@ -486,6 +501,10 @@ export default function App() {
         onRoleChange={handleRoleChange}
         ssoSession={ssoSession}
         onOpenSsoModal={() => setIsSsoModalOpen(true)}
+        securityStatus={securityStatus}
+        onVerifyAuditChain={verifyAuditChain}
+        onSimulateSecurityAttack={simulateSecurityAttack}
+        onUnlockSecuritySession={unlockSecuritySessionMfa}
         isAutonomous={isAutonomous}
         setIsAutonomous={setIsAutonomous}
         onToggleSimBar={toggleSimulationBar}
@@ -513,7 +532,7 @@ export default function App() {
         onTriggerEmergency={(isActive) => setEmergencyState({ active: isActive })}
         isPlaying={autoSim}
         onTogglePlay={toggleAutoSim}
-        onReset={resetSimulation}
+        onReset={resetDemo}
         simulationMode={simulationMode}
         onToggleSimulationMode={toggleSimulationMode}
       />
@@ -530,6 +549,7 @@ export default function App() {
         {/* Dynamic Content Viewport */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto overflow-y-auto transition-all duration-300">
           <RoleBasedWorkspaceBanner
+            activeTab={activeTab}
             currentRole={currentRole}
             onRoleChange={handleRoleChange}
             selectedScale={selectedScale}
@@ -548,8 +568,9 @@ export default function App() {
           />
           {TAB_IDS.map((tabId) => loadedTabs.has(tabId) && (
             <section className="tab-panel" key={`${tabId}-${resetVersion}`} hidden={activeTab !== tabId} aria-hidden={activeTab !== tabId}>
-              <AppErrorBoundary key={`boundary-${tabId}-${resetVersion}`}>
-                <Suspense fallback={<TabLoadingFallback />}>
+              <FrozenWhenHidden isHidden={activeTab !== tabId} resetVersion={resetVersion}>
+                <AppErrorBoundary key={`boundary-${tabId}-${resetVersion}`}>
+                  <Suspense fallback={<TabLoadingFallback />}>
                   {tabId === 'overview' && (
                     <>
                       <KpiStatRow
@@ -716,6 +737,8 @@ export default function App() {
                   )}
                   {tabId === 'architecture' && (
                     <ArchitectureTab
+                      simState={simState}
+                      selectedScale={selectedScale}
                       onOpenOfficialBaRe={() => setIsOfficialBaReOpen(true)}
                       onOpenSapVoucher={() => setIsSapVoucherOpen(true)}
                       onOpenProcurementBoq={() => setIsProcurementBoqOpen(true)}
@@ -723,8 +746,9 @@ export default function App() {
                       resolvedSites={resolvedSites}
                     />
                   )}
-                </Suspense>
-              </AppErrorBoundary>
+                  </Suspense>
+                </AppErrorBoundary>
+              </FrozenWhenHidden>
             </section>
           ))}
         </main>
@@ -881,6 +905,7 @@ export default function App() {
               isOpen={isSsoModalOpen}
               onClose={() => setIsSsoModalOpen(false)}
               currentSession={ssoSession}
+              securityStatus={securityStatus}
               onAuthenticateSso={authenticateSso}
               divisionAccounts={divisionAccounts}
               onLoginSuccess={(session) => {
@@ -1027,9 +1052,10 @@ export default function App() {
       {/* Presentation Preflight Modal */}
       {isPreflightOpen && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-4"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
+          aria-label="Periksa kesiapan presentasi"
           aria-labelledby="presentation-preflight-title"
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
@@ -1050,14 +1076,14 @@ export default function App() {
             }
           }}
         >
-          <section className="w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-2xl sm:p-7">
-            <p className="text-xs font-black uppercase tracking-wider text-red-700">Verifikasi Kesiapan Sesi · Briefing Eksekutif Direksi</p>
-            <h2 id="presentation-preflight-title" className="mt-1 text-xl font-black">Periksa Kesiapan Sesi Briefing</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">Konfirmasi kesiapan parameter telemetri sebelum sesi peninjauan direksi dimulai. Parameter operasional akan disinkronkan ke baseline standar.</p>
+          <section className="w-full max-w-xl rounded-2xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-[#0B1324] p-5 text-slate-900 dark:text-slate-100 shadow-2xl sm:p-7">
+            <p className="text-xs font-black uppercase tracking-wider text-red-700 dark:text-red-400">Verifikasi Kesiapan Sesi · Briefing Eksekutif Direksi</p>
+            <h2 id="presentation-preflight-title" className="mt-1 text-xl font-black">Periksa kesiapan presentasi</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Konfirmasi kesiapan parameter telemetri sebelum sesi peninjauan direksi dimulai. Parameter operasional akan disinkronkan ke baseline standar.</p>
             <ul className="mt-4 space-y-3">
               {PRESENTATION_PREFLIGHT_ITEMS.map((item, index) => (
                 <li key={item}>
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm leading-relaxed hover:bg-slate-50">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-sm leading-relaxed hover:bg-slate-50 dark:hover:bg-slate-900/70 transition">
                     <input
                       type="checkbox"
                       className="mt-1 h-4 w-4 shrink-0 accent-red-600"
@@ -1071,14 +1097,15 @@ export default function App() {
               ))}
             </ul>
             <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row">
-              <button type="button" onClick={() => setIsPreflightOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100">Batal</button>
+              <button type="button" onClick={() => setIsPreflightOpen(false)} className="rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">Batal</button>
               <button
                 type="button"
+                aria-label="Mulai pitch dan reset demo"
                 disabled={!preflightChecks.every(Boolean)}
                 onClick={startPresentation}
-                className="rounded-xl bg-[#ED0226] px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="rounded-xl bg-[#ED0226] px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 cursor-pointer"
               >
-                Mulai Briefing Eksekutif
+                Mulai pitch dan reset demo
               </button>
             </div>
           </section>

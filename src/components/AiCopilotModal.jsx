@@ -80,7 +80,7 @@ const LOCAL_KNOWLEDGE_BASE = {
     suggestedTabLabel: "Buka Matriks Rekonsiliasi 3-Arah"
   },
   sla: {
-    title: "Guardrail QoS 3GPP & Proteksi Panggilan Darurat 112 (<28 ms)",
+    title: "Keselamatan jaringan dan layanan darurat 112 • Guardrail QoS 3GPP (<28 ms)",
     answer: "Keandalan sinyal pelanggan dan layanan darurat 112 dilindungi melalui Near-RT RIC xApp Interlock. Jika utilisasi PRB melampaui 65%, Call Drop Rate mendekati 0,15%, atau terdeteksi flag Panggilan Darurat 112 (QCI-1/5QI-1), perintah Carrier Sleep dibatalkan secara instan dalam <28 milidetik (Zero-Wait Wakeup) sehingga ketersediaan jaringan tetap ≥99,99%.",
     suggestedTab: "overview",
     suggestedTabLabel: "Buka Panel Keandalan & Guardrail SLA"
@@ -164,9 +164,9 @@ export default function AiCopilotModal({
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   
-  // Server-side Gemini proxy enabled by default; falls back to local deterministic engine when unconfigured.
+  // Default to local deterministic engine; optional server-side Gemini proxy can be toggled in settings.
   const [showSettings, setShowSettings] = useState(false);
-  const [useProxy, setUseProxy] = useState(true);
+  const [useProxy, setUseProxy] = useState(false);
   const selectedModel = 'gemini-3.8-flash';
 
   const chatBottomRef = useRef(null);
@@ -288,7 +288,7 @@ export default function AiCopilotModal({
       return LOCAL_KNOWLEDGE_BASE.knapsack;
     } else {
       return {
-        title: "Arsitektur Operasional ImpactGrid Telkomsel",
+        title: "Rancangan ImpactGrid — Arsitektur Operasional Telkomsel",
         answer: `ImpactGrid mengintegrasikan empat kapabilitas utama jaringan RAN Telkomsel (${operationalSummary?.siteCount || 50} site terpantau): (1) Rekonsiliasi Telemetri 3-Arah PLN AMR–DC Rectifier–OSS RF, (2) Orkestrasi AI O-RAN Non-RT RIC multi-vendor dengan proteksi SLA <28ms, (3) Otomasi Tiket FOP, Berita Acara BA-RE PLN, dan Jurnal SAP S/4HANA FI-CO, serta (4) Akuntansi Emisi Scope 2 bersegel SHA-256 sesuai standar POJK 51/2017 & IFRS S2.`,
         suggestedTab: 'telemetry',
         suggestedTabLabel: 'Buka Pusat Telemetri & Rekonsiliasi'

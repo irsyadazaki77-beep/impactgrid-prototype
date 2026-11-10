@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ExplainableAiModal from './ExplainableAiModal';
+import { calculateHourTelemetry } from './GlobalSimulationBar';
 import { 
   Bot, 
   Cpu, 
@@ -42,6 +43,11 @@ export default function AgentOrchestratorTab({
   const [terminalLogs, setTerminalLogs] = useState([]);
   const [batchActionNotice, setBatchActionNotice] = useState(null);
   const simulationTimers = useRef([]);
+
+  const liveHourTelemetry = calculateHourTelemetry(
+    typeof simState?.simHour === 'number' ? simState.simHour : 14,
+    simState?.scenarioKey || 'normal'
+  );
 
   const handleBatchDispatchOran = () => {
     const activeCount = operationalSummary?.siteCount || 50;
@@ -397,7 +403,7 @@ export default function AgentOrchestratorTab({
           <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
             <span className="text-[10px] font-bold uppercase text-slate-400 block">Beban PRB &amp; Suhu Shelter</span>
             <strong className="font-mono text-sky-600 dark:text-sky-400">
-              PRB {simState?.trafficLoad ?? 32}% · {simState?.tempAmbient ?? 27.5}°C
+              PRB {simState?.trafficLoad ?? liveHourTelemetry.prbUtilizationPct}% · {simState?.tempAmbient ?? liveHourTelemetry.tempC}°C
             </strong>
           </div>
           <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">

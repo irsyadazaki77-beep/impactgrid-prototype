@@ -169,6 +169,13 @@ export default function DirectorTourModal({
           </div>
 
           <div className="flex items-center gap-1.5">
+            <button 
+              onClick={onClose}
+              aria-label="Tutup Briefing"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer order-last"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <button
               type="button"
               onClick={handleExportBriefingCsv}
@@ -176,13 +183,6 @@ export default function DirectorTourModal({
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" />
               <span>Unduh Materi (CSV)</span>
-            </button>
-            <button 
-              onClick={onClose}
-              aria-label="Tutup Briefing"
-              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

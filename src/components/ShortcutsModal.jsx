@@ -7,8 +7,8 @@ export default function ShortcutsModal({ isOpen, onClose }) {
   const shortcuts = [
     { key: 'Shift + ?', desc: 'Buka panduan pintasan keyboard ini' },
     { key: 'Cmd / Ctrl + K', desc: 'Buka Command Palette & Pencarian Global (50 Site / Q&A / Bukti)' },
-    { key: '1 - 5', desc: 'Navigasi Alur Eksekutif (1 Ringkasan, 2 Validasi, 3 Skenario, 4 Finansial, 5 ESG)' },
-    { key: '6 - 0', desc: 'Navigasi Modul Teknis & O-RAN (6 Telemetri, 7 Digital Twin, 8 Agen, 9 Optimasi, 0 Arsitektur)' },
+    { key: '1, V, 5, 8, 7', desc: 'Navigasi Alur Eksekutif (1 Ringkasan, V Validasi, 5 Skenario, 8 Finansial, 7 ESG)' },
+    { key: '4, 2, 3, 6, 9', desc: 'Navigasi Modul Teknis & O-RAN (4 Telemetri, 2 Digital Twin, 3 Agen, 6 Optimasi, 9 Arsitektur)' },
     { key: 'B', desc: 'Buka Generator BoQ, RKS Pengadaan & Simulasi Penalti SLA' },
     { key: 'J', desc: 'Buka Evaluasi Komite Investasi 5 Pilar & BYOD CSV Sandbox' },
     { key: 'Cmd / Ctrl + E', desc: 'Buka modal ekspor lembar kerja asumsi / laporan resmi' },

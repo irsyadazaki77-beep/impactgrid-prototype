@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.pw.js',
   fullyParallel: true,
-  workers: 4,
+  workers: 2,
   timeout: 60_000,
   reporter: 'list',
   use: {

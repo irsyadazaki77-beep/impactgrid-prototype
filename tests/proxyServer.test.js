@@ -162,3 +162,70 @@ describe('Live REST Telemetry Ingestion endpoint', () => {
     controller.abort();
   });
 });
+
+describe('Zero-Trust API, IDS Quarantine, and Auto-Lockout Security Hardening', () => {
+  it('returns nominal Zero-Trust security posture and verified SHA-256 audit chain', async () => {
+    const res = await fetch(`${baseUrl}/api/v1/security/status`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.securityStatus.zeroTrustEnabled).toBe(true);
+    expect(body.securityStatus.auditChainIntegrity.verified).toBe(true);
+  });
+
+  it('quarantines SQL injection and XSS payloads with HTTP 403 and enforces Auto-Lockout (HTTP 423) until MFA unlock', async () => {
+    // 1. Attempt SQL Injection on BTS Sites endpoint -> 403 Quarantined by IDS
+    const sqliRes = await fetch(`${baseUrl}/api/v1/sites`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        site: {
+          site_id: 'BDG-HACK-01',
+          site_name: "Hack' UNION SELECT password FROM admin--"
+        }
+      })
+    });
+    expect(sqliRes.status).toBe(403);
+    const sqliBody = await sqliRes.json();
+    expect(sqliBody.status).toBe('INTRUSION_QUARANTINED_BY_IDS');
+
+    // 2. Trigger Auto-Lockout simulation (3 strikes)
+    const lockRes = await fetch(`${baseUrl}/api/v1/security/simulate-attack`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ attackType: 'AUTO_LOCKOUT_TRIGGER' })
+    });
+    expect(lockRes.status).toBe(200);
+    const lockBody = await lockRes.json();
+    expect(lockBody.securityStatus.lockout.isLocked).toBe(true);
+
+    // 3. Verify critical mutation is blocked with HTTP 423 Locked while session is locked
+    const blockedOranRes = await fetch(`${baseUrl}/api/v1/oran/policy`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ policyType: 'MIMO_DEEP_SLEEP', sleepMode: 'DEEP_SLEEP_ACTIVE' })
+    });
+    expect(blockedOranRes.status).toBe(423);
+    const blockedOranBody = await blockedOranRes.json();
+    expect(blockedOranBody.errorCode).toBe('ERR_SESSION_AUTO_LOCKED');
+
+    // 4. Unlock session with valid 6-digit MFA OTP
+    const unlockRes = await fetch(`${baseUrl}/api/v1/security/unlock`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ otpCode: '881026', nik: '8810429' })
+    });
+    expect(unlockRes.status).toBe(200);
+    const unlockBody = await unlockRes.json();
+    expect(unlockBody.securityStatus.lockout.isLocked).toBe(false);
+
+    // 5. Verify critical mutation succeeds again after MFA unlock
+    const allowedOranRes = await fetch(`${baseUrl}/api/v1/oran/policy`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ policyType: 'MIMO_DEEP_SLEEP', sleepMode: 'DEEP_SLEEP_ACTIVE' })
+    });
+    expect(allowedOranRes.status).toBe(200);
+  });
+});
+

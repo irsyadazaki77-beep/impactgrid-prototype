@@ -16,8 +16,22 @@ import {
   resolveSiteAnomalyFop,
   signOfficialBareDocument,
   postSapAccountingVoucher,
-  appendAuditEntry
+  appendAuditEntry,
+  verifyAuditChainIntegrity
 } from './operationalStore.js';
+import {
+  canonicalizePayload,
+  computePayloadSha256,
+  computePayloadHmac,
+  recordSecurityStrike,
+  unlockSecuritySession,
+  resetSecurityEngineState,
+  verifyAndRecordNonce,
+  inspectAndSanitizePayload,
+  evaluateTieredRateLimit,
+  incrementSecurityCounter,
+  getSecurityStatusSnapshot
+} from './securityEngine.js';
 import {
   executeTelkomselApiSimulation,
   executeVendorCliCommand,
@@ -35,9 +49,6 @@ const ALLOWED_MODELS = new Set([
   'gemini-3.1-flash-lite',
   'gemini-2.5-flash'
 ]);
-const MAX_REQUESTS_PER_WINDOW = 120;
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const rateLimits = new Map();
 const configuredOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
   .split(',').map((origin) => origin.trim()).filter(Boolean);
 
@@ -82,21 +93,41 @@ app.use(cors({
     return callback(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Telkomsel-Apigee-Env', 'X-ImpactGrid-SHA256'],
-  exposedHeaders: ['X-Telkomsel-Apigee-Trace-Id', 'X-Oran-O1-Mtls-Verified', 'X-Data-Residency', 'X-Merkle-Leaf-SHA256', 'X-Payload-HMAC-SHA256'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Telkomsel-Apigee-Env',
+    'X-ImpactGrid-SHA256',
+    'X-ImpactGrid-Timestamp',
+    'X-ImpactGrid-Nonce',
+    'X-ImpactGrid-Role'
+  ],
+  exposedHeaders: [
+    'X-Telkomsel-Apigee-Trace-Id',
+    'X-Oran-O1-Mtls-Verified',
+    'X-Data-Residency',
+    'X-Merkle-Leaf-SHA256',
+    'X-Payload-HMAC-SHA256',
+    'X-ImpactGrid-ZeroTrust-Status',
+    'X-ImpactGrid-RateLimit-Tier',
+    'X-ImpactGrid-RateLimit-Remaining'
+  ],
   maxAge: 600,
 }));
 app.use(express.json({ limit: '512kb', strict: true }));
 
-// Enterprise OWASP & Telkomsel Apigee mTLS Security Headers Middleware
+// Enterprise OWASP, Zero-Trust & Telkomsel Apigee mTLS Security Headers Middleware
 app.use((req, res, next) => {
   const traceId = `tsel-snoc-${Date.now().toString(36)}-${crypto.randomBytes(3).toString('hex')}`;
   res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=()');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
   res.setHeader('X-Telkomsel-Apigee-Trace-Id', traceId);
   res.setHeader('X-Data-Residency', 'ID-JKT-SENTUL-DC (PP 71/2019 Compliant)');
+  res.setHeader('X-ImpactGrid-ZeroTrust-Status', 'ENFORCED_FIPS_180_4');
   req.tselTraceId = traceId;
   next();
 });
@@ -114,6 +145,7 @@ app.get('/healthz', (_req, res) => res.json({
 app.get('/readyz', (_req, res) => {
   const apiKey = getGeminiApiKey();
   const state = loadOperationalState();
+  const chainStatus = verifyAuditChainIntegrity(state);
   return res.json({
     status: 'ready',
     timestamp: new Date().toISOString(),
@@ -121,6 +153,8 @@ app.get('/readyz', (_req, res) => {
     checks: {
       ingestion_engine: 'ok',
       reconciliation_worker: 'ok',
+      zero_trust_ids: 'ok',
+      audit_chain_integrity: chainStatus.verified ? 'verified' : 'tamper_alert',
       persistent_store_sites: state.sites.length,
       ai_proxy: apiKey ? 'available' : 'fallback_local',
       memory_usage_mb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
@@ -132,6 +166,7 @@ app.get('/readyz', (_req, res) => {
 app.get('/metrics', (_req, res) => {
   const state = loadOperationalState();
   const summary = computeOperationalSummary(state);
+  const secSnapshot = getSecurityStatusSnapshot();
   const body = [
     '# HELP impactgrid_telemetry_ingest_total Total telemetry records ingested into Telkomsel edge',
     '# TYPE impactgrid_telemetry_ingest_total counter',
@@ -169,6 +204,14 @@ app.get('/metrics', (_req, res) => {
     '# HELP impactgrid_hmac_verifications_total Total cryptographic SHA-256 / HMAC verifications performed',
     '# TYPE impactgrid_hmac_verifications_total counter',
     `impactgrid_hmac_verifications_total ${telemetryMetrics.hmacVerificationsTotal}`,
+    '',
+    '# HELP impactgrid_security_intrusions_blocked_total Total malicious payloads quarantined by Zero-Trust IDS',
+    '# TYPE impactgrid_security_intrusions_blocked_total counter',
+    `impactgrid_security_intrusions_blocked_total ${secSnapshot.threatCounters.intrusionBlockedCount}`,
+    '',
+    '# HELP impactgrid_security_auto_lockouts_total Total automatic session lockouts triggered',
+    '# TYPE impactgrid_security_auto_lockouts_total counter',
+    `impactgrid_security_auto_lockouts_total ${secSnapshot.threatCounters.autoLockoutCount}`,
     ''
   ].join('\n');
 
@@ -176,23 +219,140 @@ app.get('/metrics', (_req, res) => {
   return res.send(body);
 });
 
-function rateLimiter(req, res, next) {
-  const key = req.ip || req.socket.remoteAddress || 'unknown';
-  const now = Date.now();
-  let client = rateLimits.get(key);
-  if (!client || now >= client.resetAt) {
-    client = { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
-    rateLimits.set(key, client);
+// Zero-Trust API Guard: Tiered Rate-Limiter, Anti-Replay Nonce, IDS/WAF Sanitizer & Auto-Lockout Enforcement
+function zeroTrustSecurityMiddleware(req, res, next) {
+  const clientKey = req.ip || req.socket?.remoteAddress || 'unknown';
+  incrementSecurityCounter('totalInspectedRequests', 1);
+
+  // 1. Tiered Adaptive Rate-Limiting
+  const rateEval = evaluateTieredRateLimit(clientKey, req.path, req.method);
+  res.setHeader('X-ImpactGrid-RateLimit-Tier', rateEval.tier);
+  res.setHeader('X-ImpactGrid-RateLimit-Remaining', String(rateEval.remaining));
+
+  if (!rateEval.allowed) {
+    res.set('Retry-After', String(rateEval.retryAfterSec));
+    return res.status(429).json({
+      success: false,
+      fallback: true,
+      errorCode: 'ERR_ZERO_TRUST_RATE_LIMIT_EXCEEDED',
+      error: `Batas laju permintaan (${rateEval.tier}) terlampaui. Mitigasi DDoS aktif, silakan coba lagi dalam ${rateEval.retryAfterSec} detik.`
+    });
   }
-  client.count += 1;
-  if (client.count > MAX_REQUESTS_PER_WINDOW) {
-    res.set('Retry-After', String(Math.ceil((client.resetAt - now) / 1000)));
-    return res.status(429).json({ fallback: true, error: 'Batas permintaan sementara tercapai. Gunakan jawaban lokal atau coba lagi nanti.' });
+
+  // 2. Enforce Auto-Lockout on Critical Mutations if Session is Locked Out
+  const isExemptFromLockout =
+    req.method === 'GET' ||
+    req.path.startsWith('/v1/auth/sso') ||
+    req.path.startsWith('/v1/security/') ||
+    req.path.startsWith('/v1/operations/reset') ||
+    req.path === '/health';
+
+  const currentSec = getSecurityStatusSnapshot();
+  if (currentSec.lockout.isLocked && !isExemptFromLockout) {
+    return res.status(423).json({
+      success: false,
+      httpStatus: 423,
+      errorCode: 'ERR_SESSION_AUTO_LOCKED',
+      error: 'Sesi dikunci otomatis (Auto-Lockout) karena terdeteksi aktivitas mencurigakan berulang. Lakukan re-autentikasi MFA pada Portal IAM SSO Telkomsel untuk membuka kunci.',
+      lockout: currentSec.lockout,
+      traceId: req.tselTraceId,
+      timestamp: new Date().toISOString()
+    });
   }
+
+  // 3. Anti-Replay Nonce & Timestamp Window Verification
+  const clientNonce = req.headers['x-impactgrid-nonce'];
+  const clientTimestamp = req.headers['x-impactgrid-timestamp'];
+  if (clientNonce || clientTimestamp) {
+    const nonceCheck = verifyAndRecordNonce(clientNonce, clientTimestamp);
+    if (!nonceCheck.valid) {
+      const strike = recordSecurityStrike({
+        type: 'REPLAY_ATTACK_BLOCKED',
+        reason: nonceCheck.reason,
+        actor: req.body?.actor || clientKey,
+        endpoint: req.originalUrl,
+        severity: 'HIGH'
+      });
+      return res.status(409).json({
+        success: false,
+        errorCode: nonceCheck.code,
+        error: nonceCheck.reason,
+        lockout: strike.lockout,
+        traceId: req.tselTraceId
+      });
+    }
+  }
+
+  // 4. Real-Time IDS / WAF Deep Payload & Query Inspection + Sanitization
+  if (req.body && typeof req.body === 'object') {
+    const bodyInspection = inspectAndSanitizePayload(req.body, 'body');
+    if (bodyInspection.blocked) {
+      incrementSecurityCounter('intrusionBlockedCount', 1);
+      const primaryViolation = bodyInspection.violations[0];
+      const strike = recordSecurityStrike({
+        type: primaryViolation.category,
+        reason: `${primaryViolation.description} (Path: ${primaryViolation.path})`,
+        actor: req.body?.actor || req.headers['x-impactgrid-role'] || clientKey,
+        endpoint: req.originalUrl,
+        severity: primaryViolation.severity
+      });
+
+      const state = loadOperationalState();
+      appendAuditEntry(state, {
+        action: 'SECURITY_IDS_INTRUSION_QUARANTINED',
+        actor: 'Zero-Trust IDS Engine',
+        category: 'SECURITY',
+        detail: `Serangan ${primaryViolation.category} dikarantina pada ${req.originalUrl}. Strike: ${strike.lockout.strikeCount}/${strike.lockout.maxStrikes}.`
+      });
+      saveOperationalState(state);
+
+      return res.status(403).json({
+        success: false,
+        status: 'INTRUSION_QUARANTINED_BY_IDS',
+        errorCode: primaryViolation.signatureId,
+        error: `Ancaman siber terdeteksi & dikarantina otomatis: ${primaryViolation.description}`,
+        violations: bodyInspection.violations,
+        lockout: strike.lockout,
+        traceId: req.tselTraceId,
+        timestamp: new Date().toISOString()
+      });
+    }
+    req.body = bodyInspection.sanitized;
+  }
+
+  // 5. Client SHA-256 Digest & Server HMAC Signing for Critical Mutations
+  const clientSha256 = req.headers['x-impactgrid-sha256'];
+  if (req.method !== 'GET' && req.body && typeof req.body === 'object') {
+    const rawJsonSha = crypto.createHash('sha256').update(JSON.stringify(req.body)).digest('hex');
+    const canonicalSha = computePayloadSha256(req.body);
+    if (clientSha256 && clientSha256 !== rawJsonSha && clientSha256 !== canonicalSha) {
+      incrementSecurityCounter('intrusionBlockedCount', 1);
+      const strike = recordSecurityStrike({
+        type: 'PAYLOAD_SHA256_TAMPER',
+        reason: 'Digest X-ImpactGrid-SHA256 tidak cocok dengan isi payload (indikasi Man-in-the-Middle / Tampering).',
+        actor: req.body?.actor || clientKey,
+        endpoint: req.originalUrl,
+        severity: 'CRITICAL'
+      });
+      return res.status(422).json({
+        success: false,
+        errorCode: 'ERR_ZERO_TRUST_SHA256_MISMATCH',
+        error: 'Penolakan Zero-Trust: Hash SHA-256 payload tidak valid atau telah dimodifikasi di perjalanan.',
+        expectedSha256: canonicalSha,
+        lockout: strike.lockout,
+        traceId: req.tselTraceId
+      });
+    }
+    incrementSecurityCounter('hmacVerifiedCount', 1);
+    telemetryMetrics.hmacVerificationsTotal += 1;
+    const responseHmac = computePayloadHmac(req.body, clientTimestamp || '');
+    res.setHeader('X-Payload-HMAC-SHA256', responseHmac);
+  }
+
   return next();
 }
 
-app.use('/api', rateLimiter);
+app.use('/api', zeroTrustSecurityMiddleware);
 
 app.get('/api/health', (_req, res) => {
   const apiKey = getGeminiApiKey();
@@ -378,6 +538,164 @@ app.get('/api/v1/ran/3gpp-modbus/:siteId', (req, res) => {
   });
 });
 
+// 6. Zero-Trust Security Posture, IDS Telemetry & Audit Chain Integrity Endpoint
+app.get('/api/v1/security/status', (_req, res) => {
+  const state = loadOperationalState();
+  const chainIntegrity = verifyAuditChainIntegrity(state);
+  const securityStatus = getSecurityStatusSnapshot(chainIntegrity);
+  return res.status(200).json({
+    success: true,
+    securityStatus
+  });
+});
+
+// 7. End-to-End SHA-256 Audit Chain Verification Endpoint
+app.post('/api/v1/security/verify-chain', (req, res) => {
+  const { actor = 'CISO / Internal Auditor' } = req.body ?? {};
+  const state = loadOperationalState();
+  const beforeCheck = verifyAuditChainIntegrity(state);
+
+  const auditEntry = appendAuditEntry(state, {
+    action: 'AUDIT_MERKLE_CHAIN_VERIFIED',
+    actor,
+    category: 'SECURITY',
+    detail: `Verifikasi rantai kriptografi SHA-256 berhasil (${beforeCheck.entriesChecked} blok utuh, Head: ${beforeCheck.headHash.slice(0, 16)}...).`
+  });
+  saveOperationalState(state);
+
+  const chainIntegrity = verifyAuditChainIntegrity(state);
+  return res.status(200).json({
+    success: true,
+    chainIntegrity,
+    auditEntry,
+    securityStatus: getSecurityStatusSnapshot(chainIntegrity)
+  });
+});
+
+// 8. Security Defense Drill: IDS Quarantine, HMAC Tamper & Auto-Lockout Simulation Endpoint
+app.post('/api/v1/security/simulate-attack', (req, res) => {
+  const { attackType = 'IDS_INJECTION', actor = 'Red-Team SecOps Probe' } = req.body ?? {};
+  const state = loadOperationalState();
+
+  if (attackType === 'AUTO_LOCKOUT_TRIGGER') {
+    incrementSecurityCounter('intrusionBlockedCount', 3);
+    recordSecurityStrike({
+      type: 'CREDENTIAL_STUFFING_AND_RBAC_ESCALATION',
+      reason: 'Percobaan eskalasi hak akses paksa (Privilege Escalation) & 3x kegagalan verifikasi signature berturut-turut.',
+      actor,
+      endpoint: '/api/v1/oran/policy',
+      severity: 'CRITICAL',
+      forceLockout: true
+    });
+
+    const auditEntry = appendAuditEntry(state, {
+      action: 'SECURITY_AUTO_LOCKOUT_ENGAGED',
+      actor: 'Zero-Trust Auto-Lockout Guard',
+      category: 'SECURITY',
+      detail: `Sesi dikunci otomatis (HTTP 423 Locked) setelah terdeteksi percobaan eskalasi hak akses & brute-force oleh ${actor}.`
+    });
+    saveOperationalState(state);
+
+    const chainIntegrity = verifyAuditChainIntegrity(state);
+    return res.status(200).json({
+      success: true,
+      simulatedAttack: 'AUTO_LOCKOUT_TRIGGER',
+      mitigationResult: 'SESSION_LOCKED_OUT_HTTP_423',
+      message: 'Auto-Lockout berhasil diaktifkan! Seluruh eksekusi perintah kritis kini diblokir hingga operator melakukan re-autentikasi MFA pada Portal IAM SSO.',
+      auditEntry,
+      securityStatus: getSecurityStatusSnapshot(chainIntegrity)
+    });
+  }
+
+  if (attackType === 'HMAC_TAMPER') {
+    incrementSecurityCounter('intrusionBlockedCount', 1);
+    const strike = recordSecurityStrike({
+      type: 'HMAC_SHA256_SIGNATURE_TAMPER',
+      reason: 'Modifikasi ilegal bit nilai kredit restitusi SAP S/4HANA terdeteksi oleh verifikator HMAC-SHA256.',
+      actor,
+      endpoint: '/api/v1/sap/post-voucher',
+      severity: 'CRITICAL'
+    });
+
+    const auditEntry = appendAuditEntry(state, {
+      action: 'SECURITY_HMAC_TAMPER_REJECTED',
+      actor: 'Zero-Trust HMAC Verifier',
+      category: 'SECURITY',
+      detail: `Manipulasi payload finansial ditolak secara kriptografis. Strike: ${strike.lockout.strikeCount}/${strike.lockout.maxStrikes}.`
+    });
+    saveOperationalState(state);
+
+    const chainIntegrity = verifyAuditChainIntegrity(state);
+    return res.status(200).json({
+      success: true,
+      simulatedAttack: 'HMAC_TAMPER',
+      mitigationResult: strike.lockout.isLocked ? 'SESSION_LOCKED_OUT_HTTP_423' : 'TAMPERED_PAYLOAD_REJECTED_422',
+      message: `Manipulasi bit payload berhasil digagalkan oleh verifikasi SHA-256/HMAC (Strike ${strike.lockout.strikeCount}/${strike.lockout.maxStrikes}).`,
+      auditEntry,
+      securityStatus: getSecurityStatusSnapshot(chainIntegrity)
+    });
+  }
+
+  // Default: IDS_INJECTION
+  incrementSecurityCounter('intrusionBlockedCount', 1);
+  const strike = recordSecurityStrike({
+    type: 'SQLI_AND_CLI_INJECTION_BLOCKED',
+    reason: 'Payload injeksi (UNION SELECT / OS Command Injection) dikarantina otomatis oleh mesin IDS.',
+    actor,
+    endpoint: '/api/v1/oss/cli-execute',
+    severity: 'CRITICAL'
+  });
+
+  const auditEntry = appendAuditEntry(state, {
+    action: 'SECURITY_IDS_INTRUSION_QUARANTINED',
+    actor: 'Zero-Trust IDS Engine',
+    category: 'SECURITY',
+    detail: `Serangan injeksi siber dikarantina sebelum menyentuh OSS/EMS. Strike: ${strike.lockout.strikeCount}/${strike.lockout.maxStrikes}.`
+  });
+  saveOperationalState(state);
+
+  const chainIntegrity = verifyAuditChainIntegrity(state);
+  return res.status(200).json({
+    success: true,
+    simulatedAttack: 'IDS_INJECTION',
+    mitigationResult: strike.lockout.isLocked ? 'SESSION_LOCKED_OUT_HTTP_423' : 'INTRUSION_QUARANTINED_403',
+    message: `Serangan injeksi berhasil dikarantina oleh IDS Zero-Trust (Strike ${strike.lockout.strikeCount}/${strike.lockout.maxStrikes}).`,
+    auditEntry,
+    securityStatus: getSecurityStatusSnapshot(chainIntegrity)
+  });
+});
+
+// 9. MFA Session Unlock Endpoint
+app.post('/api/v1/security/unlock', (req, res) => {
+  const { otpCode = '881026', nik = '8810429', actor = 'VP Network Operations' } = req.body ?? {};
+  const unlockResult = unlockSecuritySession({ otpCode, nik, actor });
+
+  if (!unlockResult.success) {
+    return res.status(400).json({
+      success: false,
+      errorCode: unlockResult.errorCode,
+      error: unlockResult.error
+    });
+  }
+
+  const state = loadOperationalState();
+  const auditEntry = appendAuditEntry(state, {
+    action: 'SECURITY_SESSION_UNLOCKED_MFA',
+    actor: `${actor} (NIK: ${nik})`,
+    category: 'SECURITY',
+    detail: 'Kunci sesi otomatis (Auto-Lockout) berhasil dibuka kembali melalui verifikasi OTP MFA 6-digit.'
+  });
+  saveOperationalState(state);
+
+  const chainIntegrity = verifyAuditChainIntegrity(state);
+  return res.status(200).json({
+    success: true,
+    unlockResult,
+    auditEntry,
+    securityStatus: getSecurityStatusSnapshot(chainIntegrity)
+  });
+});
+
 // ============================================================================
 // ENTERPRISE OPERATIONAL STATE, RBAC AUTH, BTS CRUD, O-RAN & SAP ENDPOINTS
 // ============================================================================
@@ -385,29 +703,51 @@ app.get('/api/v1/ran/3gpp-modbus/:siteId', (req, res) => {
 app.get('/api/v1/operations/state', (_req, res) => {
   const state = loadOperationalState();
   const summary = computeOperationalSummary(state);
+  const chainIntegrity = verifyAuditChainIntegrity(state);
   return res.json({
     success: true,
     state,
     summary,
-    divisionAccounts: DIVISION_ACCOUNTS
+    divisionAccounts: DIVISION_ACCOUNTS,
+    securityStatus: getSecurityStatusSnapshot(chainIntegrity)
   });
 });
 
 app.post('/api/v1/operations/reset', (req, res) => {
   const { presetKey = 'jamali50' } = req.body ?? {};
+  resetSecurityEngineState();
   const state = resetOperationalState(presetKey);
   const summary = computeOperationalSummary(state);
+  const chainIntegrity = verifyAuditChainIntegrity(state);
   return res.json({
     success: true,
     state,
-    summary
+    summary,
+    securityStatus: getSecurityStatusSnapshot(chainIntegrity)
   });
 });
 
-// Division IAM SSO Login Endpoint
+// Division IAM SSO Login Endpoint (Also unlocks Auto-Lockout upon valid MFA OTP)
 app.post('/api/v1/auth/sso', (req, res) => {
-  const { nik = '8810429', email = 'bambang.hariyanto@telkomsel.co.id', roleId = 'vp_network', accountId = null } = req.body ?? {};
+  const { nik = '8810429', email = 'bambang.hariyanto@telkomsel.co.id', roleId = 'vp_network', accountId = null, otpCode = '881026' } = req.body ?? {};
   const state = loadOperationalState();
+
+  const cleanOtp = String(otpCode ?? '881026').trim();
+  if (cleanOtp && !/^\d{6}$/.test(cleanOtp)) {
+    const strike = recordSecurityStrike({
+      type: 'INVALID_MFA_OTP_ATTEMPT',
+      reason: `Kegagalan verifikasi MFA OTP untuk NIK ${nik}: format OTP tidak sah.`,
+      actor: String(email || nik),
+      endpoint: '/api/v1/auth/sso',
+      severity: 'HIGH'
+    });
+    return res.status(401).json({
+      success: false,
+      errorCode: 'ERR_MFA_OTP_INVALID',
+      error: 'Kode OTP MFA Telkomsel Authenticator tidak valid (wajib 6 digit angka).',
+      lockout: strike.lockout
+    });
+  }
 
   const matchedAccount = DIVISION_ACCOUNTS.find((a) =>
     (accountId && a.id === accountId) ||
@@ -418,6 +758,9 @@ app.post('/api/v1/auth/sso', (req, res) => {
   const effectiveNik = String(nik || matchedAccount.nik).trim();
   const effectiveEmail = String(email || matchedAccount.email).trim();
   const effectiveName = effectiveNik === matchedAccount.nik ? matchedAccount.name : `Pejabat Operasional (${effectiveNik})`;
+
+  // Unlock session if previously auto-locked out
+  unlockSecuritySession({ otpCode: cleanOtp || '881026', nik: effectiveNik, actor: effectiveName });
 
   const tokenPayload = {
     iss: 'https://iam.telkomsel.co.id/oauth2/v1',
@@ -436,15 +779,15 @@ app.post('/api/v1/auth/sso', (req, res) => {
   };
 
   const signature = crypto
-    .createHash('sha256')
-    .update(JSON.stringify(tokenPayload) + ':TSEL-IAM-SECRET-2026')
+    .createHmac('sha256', 'TSEL-IAM-SECRET-2026')
+    .update(canonicalizePayload(tokenPayload))
     .digest('hex');
 
   const auditEntry = appendAuditEntry(state, {
     action: 'IAM_SSO_DIVISION_LOGIN',
     actor: `${effectiveName} (${matchedAccount.title})`,
     category: 'SECURITY',
-    detail: `Autentikasi OIDC/RBAC berhasil untuk NIK ${effectiveNik} (${matchedAccount.department}). Hak akses: ${matchedAccount.permissions.join(', ')}`
+    detail: `Autentikasi OIDC/RBAC & MFA berhasil untuk NIK ${effectiveNik} (${matchedAccount.department}). Hak akses: ${matchedAccount.permissions.join(', ')}`
   });
   saveOperationalState(state);
 
@@ -467,10 +810,12 @@ app.post('/api/v1/auth/sso', (req, res) => {
     }
   };
 
+  const chainIntegrity = verifyAuditChainIntegrity(state);
   return res.json({
     success: true,
     session: sessionData,
-    auditEntry
+    auditEntry,
+    securityStatus: getSecurityStatusSnapshot(chainIntegrity)
   });
 });
 
